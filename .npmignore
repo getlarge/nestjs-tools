@@ -1,0 +1,16 @@
+src
+test
+tsconfig.json
+tsconfig.module.json
+.eslintrc.js
+.prettierrc.js
+.github
+.prettierignore
+.vscode
+.env
+build/docs
+**/*.spec.*
+coverage
+.scannerwork
+.nyc_output
+*.log

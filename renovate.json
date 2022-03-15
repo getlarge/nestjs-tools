@@ -1,0 +1,39 @@
+{
+  "extends": [
+    "config:base",
+    ":preserveSemverRanges",
+    ":combinePatchMinorReleases",
+    ":prHourlyLimit1",
+    ":prConcurrentLimit10",
+    ":maintainLockFilesWeekly"
+  ],
+  "commitBody": "[skip ci]",
+  "schedule": ["after 10pm and before 5am every weekday", "every weekend"],
+  "packageRules": [
+    {
+      "matchPackagePatterns": ["ts", "typescript"],
+      "groupName": "typescript",
+      "schedule": ["before 2am on monday"]
+    },
+    {
+      "matchPackagePatterns": ["@nestjs"],
+      "groupName": "@nestjs",
+      "schedule": ["before 2am on monday"]
+    },
+    {
+      "matchPackagePatterns": ["eslint"],
+      "groupName": "eslint",
+      "schedule": ["before 2am on monday"]
+    },
+    {
+      "matchPackagePatterns": ["jest"],
+      "groupName": "jest",
+      "schedule": ["before 2am on monday"]
+    },
+    {
+      "matchPackagePatterns": ["lerna"],
+      "groupName": "lerna",
+      "schedule": ["before 2am on monday"]
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "asyncapi": "2.1.0",
+  "info": {
+    "title": "S1Seven Test Async API",
+    "description": "Microservice handling authentication",
+    "version": "0.12.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": {
+    "mqtt broker": {
+      "url": "mqtt://localhost:7883",
+      "protocol": "mqtt",
+      "bindings": {}
+    }
+  },
+  "components": {
+    "schemas": {
+      "ExampleDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "example's name"
+          },
+          "verified": {
+            "type": "boolean",
+            "description": "Example has been verified"
+          }
+        },
+        "required": ["name", "verified"]
+      }
+    }
+  },
+  "defaultContentType": "application/json",
+  "channels": {
+    "example": {
+      "publish": {
+        "summary": "Send example packet",
+        "description": "method is used for test purposes",
+        "message": {
+          "name": "example data",
+          "payload": {
+            "$ref": "#/components/schemas/ExampleDto"
+          }
+        }
+      }
+    },
+    "signal_example": {
+      "subscribe": {
+        "summary": "Subscribe to example packet",
+        "description": "method is used for test purposes",
+        "message": {
+          "name": "example data signal",
+          "payload": {
+            "$ref": "#/components/schemas/ExampleDto"
+          }
+        }
+      }
+    }
+  }
+}

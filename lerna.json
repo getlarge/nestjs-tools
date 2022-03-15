@@ -1,0 +1,12 @@
+{
+  "packages": ["packages/*"],
+  "npmClient": "npm",
+  "version": "independent",
+  "command": {
+    "publish": {
+      "ignoreChanges": ["**/package-lock.json", "*.md", "**/*.spec.ts", "**/fixtures/*"],
+      "conventionalCommits": true,
+      "message": "chore(release): publish"
+    }
+  }
+}

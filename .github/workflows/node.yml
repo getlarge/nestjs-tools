@@ -1,0 +1,120 @@
+name: Microservices common CI
+
+on:
+  push:
+    paths-ignore:
+      - 'README.md'
+      - 'renovate.json'
+      - '**/package-lock.json'
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+    paths-ignore:
+      - 'README.md'
+      - 'renovate.json'
+      - '**/package-lock.json'
+    branches:
+      - main
+
+jobs:
+  setup-and-test:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        node-version: [14.x]
+
+    services:
+      redis:
+        image: redis
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Cache Node.js modules
+        uses: actions/cache@v2
+        with:
+          path: ~/.npm
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.OS }}-node-
+            ${{ runner.OS }}-
+
+      - name: Update to npm 7
+        run: npm install -g npm@7
+
+      - name: Install dependencies
+        run: npm run bootstrap
+      
+      # Boot package has issues with @asyncapi monorepo
+      # - name: Scan dependencies with Audit CI
+      # run: npm run scan:deps
+
+      - name: Build packages
+        run: npm run build
+
+      # TODO: only run tests on changed code
+      - name: Run Jest tests
+        run: npm run test:cov
+        env:
+          CI: true
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage
+          path: ./coverage
+          retention-days: 2
+
+  scan:
+    needs: setup-and-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        node-version: [14.x]
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Retrieve coverage
+        uses: actions/download-artifact@v2
+        with:
+          name: coverage
+          path: ./coverage
+
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_URL: ${{ secrets.SONAR_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_LOGIN }}

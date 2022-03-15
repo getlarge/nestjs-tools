@@ -1,0 +1,52 @@
+{
+  "name": "@s1seven/microservices-amqp-transport",
+  "version": "0.2.0",
+  "description": "Custom Nest Transport classes for AMQP",
+  "license": "Apache-2.0",
+  "author": "getlarge <ed@getlarge.eu>",
+  "homepage": "https://github.com/s1seven/microservices-common#readme",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "publicConfig": {
+    "access": "restricted"
+  },
+  "types": "dist/index",
+  "main": "dist/index",
+  "directories": {
+    "src": "src",
+    "lib": "dist",
+    "test": "test"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "npm run clean && npm run compile",
+    "clean": "rimraf -rf ./dist",
+    "cleanup": "rimraf -rf dist coverage",
+    "compile": "tsc -p tsconfig.build.json",
+    "lint": "eslint -c ../../.eslintrc.js \"**/*.ts\"",
+    "lint:fix": "eslint -c ../../.eslintrc.js \"**/*.ts\" --fix",
+    "test": "jest --ci --passWithNoTests",
+    "scan:deps": "audit-ci --config ../../audit-ci.json",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@nestjs/common": "^8.2.3",
+    "@nestjs/config": "^1.1.0",
+    "@nestjs/core": "^8.2.3",
+    "@nestjs/microservices": "^8.2.3",
+    "amqp-connection-manager": "^4.1.0",
+    "amqplib": "^0.8.0",
+    "reflect-metadata": "^0.1.13"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^8.2.3",
+    "@types/amqplib": "^0.8.2",
+    "@types/node": "^16.11.6",
+    "mqtt": "^4.3.5",
+    "rimraf": "~3.0.2",
+    "typescript": "^4.5.5"
+  }
+}

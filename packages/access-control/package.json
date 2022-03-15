@@ -1,0 +1,61 @@
+{
+  "name": "@s1seven/microservices-access-control",
+  "description": "S1Seven ACL engine",
+  "version": "0.1.9",
+  "author": "getlarge <ed@getlarge.eu>",
+  "homepage": "https://github.com/s1seven/microservices-common/tree/master/packages/access-control#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/s1seven/microservices-common.git"
+  },
+  "bugs": {
+    "url": "https://github.com/s1seven/microservices-common/issues"
+  },
+  "engines": {
+    "node": ">=12",
+    "npm": ">=6"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "publicConfig": {
+    "access": "restricted"
+  },
+  "main": "dist/index",
+  "types": "dist/index",
+  "directories": {
+    "dist": "dist",
+    "src": "src",
+    "test": "tests"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "npm run clean && npm run compile",
+    "clean": "rimraf -rf ./dist",
+    "cleanup": "rimraf -rf dist coverage",
+    "compile": "tsc -p tsconfig.build.json",
+    "lint": "eslint -c ../../.eslintrc.js \"**/*.ts\"",
+    "lint:fix": "eslint -c ../../.eslintrc.js \"**/*.ts\" --fix",
+    "test": "jest",
+    "test:cov": "rimraf -rf ./coverage && jest --ci --coverage --logHeapUsage",
+    "scan:deps": "audit-ci --config ../../audit-ci.json",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@nestjs/common": "^8.2.3",
+    "@nestjs/core": "^8.2.3",
+    "reflect-metadata": "^0.1.13",
+    "role-acl": "^4.5.4"
+  },
+  "peerDependencies": {
+    "rxjs": "^7.5.4"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "^8.2.3",
+    "@types/node": "^16.11.6",
+    "rimraf": "~3.0.2",
+    "typescript": "^4.5.5"
+  }
+}

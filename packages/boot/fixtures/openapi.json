@@ -28,7 +28,7 @@
   "info": {
     "title": "S1Seven Test API",
     "description": "Microservice handling authentication",
-    "version": "0.12.0",
+    "version": "0.12.1",
     "contact": {
       "name": "S1Seven development team",
       "url": "https://s1seven.com",
@@ -67,7 +67,10 @@
             "description": "Example has been verified"
           }
         },
-        "required": ["name", "verified"]
+        "required": [
+          "name",
+          "verified"
+        ]
       }
     }
   },

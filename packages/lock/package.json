@@ -44,8 +44,8 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@nestjs/common": "^8.2.3",
-    "@nestjs/core": "^8.2.3",
+    "@nestjs/common": "^8.4.1",
+    "@nestjs/core": "^8.4.1",
     "node-redis-warlock": "^1.0.2",
     "redis": "^3.1.2",
     "reflect-metadata": "^0.1.13"
@@ -54,11 +54,9 @@
     "rxjs": "^7.5.4"
   },
   "devDependencies": {
-    "@nestjs/config": "^1.1.0",
-    "@nestjs/testing": "^8.2.3",
+    "@nestjs/config": "^1.2.0",
+    "@nestjs/testing": "^8.4.1",
     "@types/node": "^16.11.6",
-    "@types/redis": "^2.8.31",
-    "rimraf": "~3.0.2",
-    "typescript": "^4.5.5"
+    "@types/redis": "^2.8.31"
   }
 }

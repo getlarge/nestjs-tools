@@ -9,8 +9,9 @@
     "registry": "https://registry.npmjs.org/"
   },
   "publicConfig": {
-    "access": "restricted"
+    "access": "public"
   },
+  "private": false,
   "types": "dist/index",
   "main": "dist/index",
   "directories": {

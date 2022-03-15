@@ -2,8 +2,8 @@
 
 [![npm][npm-image]][npm-url]
 
-[npm-image]: https://img.shields.io/npm/v/@s1seven/microservices-boot.svg?style=flat
-[npm-url]: https://npmjs.org/package/@s1seven/microservices-boot
+[npm-image]: https://img.shields.io/npm/v/@s1seven/nestjs-tools-boot.svg?style=flat
+[npm-url]: https://npmjs.org/package/@s1seven/nestjs-tools-boot
 
 The ApplicationBootstrap class is provided to avoid boilerplate for bootrapping NestJS application, by simply providing a configuration object and listening to boot events.
 
@@ -14,17 +14,14 @@ import { ConfigService } from '@nestjs/config';
 import type { SecuritySchemeObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { Transport } from '@nestjs/microservices';
-import { ApplicationBoot, ClusterServiceConfig, ClusterService, SetupOptions } from '@s1seven/microservices-boot';
-import { Environment, Resources } from '@s1seven/microservices-constants';
-import { MqttConfigService } from '@s1seven/microservices-rpc-config';
-import { HttpErrorFilter } from '@s1seven/microservices-utils';
+import { ApplicationBoot, ClusterServiceConfig, ClusterService, SetupOptions } from '@s1seven/nestjs-tools-boot';
 import { readFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { AppModule } from './app.module';
+import { HttpErrorFilter } from './path-to-your-custom-filter';
 
 function config(app: NestExpressApplication) {
   const configService = app.get(ConfigService);
-  const mqttConfigService = app.get(MqttConfigService);
   const proxyHostname = configService.get<string>('PROXY_SERVER_HOST');
   const proxyServerPort = configService.get<number>('PROXY_HTTP_SERVER_PORT');
   let defaultProxyServerUrl: string;
@@ -36,7 +33,6 @@ function config(app: NestExpressApplication) {
   }
 
   const clientOptions = {
-    ...mqttConfigService.options,
     reconnectPeriod: 1000,
     keepalive: 30,
     clean: true,
@@ -94,7 +90,7 @@ const bootOptions = {
     ],
     tags: [
       {
-        resource: Resources.HEALTH,
+        resource: 'Health',
         description: 'Check status of the server and its dependencies ( Memory, Disk storage, Network, ...)',
       },
     ],
@@ -150,7 +146,7 @@ function clusterConfig(): ClusterServiceConfig {
 }
 
 const environment = process.env.NODE_ENV;
-const devEnvironments = [Environment.Development, Environment.Test, Environment.DockerDevelopment];
+const devEnvironments = ['development', 'test'];
 if (devEnvironments.includes(environment)) {
   bootstrap(null, () => {
     process.exit(1);

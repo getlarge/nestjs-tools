@@ -2,8 +2,8 @@
 
 [![npm][npm-image]][npm-url]
 
-[npm-image]: https://img.shields.io/npm/v/@s1seven/microservices-file-storage.svg?style=flat
-[npm-url]: https://npmjs.org/package/@s1seven/microservices-file-storage
+[npm-image]: https://img.shields.io/npm/v/@s1seven/nestjs-tools-file-storage.svg?style=flat
+[npm-url]: https://npmjs.org/package/@s1seven/nestjs-tools-file-storage
 
 File storage classes for :
 
@@ -25,8 +25,7 @@ import {
   FileStorageS3,
   FileStorageS3Config,
   FileStorageS3Setup,
-} from '@s1seven/microservices-file-storage';
-import { Environment } from '@s1seven/microservices-constants';
+} from '@s1seven/nestjs-tools-file-storage';
 import { S3 } from 'aws-sdk';
 import { Request } from 'express';
 import { isBase64 } from 'class-validator';
@@ -91,7 +90,7 @@ export class StorageService {
 
   constructor(@Inject(ConfigService) private readonly configService: AppConfigService) {
     const environment = this.configService.get<Environment>('NODE_ENV');
-    if (!environment || environment === Environment.Development || environment === Environment.Test) {
+    if (!environment || environment === 'development' || environment === 'test') {
       const setup: FileStorageLocalSetup = {
         secretKeyPath: configService.get<string>('SECRET_KEY_PATH'),
         storagePath: configService.get<string>('STORAGE_PATH'),

@@ -2,8 +2,8 @@
 
 [![npm][npm-image]][npm-url]
 
-[npm-image]: https://img.shields.io/npm/v/@s1seven/microservices-lock.svg?style=flat
-[npm-url]: https://npmjs.org/package/@s1seven/microservices-lock
+[npm-image]: https://img.shields.io/npm/v/@s1seven/nestjs-tools-lock.svg?style=flat
+[npm-url]: https://npmjs.org/package/@s1seven/nestjs-tools-lock
 
 The Lock Service produce distributed locks to prevent duplicated/conflicted actions to be executed in a distributed environment.
 It is based on [Warlock](https://www.npmjs.com/package/node-redis-warlock) module.
@@ -13,7 +13,7 @@ It is based on [Warlock](https://www.npmjs.com/package/node-redis-warlock) modul
 ### Inside a CronJob service
 
 ```ts
-import { LockService } from '@app/lock/lock.service';
+import { LockService } from '@s1seven/nestjs-tools-lock';
 import { Inject, Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 

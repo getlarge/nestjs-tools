@@ -1,9 +1,9 @@
 {
-  "name": "@s1seven/microservices-boot",
+  "name": "@s1seven/nestjs-tools-boot",
   "version": "0.12.1",
   "description": "Application bootstrap class",
   "author": "getlarge <ed@getlarge.eu>",
-  "homepage": "https://github.com/s1seven/microservices-common/tree/main/packages/boot#readme",
+  "homepage": "https://github.com/s1seven/nestjs-tools/tree/main/packages/boot#readme",
   "license": "ISC",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
@@ -24,7 +24,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/s1seven/microservices-common.git"
+    "url": "git+https://github.com/s1seven/nestjs-tools.git"
+  },
+  "bugs": {
+    "url": "https://github.com/s1seven/nestjs-tools/issues"
   },
   "scripts": {
     "build": "npm run clean && npm run compile",
@@ -37,9 +40,6 @@
     "test:cov": "rimraf -rf ./coverage && jest --ci --runInBand --coverage",
     "scan:deps": "audit-ci --config ../../audit-ci.json",
     "prepublishOnly": "npm run build"
-  },
-  "bugs": {
-    "url": "https://github.com/s1seven/microservices-common/issues"
   },
   "dependencies": {
     "@nestjs/common": "^8.2.3",

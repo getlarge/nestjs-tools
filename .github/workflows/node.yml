@@ -1,4 +1,4 @@
-name: Microservices common CI
+name: NestJS Tools CI
 
 on:
   push:

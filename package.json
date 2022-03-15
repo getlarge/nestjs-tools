@@ -1,5 +1,5 @@
 {
-  "name": "@s1seven/microservices-common",
+  "name": "@s1seven/nestjs-tools",
   "version": "0.0.8",
   "description": "Common resources shared by microservices",
   "main": "dist/index.js",
@@ -7,13 +7,13 @@
   "files": [
     "dist"
   ],
-  "homepage": "https://github.com/s1seven/microservices-common#readme",
+  "homepage": "https://github.com/s1seven/nestjs-tools#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/s1seven/microservices-common.git"
+    "url": "git+https://github.com/s1seven/nestjs-tools.git"
   },
   "bugs": {
-    "url": "https://github.com/s1seven/microservices-common/issues"
+    "url": "https://github.com/s1seven/nestjs-tools/issues"
   },
   "license": "Apache-2.0",
   "engines": {
@@ -39,7 +39,7 @@
     "test:inspect": "node --inspect-brk --expose-gc -r tsconfig-paths/register -r ts-node/register ./node_modules/.bin/jest --runInBand --logHeapUsage",
     "test:cov": "lerna run test:cov && node merge-coverage.js",
     "test:coverage": "jest --ci --coverage --logHeapUsage --forceExit && node coverage-transform.js",
-    "test:boot": "lerna run --scope @s1seven/microservices-boot test",
+    "test:boot": "lerna run --scope @s1seven/nestjs-tools-boot test",
     "scan:deps": "lerna run scan:deps",
     "scan:code": "sonarqube-verify",
     "prepare": "npm run format && npm run lint",

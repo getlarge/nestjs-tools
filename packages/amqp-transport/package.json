@@ -1,10 +1,10 @@
 {
-  "name": "@s1seven/microservices-amqp-transport",
+  "name": "@s1seven/nestjs-tools-amqp-transport",
   "version": "0.2.0",
   "description": "Custom Nest Transport classes for AMQP",
   "license": "Apache-2.0",
   "author": "getlarge <ed@getlarge.eu>",
-  "homepage": "https://github.com/s1seven/microservices-common#readme",
+  "homepage": "https://github.com/s1seven/nestjs-tools#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },

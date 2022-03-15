@@ -1,10 +1,10 @@
 {
-  "name": "@s1seven/microservices-file-storage",
+  "name": "@s1seven/nestjs-tools-file-storage",
   "version": "0.4.5",
   "description": "File storage modules",
   "license": "Apache-2.0",
   "author": "getlarge <ed@getlarge.eu>",
-  "homepage": "https://github.com/s1seven/microservices-common#readme",
+  "homepage": "https://github.com/s1seven/nestjs-tools#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },

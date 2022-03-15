@@ -2,7 +2,7 @@
 const base = require('../../jest.config.base.js');
 const pkg = require('./package.json');
 
-const projectName = pkg.name.split('@s1seven/microservices-').pop();
+const projectName = pkg.name.split('@s1seven/nestjs-tools').pop();
 
 module.exports = {
   ...base,

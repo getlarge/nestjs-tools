@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 0.4.6 (2022-03-17)
+
+**Note:** Version bump only for package @s1seven/nestjs-tools-file-storage
+
+
+
+
+
 ## [0.4.5](https://github.com/s1seven/microservices-common/compare/@s1seven/microservices-file-storage@0.4.4...@s1seven/microservices-file-storage@0.4.5) (2022-02-10)
 
 **Note:** Version bump only for package @s1seven/microservices-file-storage

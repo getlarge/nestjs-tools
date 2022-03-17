@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 0.4.3 (2022-03-17)
+
+**Note:** Version bump only for package @s1seven/nestjs-tools-lock
+
+
+
+
+
 ## [0.4.2](https://github.com/s1seven/microservices-common/compare/@s1seven/microservices-lock@0.4.1...@s1seven/microservices-lock@0.4.2) (2022-02-10)
 
 **Note:** Version bump only for package @s1seven/microservices-lock

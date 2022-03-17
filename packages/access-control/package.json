@@ -1,7 +1,7 @@
 {
   "name": "@s1seven/nestjs-tools-access-control",
   "description": "S1Seven ACL engine",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "author": "getlarge <ed@getlarge.eu>",
   "homepage": "https://github.com/s1seven/nestjs-tools/tree/master/packages/access-control#readme",
   "repository": {

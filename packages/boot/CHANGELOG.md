@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.12.3](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-boot@0.12.2...@s1seven/nestjs-tools-boot@0.12.3) (2022-06-02)
+
+
+### Bug Fixes
+
+* **boot:** update supported transports type ([35a330c](https://github.com/s1seven/nestjs-tools/commit/35a330cec850acfd1273f36214de887b3ee2e3c8))
+
+
+
+
+
 ## 0.12.2 (2022-03-17)
 
 **Note:** Version bump only for package @s1seven/nestjs-tools-boot

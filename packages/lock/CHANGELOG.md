@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.4.4](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-lock@0.4.3...@s1seven/nestjs-tools-lock@0.4.4) (2022-06-02)
+
+**Note:** Version bump only for package @s1seven/nestjs-tools-lock
+
+
+
+
+
 ## 0.4.3 (2022-03-17)
 
 **Note:** Version bump only for package @s1seven/nestjs-tools-lock

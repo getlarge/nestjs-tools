@@ -42,25 +42,25 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@nestjs/common": "^8.4.1",
-    "@nestjs/config": "^1.2.0",
-    "@nestjs/core": "^8.4.1",
-    "@nestjs/microservices": "^8.4.1",
-    "@nestjs/platform-express": "^8.4.1",
-    "@nestjs/swagger": "^5.2.0",
     "chalk": "^4.1.0",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",
     "express-rate-limit": "^6.3.0",
     "helmet": "^5.0.2",
-    "nestjs-asyncapi": "^0.2.10",
     "reflect-metadata": "^0.1.13"
   },
   "peerDependencies": {
+    "@nestjs/common": "^8.4.6",
+    "@nestjs/config": "^2.1.0",
+    "@nestjs/core": "^8.4.6",
+    "@nestjs/microservices": "^8.4.6",
+    "@nestjs/platform-express": "^8.4.6",
+    "@nestjs/swagger": "^5.2.1",
+    "nestjs-asyncapi": "^0.2.10",
     "rxjs": "^7.5.4"
   },
   "devDependencies": {
-    "@nestjs/testing": "^8.4.1",
+    "@nestjs/testing": "^8.4.6",
     "@types/compression": "^1.7.2",
     "@types/cookie-parser": "^1.4.2",
     "@types/express": "^4.17.13",
@@ -68,6 +68,6 @@
     "@types/node": "^16.11.6",
     "aedes": "^0.46.3",
     "mqtt": "^4.3.5",
-    "swagger-ui-express": "^4.3.0"
+    "swagger-ui-express": "^4.4.0"
   }
 }

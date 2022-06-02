@@ -137,7 +137,7 @@ export async function setupOpenApi<Conf extends BaseConfig>(
   return openApiDocument;
 }
 
-export function getAsyncApiProtocolType(transport: Transport): string {
+export function getAsyncApiProtocolType(transport: symbol | Transport): string {
   switch (transport) {
     case Transport.MQTT:
       return 'mqtt';

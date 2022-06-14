@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.3.0](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-amqp-transport@0.2.2...@s1seven/nestjs-tools-amqp-transport@0.3.0) (2022-06-14)
+
+
+### Bug Fixes
+
+* **amqp-transport:** improve message and errors handling ([db8d334](https://github.com/s1seven/nestjs-tools/commit/db8d33497d6c54f04ab16657bd1f0ab2bbf38ac5))
+
+
+### Features
+
+* **amqp-transport:** add AMQP record serializer ([edc4b7e](https://github.com/s1seven/nestjs-tools/commit/edc4b7eec751145c989ef4e2321e29f6c8dd45d9))
+
+
+
+
+
 ## [0.2.2](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-amqp-transport@0.2.1...@s1seven/nestjs-tools-amqp-transport@0.2.2) (2022-06-02)
 
 **Note:** Version bump only for package @s1seven/nestjs-tools-amqp-transport

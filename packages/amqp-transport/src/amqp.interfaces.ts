@@ -31,4 +31,5 @@ export interface AmqpOptions {
   exchange?: string;
   exchangeType?: 'direct' | 'fanout' | 'topic';
   exchangeOptions?: Options.AssertExchange;
+  headers?: Record<string, string>;
 }

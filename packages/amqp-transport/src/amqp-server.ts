@@ -1,3 +1,4 @@
+import { isNil, isString, isUndefined } from '@nestjs/common/utils/shared.utils';
 import {
   CustomTransportStrategy,
   IncomingRequest,
@@ -30,6 +31,7 @@ import {
   CONNECT_FAILED_EVENT_MSG,
 } from './amqp.constants';
 import { AmqpOptions } from './amqp.interfaces';
+import { AmqpRecordSerializer } from './amqp-record.serializer';
 
 export enum AmqpWildcard {
   SINGLE_LEVEL = '*',
@@ -67,8 +69,12 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
     this.initializeDeserializer(options);
   }
 
-  async listen(callback: () => void): Promise<void> {
-    await this.start(callback);
+  async listen(callback: (err?: unknown, ...optionalParams: unknown[]) => void): Promise<void> {
+    try {
+      await this.start(callback);
+    } catch (err) {
+      callback(err);
+    }
   }
 
   close(): void {
@@ -99,7 +105,11 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
 
   createClient(): AmqpConnectionManager {
     const socketOptions = this.getOptionsProp(this.options, 'socketOptions');
-    return connect(this.urls, { connectionOptions: socketOptions });
+    return connect(this.urls, {
+      connectionOptions: socketOptions,
+      heartbeatIntervalInSeconds: socketOptions?.heartbeatIntervalInSeconds,
+      reconnectTimeInSeconds: socketOptions?.reconnectTimeInSeconds,
+    });
   }
 
   async setupChannel(channel: Channel, callback: () => void): Promise<void> {
@@ -166,15 +176,15 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
   }
 
   async handleMessage(message: ConsumeMessage, channel: Channel): Promise<void> {
-    if (!message) {
+    if (isNil(message)) {
       return;
     }
     const { content, properties } = message;
     const rawMessage = JSON.parse(content.toString());
     const packet = await this.deserializer.deserialize(rawMessage);
-    const pattern = typeof packet.pattern === 'string' ? packet.pattern : JSON.stringify(packet.pattern);
+    const pattern = isString(packet.pattern) ? packet.pattern : JSON.stringify(packet.pattern);
     const rmqContext = new RmqContext([message, channel, pattern]);
-    if (typeof (packet as IncomingRequest).id === 'undefined') {
+    if (isUndefined((packet as IncomingRequest).id)) {
       return this.handleEvent(pattern, packet, rmqContext);
     }
     const handler = this.getHandlerByPattern(pattern);
@@ -194,7 +204,14 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
 
   sendMessage<T = any>(message: T, replyTo: string, correlationId: string): void {
     const outgoingResponse = this.serializer.serialize(message as unknown as OutgoingResponse);
+    const options = outgoingResponse.options;
+    delete outgoingResponse.options;
+
     const buffer = Buffer.from(JSON.stringify(outgoingResponse));
-    this.channel.sendToQueue(replyTo, buffer, { correlationId });
+    this.channel.sendToQueue(replyTo, buffer, { correlationId, ...options });
+  }
+
+  protected initializeSerializer(options: AmqpOptions) {
+    this.serializer = options?.serializer ?? new AmqpRecordSerializer();
   }
 }

@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common/services/logger.service';
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
-import { ClientProxy, ReadPacket, WritePacket } from '@nestjs/microservices';
+import { ClientProxy, ReadPacket, RmqRecord, WritePacket } from '@nestjs/microservices';
 import {
   DISCONNECT_EVENT,
   DISCONNECTED_RMQ_MESSAGE,
@@ -16,8 +16,8 @@ import { RmqUrl } from '@nestjs/microservices/external/rmq-url.interface';
 import { AmqpConnectionManager, ChannelWrapper, connect } from 'amqp-connection-manager';
 import { Channel, Options } from 'amqplib';
 import { EventEmitter } from 'events';
-import { fromEvent, lastValueFrom, merge, Observable } from 'rxjs';
-import { first, map, share, switchMap } from 'rxjs/operators';
+import { EmptyError, fromEvent, lastValueFrom, merge, Observable } from 'rxjs';
+import { first, map, retryWhen, scan, share, switchMap } from 'rxjs/operators';
 
 import {
   AMQP_DEFAULT_EXCHANGE_OPTIONS,
@@ -26,6 +26,7 @@ import {
   CONNECT_FAILED_EVENT_MSG,
 } from './amqp.constants';
 import { AmqpOptions } from './amqp.interfaces';
+import { AmqpRecordSerializer } from './amqp-record.serializer';
 
 export class AmqpClient extends ClientProxy {
   protected readonly logger = new Logger(ClientProxy.name);
@@ -63,19 +64,6 @@ export class AmqpClient extends ClientProxy {
     this.client = null;
   }
 
-  async consumeChannel(): Promise<void> {
-    const noAck = this.getOptionsProp(this.options, 'noAck', RQM_DEFAULT_NOACK);
-    await this.channel.assertQueue(this.replyQueue, this.queueOptions);
-    const replyQueue = this.replyQueue;
-    //? const q = await this.channel.assertQueue(this.replyQueue, {});
-    //? const replyQueue = q.queue;
-    this.channel.addSetup((channel: Channel) =>
-      channel.consume(replyQueue, (msg) => this.responseEmitter.emit(msg.properties.correlationId, msg), {
-        noAck,
-      }),
-    );
-  }
-
   connect(): Promise<any> {
     if (this.client) {
       return this.connection;
@@ -90,7 +78,12 @@ export class AmqpClient extends ClientProxy {
         switchMap(() => this.createChannel()),
         share(),
       ),
-    );
+    ).catch((err) => {
+      if (err instanceof EmptyError) {
+        return;
+      }
+      throw err;
+    });
     return this.connection;
   }
 
@@ -105,21 +98,31 @@ export class AmqpClient extends ClientProxy {
 
   createClient(): AmqpConnectionManager {
     const socketOptions = this.getOptionsProp(this.options, 'socketOptions');
-    return connect(this.urls as any, { connectionOptions: socketOptions });
+    return connect(this.urls, { connectionOptions: socketOptions });
   }
 
   mergeDisconnectEvent<T = any>(instance: AmqpConnectionManager, source$: Observable<T>): Observable<T> {
-    const close$ = fromEvent(instance, DISCONNECT_EVENT).pipe(
-      map((err: any) => {
-        throw err;
-      }),
+    const eventToError = (eventType: string) =>
+      fromEvent(instance, eventType).pipe(
+        map((err: any) => {
+          throw err;
+        }),
+      );
+    const disconnect$ = eventToError(DISCONNECT_EVENT);
+    const urls = this.getOptionsProp(this.options, 'urls', []);
+    const connectFailed$ = eventToError(CONNECT_FAILED_EVENT).pipe(
+      retryWhen((e) =>
+        e.pipe(
+          scan((errorCount, error: any) => {
+            if (urls.indexOf(error.url) >= urls.length - 1) {
+              throw error;
+            }
+            return errorCount + 1;
+          }, 0),
+        ),
+      ),
     );
-    const fail$ = fromEvent(instance, CONNECT_FAILED_EVENT).pipe(
-      map((err: any) => {
-        throw err;
-      }),
-    );
-    return merge(source$, close$, fail$).pipe(first());
+    return merge(source$, disconnect$, connectFailed$).pipe(first());
   }
 
   async setupChannel(channel: Channel, resolve: () => void): Promise<void> {
@@ -137,9 +140,24 @@ export class AmqpClient extends ClientProxy {
     this.responseEmitter = new EventEmitter();
     this.responseEmitter.setMaxListeners(0);
     if (this.replyQueue) {
-      await this.consumeChannel();
+      // await this.consumeChannel();
+      await this.consumeChannel(channel);
     }
     resolve();
+  }
+
+  async consumeChannel(channel: Channel): Promise<void> {
+    const noAck = this.getOptionsProp(this.options, 'noAck', RQM_DEFAULT_NOACK);
+    const replyQueue = this.replyQueue;
+
+    await channel.assertQueue(this.replyQueue, this.queueOptions);
+    //? const q = await this.channel.assertQueue(this.replyQueue, {});
+    //? const replyQueue = q.queue;
+    this.channel.addSetup((channel: Channel) =>
+      channel.consume(replyQueue, (msg) => this.responseEmitter.emit(msg.properties.correlationId, msg), {
+        noAck,
+      }),
+    );
   }
 
   handleError(client: any): void {
@@ -179,16 +197,20 @@ export class AmqpClient extends ClientProxy {
       const correlationId = randomStringGenerator();
       const listener = ({ content }: { content: any }) => this.handleMessage(JSON.parse(content.toString()), callback);
       Object.assign(message, { id: correlationId });
-      const serializedPacket = this.serializer.serialize(message);
+      const serializedPacket: ReadPacket & Partial<RmqRecord> = this.serializer.serialize(message);
+      const options = serializedPacket.options;
+      delete serializedPacket.options;
+
       this.responseEmitter.on(correlationId, listener);
       const msg = Buffer.from(JSON.stringify(serializedPacket));
       const publishOptions: Options.Publish = {
-        correlationId,
         persistent: this.persistent,
+        replyTo: this.replyQueue ? this.replyQueue : undefined,
+        ...options,
+        headers: this.mergeHeaders(options?.headers),
+        correlationId,
       };
-      if (this.replyQueue) {
-        publishOptions.replyTo = this.replyQueue;
-      }
+
       if (this.exchange) {
         this.channel.publish(this.exchange, message.pattern, msg, publishOptions);
       } else {
@@ -202,10 +224,15 @@ export class AmqpClient extends ClientProxy {
   }
 
   protected dispatchEvent(packet: ReadPacket): Promise<any> {
-    const serializedPacket = this.serializer.serialize(packet);
+    const serializedPacket: ReadPacket & Partial<RmqRecord> = this.serializer.serialize(packet);
+    const options = serializedPacket.options;
+    delete serializedPacket.options;
+
     const content = Buffer.from(JSON.stringify(serializedPacket));
     const publishOptions: Options.Publish = {
       persistent: this.persistent,
+      ...options,
+      headers: this.mergeHeaders(options?.headers),
     };
     return new Promise<void>((resolve, reject) =>
       this.exchange
@@ -214,5 +241,20 @@ export class AmqpClient extends ClientProxy {
             err ? reject(err) : resolve(),
           ),
     );
+  }
+
+  protected initializeSerializer(options: AmqpOptions) {
+    this.serializer = options?.serializer ?? new AmqpRecordSerializer();
+  }
+
+  protected mergeHeaders(requestHeaders?: Record<string, string>): Record<string, string> | undefined {
+    if (!requestHeaders && !this.options?.headers) {
+      return undefined;
+    }
+
+    return {
+      ...this.options?.headers,
+      ...requestHeaders,
+    };
   }
 }

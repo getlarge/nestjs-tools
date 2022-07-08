@@ -172,6 +172,9 @@ function sanitizeBrokerUrl(brokerUrl: string) {
   return `${protocol}//${host}${pathname}`;
 }
 
+type AsyncApiServer = { name: string; server: AsyncServerObject };
+
+// eslint-disable-next-line max-lines-per-function
 export async function setupAsyncApi<Conf extends BaseConfig>(
   app: NestExpressApplication,
   options: BootOptions<Conf>,
@@ -180,31 +183,43 @@ export async function setupAsyncApi<Conf extends BaseConfig>(
   const { asyncApi, serviceDescription, serviceName, serviceVersion } = options;
   const { defaultContentType, enableExplorer, extraModels, filePath } = asyncApi;
   const { asyncApiPath, brokerUrl, microservices } = config;
-  const asyncApiServers: { name: string; server: AsyncServerObject }[] = microservices.map((microservice) => {
-    const strategy = 'strategy' in microservice ? microservice.strategy : null;
-    const transport =
-      'transport' in microservice && microservice.transport ? microservice.transport : strategy?.transportId;
-    const protocol = getAsyncApiProtocolType(transport) || getAsyncApiProtocolTypeByUrl(brokerUrl);
-    const url = sanitizeBrokerUrl(brokerUrl);
-    const server: AsyncServerObject = {
-      url,
-      protocol,
-      bindings: {},
-    };
-    return {
-      name: `${protocol} broker`,
-      server,
-    };
-  });
 
   const asyncApiOptions = new AsyncApiDocumentBuilder()
     .setTitle(`S1Seven ${serviceName} Async API`)
     .setDescription(serviceDescription)
     .setVersion(serviceVersion)
     .setDefaultContentType(defaultContentType);
-  asyncApiServers.forEach(({ name, server }) => {
-    asyncApiOptions.addServer(name, server);
-  });
+
+  if (microservices?.length) {
+    const asyncApiServers: AsyncApiServer[] = microservices.map((microservice) => {
+      const strategy = 'strategy' in microservice ? microservice.strategy : null;
+      const transport =
+        'transport' in microservice && microservice.transport ? microservice.transport : strategy?.transportId;
+      const protocol = getAsyncApiProtocolType(transport) || getAsyncApiProtocolTypeByUrl(brokerUrl);
+      const url = sanitizeBrokerUrl(brokerUrl);
+      const server: AsyncServerObject = {
+        url,
+        protocol,
+        bindings: {},
+      };
+      return {
+        name: `${protocol} broker`,
+        server,
+      };
+    });
+    asyncApiServers.forEach(({ name, server }) => {
+      asyncApiOptions.addServer(name, server);
+    });
+  } else {
+    const protocol = getAsyncApiProtocolTypeByUrl(brokerUrl);
+    const url = sanitizeBrokerUrl(brokerUrl);
+    const server: AsyncServerObject = {
+      url,
+      protocol,
+      bindings: {},
+    };
+    asyncApiOptions.addServer(`${protocol} broker`, server);
+  }
 
   setCommonOptions(asyncApiOptions, asyncApi);
   const asyncApiDocument = AsyncApiModule.createDocument(app, asyncApiOptions.build(), { extraModels });

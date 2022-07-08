@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.12.4](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-boot@0.12.3...@s1seven/nestjs-tools-boot@0.12.4) (2022-07-08)
+
+
+### Bug Fixes
+
+* **boot:** make OpenAPI generator optional ([99bffbe](https://github.com/s1seven/nestjs-tools/commit/99bffbeaceae30041bd369e6d1ef8ff2d96ea2ad))
+
+
+
+
+
 ## [0.12.3](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-boot@0.12.2...@s1seven/nestjs-tools-boot@0.12.3) (2022-06-02)
 
 

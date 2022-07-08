@@ -82,7 +82,7 @@ export type BootOptions<Config extends BaseConfig> = {
   workerId?: number;
   config: (app?: NestExpressApplication) => Config;
   AppModule: Function; // eslint-disable-line @typescript-eslint/ban-types
-  openApi: OpenApiOptions;
+  openApi?: OpenApiOptions;
   asyncApi?: AsyncApiOptions;
   logger?: LoggerService;
   logLevels?: LogLevel[];

@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.12.5](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-boot@0.12.4...@s1seven/nestjs-tools-boot@0.12.5) (2022-07-08)
+
+
+### Bug Fixes
+
+* **boot:** user brokerUrl when no microservices options provided ([a5fc63d](https://github.com/s1seven/nestjs-tools/commit/a5fc63d56a750eec122afadec270f3ab5f822f70))
+
+
+
+
+
 ## [0.12.4](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-boot@0.12.3...@s1seven/nestjs-tools-boot@0.12.4) (2022-07-08)
 
 

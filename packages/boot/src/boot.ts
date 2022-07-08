@@ -283,7 +283,7 @@ export class ApplicationBoot<Conf extends BaseConfig> extends EventEmitter {
       if (this.options.openApi) {
         await this.setupOpenApi();
       }
-      if (this.options.enableMicroservices && this.config.microservices?.length && this.options.asyncApi) {
+      if (this.options.asyncApi) {
         await this.setupAsyncApi();
       }
       if (typeof setupOptions.postSetup === 'function') {

@@ -1,6 +1,6 @@
 {
   "name": "@s1seven/nestjs-tools-amqp-transport",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Custom Nest Transport classes for AMQP",
   "license": "Apache-2.0",
   "author": "getlarge <ed@getlarge.eu>",

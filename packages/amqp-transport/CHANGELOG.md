@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.1](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-amqp-transport@0.3.0...@s1seven/nestjs-tools-amqp-transport@0.3.1) (2022-08-03)
+
+
+### Bug Fixes
+
+* **amqp-transport:** add missing callback ([036c1e6](https://github.com/s1seven/nestjs-tools/commit/036c1e6a50e5abc3602d94d6a907399d4364c10c))
+
+
+
+
+
 # [0.3.0](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-amqp-transport@0.2.2...@s1seven/nestjs-tools-amqp-transport@0.3.0) (2022-06-14)
 
 

@@ -26,7 +26,8 @@
   },
   "scripts": {
     "bootstrap": "npm install lerna && lerna bootstrap && npm install",
-    "format": "prettier --write \"packages/**/*.{ts,json}\"",
+    "format": "nx format",
+    "format:all": "prettier --write \"packages/**/*.{ts,json}\"",
     "cleanup": "nx run-many --target=cleanup --all",
     "reset": "npm run cleanup && rimraf -rf node_modules && npm run bootstrap",
     "build": "nx run-many --target=build --all",

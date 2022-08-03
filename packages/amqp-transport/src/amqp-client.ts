@@ -16,6 +16,7 @@ import { RmqUrl } from '@nestjs/microservices/external/rmq-url.interface';
 import { AmqpConnectionManager, ChannelWrapper, connect } from 'amqp-connection-manager';
 import { Channel, Options } from 'amqplib';
 import { EventEmitter } from 'events';
+import type PromiseBreaker from 'promise-breaker';
 import { EmptyError, fromEvent, lastValueFrom, merge, Observable } from 'rxjs';
 import { first, map, retryWhen, scan, share, switchMap } from 'rxjs/operators';
 
@@ -195,7 +196,8 @@ export class AmqpClient extends ClientProxy {
   protected publish(message: ReadPacket, callback: (packet: WritePacket) => any): () => void {
     try {
       const correlationId = randomStringGenerator();
-      const listener = ({ content }: { content: any }) => this.handleMessage(JSON.parse(content.toString()), callback);
+      const listener = ({ content }: { content: Buffer }) =>
+        this.handleMessage(JSON.parse(content.toString()), callback);
       Object.assign(message, { id: correlationId });
       const serializedPacket: ReadPacket & Partial<RmqRecord> = this.serializer.serialize(message);
       const options = serializedPacket.options;
@@ -223,24 +225,22 @@ export class AmqpClient extends ClientProxy {
     }
   }
 
-  protected dispatchEvent(packet: ReadPacket): Promise<any> {
+  protected dispatchEvent<T = any>(packet: ReadPacket): Promise<T> {
     const serializedPacket: ReadPacket & Partial<RmqRecord> = this.serializer.serialize(packet);
     const options = serializedPacket.options;
     delete serializedPacket.options;
-
     const content = Buffer.from(JSON.stringify(serializedPacket));
     const publishOptions: Options.Publish = {
       persistent: this.persistent,
       ...options,
       headers: this.mergeHeaders(options?.headers),
     };
-    return new Promise<void>((resolve, reject) =>
-      this.exchange
-        ? this.channel.publish(this.exchange, packet.pattern, content, publishOptions)
-        : this.channel.sendToQueue(this.queue, content, publishOptions, (err: unknown) =>
-            err ? reject(err) : resolve(),
-          ),
-    );
+    return new Promise<T>((resolve, reject) => {
+      const cb: PromiseBreaker.Callback = (err: unknown, result?: T) => (err ? reject(err) : resolve(result));
+      return this.exchange
+        ? this.channel.publish(this.exchange, packet.pattern, content, publishOptions, cb)
+        : this.channel.sendToQueue(this.queue, content, publishOptions, cb);
+    });
   }
 
   protected initializeSerializer(options: AmqpOptions) {

@@ -1,4 +1,7 @@
+/* eslint-disable max-lines-per-function */
 /* eslint-disable sonarjs/no-identical-functions */
+import { ExecutionError } from 'redlock';
+
 import { LockService } from '../src';
 import { getRedisClientConfig, mockConfigService } from './config.service.mock';
 
@@ -6,36 +9,40 @@ describe('Lock Service', () => {
   let lockService: LockService;
 
   beforeAll(() => {
-    const options = getRedisClientConfig(mockConfigService as any);
-    lockService = new LockService(options);
+    const redis = getRedisClientConfig(mockConfigService as any);
+    lockService = new LockService({ redis, lock: { retryCount: 0 } });
     lockService.onModuleInit();
   });
 
-  afterAll(() => {
-    lockService.onModuleDestroy();
+  afterAll(async () => {
+    await lockService.onModuleDestroy();
   });
 
   it('lock() - sets lock', async () => {
-    const { unlock } = await lockService.lock('testLock', 1000);
-    expect(typeof unlock).toBe('function');
+    const lock = await lockService.lock('testLock', 1000);
+    expect(typeof lock.release).toBe('function');
   });
 
   it('lock() - does not set lock if it already exists', async () => {
-    const { unlock } = await lockService.lock('testLock', 1000);
-    expect(unlock).toBe(false);
+    const expectedError = new ExecutionError(
+      'The operation was unable to achieve a quorum during its retry window.',
+      [],
+    );
+    //
+    await expect(lockService.lock('testLock', 1000)).rejects.toThrowError(expectedError);
   });
 
   it('lock() - unlocks', async () => {
-    const { unlock } = await lockService.lock('unlock', 1000);
-    const res = await unlock();
-    expect(res).toBeUndefined();
+    const lock = await lockService.lock('unlock', 1000);
+    const res = await lock.release();
+    const attempts = await Promise.all(res.attempts);
+    expect(attempts.length).toBe(1);
   });
 
   it('lock() - expect to close connection when module is destroyed', async () => {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    const spy = jest.spyOn(lockService, 'close').mockImplementation(() => {});
+    const spy = jest.spyOn(lockService, 'close').mockImplementation(() => Promise.resolve());
     //
-    lockService.onModuleDestroy();
+    await lockService.onModuleDestroy();
     expect(spy).toBeCalled();
     spy.mockRestore();
   });
@@ -46,28 +53,33 @@ describe('Lock Service - unlocking with id', () => {
   let lockId: string;
 
   beforeAll(() => {
-    const options = getRedisClientConfig(mockConfigService as any);
-    lockService = new LockService(options);
+    const redis = getRedisClientConfig(mockConfigService as any);
+    lockService = new LockService({ redis, lock: { retryCount: 0 } });
     lockService.onModuleInit();
   });
 
-  afterAll(() => {
-    lockService.onModuleDestroy();
+  afterAll(async () => {
+    await lockService.onModuleDestroy();
   });
 
   it('lock() - sets lock and gets lock id', async () => {
-    const { lockId: id } = await lockService.lock('customlock', 20000);
-    lockId = id;
+    const { value } = await lockService.lock('customlock', 20000);
+    lockId = value;
     expect(typeof lockId).toBe('string');
   }, 5000);
 
-  it('unlock() - does not unlock with wrong id', async () => {
-    const result = await lockService.unlock('customlock', 'wrongid');
-    expect(result).toBe(0);
+  it('get() - find existing lock', async () => {
+    const lock = await lockService.get('customlock', lockId);
+    expect(typeof lock.value).toBe('string');
+    expect(lock.value).toBe(lockId);
   }, 5000);
 
-  it('unlock() - unlocks', async () => {
+  it('unlock() - does not unlock with wrong id', async () => {
+    await expect(lockService.unlock('customlock', 'wrongid')).rejects.toThrow();
+  }, 5000);
+
+  it('unlock() - unlocks when lock id is correct', async () => {
     const result = await lockService.unlock('customlock', lockId);
-    expect(result).toBe(1);
+    expect(result.attempts.length).toBe(1);
   }, 5000);
 });

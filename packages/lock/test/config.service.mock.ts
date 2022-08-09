@@ -1,11 +1,11 @@
 import { ConfigService } from '@nestjs/config';
-import { ClientOpts } from 'redis';
+import type { RedisOptions } from 'ioredis';
 
 export const mockConfigService = {
   get: (key: string) => {
     switch (key) {
       case 'REDIS_URL':
-        return 'redis://localhost:6379';
+        return 'redis://localhost:6379/0';
       case 'REDIS_PORT':
         return 6379;
       case 'REDIS_HOSTNAME':
@@ -14,6 +14,8 @@ export const mockConfigService = {
         return 0;
       case 'REDIS_PASSWORD':
         return process.env.REDIS_PASSWORD || '';
+      case 'REDIS_USERNAME':
+        return process.env.REDIS_USERNAME || '';
       default:
         return undefined;
     }
@@ -26,20 +28,32 @@ export function parseRedisUrl(url: string) {
     protocol: redisUrl.protocol,
     port: +redisUrl.port,
     host: redisUrl.hostname,
+    username: redisUrl.username,
     password: redisUrl.password,
   };
 }
 
-export function getRedisClientConfig(configService: ConfigService): ClientOpts {
-  const { port, host, password, protocol } = parseRedisUrl(configService.get<string>('REDIS_URL'));
-  const baseOptions: ClientOpts = {
+export function getRedisClientConfig(configService: ConfigService): RedisOptions {
+  const url = configService.get<string>('REDIS_URL');
+  const { port, host, username, password, protocol } = parseRedisUrl(url);
+  // TODO: add db to URL if defined but missing in URL
+  const baseOptions: RedisOptions = {
     port: configService.get<number>('REDIS_PORT') || port,
     host: configService.get<string>('REDIS_HOSTNAME') || host,
     db: configService.get<number>('REDIS_DB'),
+    ...((configService.get('REDIS_USERNAME') || username) && {
+      username: configService.get<string>('REDIS_USERNAME') || username,
+    }),
+    ...((configService.get('REDIS_PASSWORD') || password) && {
+      password: configService.get<string>('REDIS_PASSWORD') || password,
+    }),
+    retryStrategy(times: number): number {
+      return Math.min(times * 500, 2000);
+    },
+    reconnectOnError(): boolean | 1 | 2 {
+      return 1;
+    },
   };
-  if (configService.get<string>('REDIS_PASSWORD') || password) {
-    baseOptions.password = configService.get<string>('REDIS_PASSWORD') || password;
-  }
   if (protocol.startsWith('rediss')) {
     baseOptions.tls = { rejectUnauthorized: false };
   }

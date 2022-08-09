@@ -4,20 +4,23 @@ import { LOCK_SERVICE_OPTIONS, LockModule, LockService } from '../src';
 import { getRedisClientConfig, mockConfigService } from './config.service.mock';
 
 describe('forRootAsync', () => {
-  const options = getRedisClientConfig(mockConfigService as any);
+  const redis = getRedisClientConfig(mockConfigService as any);
 
   it('Can create instance with provider method', async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
         LockModule.forRootAsync({
-          useFactory: () => options,
+          useFactory: () => ({ redis }),
         }),
       ],
     }).compile();
+    await module.init();
 
-    const redisOptions = module.get(LOCK_SERVICE_OPTIONS);
-    expect(redisOptions).toHaveProperty('port');
-    expect(redisOptions.port).toEqual(options.port);
+    const options = module.get(LOCK_SERVICE_OPTIONS);
+    expect(options.redis).toHaveProperty('port');
+    expect(options.redis.port).toEqual(redis.port);
+
+    await module.close();
   });
 });
 
@@ -26,14 +29,16 @@ describe('forRoot', () => {
 
   it('Can create instance ', async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [LockModule.forRoot(options)],
+      imports: [LockModule.forRoot({ redis: options })],
       providers: [LockService],
     }).compile();
+    await module.init();
 
     const lockService = module.get<LockService>(LockService);
-
     expect(lockService).toBeDefined();
     expect(lockService.options).toBeDefined();
-    expect(lockService.options.port).toEqual(options.port);
+    expect(lockService.options.redis.port).toEqual(options.port);
+
+    await module.close();
   });
 });

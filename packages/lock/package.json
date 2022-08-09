@@ -44,19 +44,18 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "node-redis-warlock": "^1.0.2",
-    "redis": "^3.1.2",
+    "ioredis": "^5.2.2",
+    "redlock": "^5.0.0-beta.2",
     "reflect-metadata": "^0.1.13"
   },
   "peerDependencies": {
-    "@nestjs/common": "^8.4.6",
-    "@nestjs/core": "^8.4.6",
+    "@nestjs/common": "^9.0.8",
+    "@nestjs/core": "^9.0.8",
     "rxjs": "^7.5.4"
   },
   "devDependencies": {
-    "@nestjs/config": "^2.1.0",
-    "@nestjs/testing": "^8.4.6",
-    "@types/node": "^16.11.6",
-    "@types/redis": "^2.8.31"
+    "@nestjs/config": "^2.2.0",
+    "@nestjs/testing": "^9.0.8",
+    "@types/node": "^16.11.6"
   }
 }

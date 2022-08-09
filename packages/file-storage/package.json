@@ -33,13 +33,13 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "aws-sdk": "^2.1093.0",
+    "aws-sdk": "^2.1190.0",
     "reflect-metadata": "^0.1.13"
   },
   "peerDependencies": {
-    "@nestjs/common": "^8.4.6",
-    "@nestjs/config": "^2.1.0",
-    "@nestjs/core": "^8.4.6",
+    "@nestjs/common": "^9.0.8",
+    "@nestjs/config": "^2.2.0",
+    "@nestjs/core": "^9.0.8",
     "rxjs": "^7.5.4"
   },
   "devDependencies": {

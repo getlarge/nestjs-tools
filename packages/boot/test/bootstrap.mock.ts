@@ -1,6 +1,6 @@
 import type { INestApplication } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Transport } from '@nestjs/microservices';
+import { MqttOptions, Transport } from '@nestjs/microservices';
 import { readFileSync } from 'fs';
 import { join, resolve } from 'path';
 
@@ -19,8 +19,8 @@ export function config(app: INestApplication) {
         transport: Transport.MQTT,
         options: {
           url: 'mqtt://localhost:7883',
-        } as any,
-      },
+        },
+      } as MqttOptions,
     ],
     proxyServerUrl: configService.get<string>('PROXY_SERVER_URL'),
     proxyServerUrls: configService.get<string[]>('PROXY_SERVER_URLS'),

@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.3.2](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-amqp-transport@0.3.1...@s1seven/nestjs-tools-amqp-transport@0.3.2) (2022-08-09)
+
+**Note:** Version bump only for package @s1seven/nestjs-tools-amqp-transport
+
+
+
+
+
 ## [0.3.1](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-amqp-transport@0.3.0...@s1seven/nestjs-tools-amqp-transport@0.3.1) (2022-08-03)
 
 

@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.5.0](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-lock@0.4.4...@s1seven/nestjs-tools-lock@0.5.0) (2022-08-09)
+
+
+### Features
+
+* **lock:** update dependencies ([17d414e](https://github.com/s1seven/nestjs-tools/commit/17d414ede087807c776ea0e727c5a16956937a9f))
+
+
+### BREAKING CHANGES
+
+* **lock:** replace redis and warlock
+
+
+
+
+
 ## [0.4.4](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-lock@0.4.3...@s1seven/nestjs-tools-lock@0.4.4) (2022-06-02)
 
 **Note:** Version bump only for package @s1seven/nestjs-tools-lock

@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.4.8](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-file-storage@0.4.7...@s1seven/nestjs-tools-file-storage@0.4.8) (2022-08-09)
+
+**Note:** Version bump only for package @s1seven/nestjs-tools-file-storage
+
+
+
+
+
 ## [0.4.7](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-file-storage@0.4.6...@s1seven/nestjs-tools-file-storage@0.4.7) (2022-06-02)
 
 **Note:** Version bump only for package @s1seven/nestjs-tools-file-storage

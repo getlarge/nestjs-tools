@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.12](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-access-control@0.1.11...@s1seven/nestjs-tools-access-control@0.1.12) (2022-08-09)
+
+**Note:** Version bump only for package @s1seven/nestjs-tools-access-control
+
+
+
+
+
 ## [0.1.11](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-access-control@0.1.10...@s1seven/nestjs-tools-access-control@0.1.11) (2022-06-02)
 
 **Note:** Version bump only for package @s1seven/nestjs-tools-access-control

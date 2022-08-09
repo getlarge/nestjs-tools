@@ -1,6 +1,6 @@
 {
   "name": "@s1seven/nestjs-tools-file-storage",
-  "version": "0.4.7",
+  "version": "0.4.8",
   "description": "File storage modules",
   "license": "Apache-2.0",
   "author": "getlarge <ed@getlarge.eu>",

@@ -6,7 +6,6 @@ const projectName = pkg.name.split('@s1seven/nestjs-tools-').pop();
 
 module.exports = {
   ...base,
-  name: pkg.name,
   displayName: pkg.name,
   rootDir: '../..',
   testMatch: [`<rootDir>/packages/${projectName}/**/*.spec.ts`, `<rootDir>/packages/${projectName}/**/*.e2e-spec.ts`],

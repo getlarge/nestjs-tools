@@ -36,7 +36,6 @@ export function parseRedisUrl(url: string) {
 export function getRedisClientConfig(configService: ConfigService): RedisOptions {
   const url = configService.get<string>('REDIS_URL');
   const { port, host, username, password, protocol } = parseRedisUrl(url);
-  // TODO: add db to URL if defined but missing in URL
   const baseOptions: RedisOptions = {
     port: configService.get<number>('REDIS_PORT') || port,
     host: configService.get<string>('REDIS_HOSTNAME') || host,

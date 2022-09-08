@@ -30,7 +30,6 @@ describe('forRoot', () => {
   it('Can create instance ', async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [LockModule.forRoot({ redis: options })],
-      providers: [LockService],
     }).compile();
     await module.init();
 

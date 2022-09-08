@@ -1,7 +1,9 @@
 import type {
+  CanActivate,
   ExceptionFilter,
   LoggerService,
   LogLevel,
+  NestHybridApplicationOptions,
   NestInterceptor,
   PipeTransform,
   VersioningOptions,
@@ -25,6 +27,7 @@ import { AsyncSecuritySchemeObject } from 'nestjs-asyncapi';
 export type BaseConfig = Readonly<{
   brokerUrl?: string;
   microservices?: MicroserviceOptions[];
+  hybridOptions?: NestHybridApplicationOptions[];
   environment: string;
   serviceIdentifier?: string;
   proxyServerUrl?: string;
@@ -90,8 +93,10 @@ export type BootOptions<Config extends BaseConfig> = {
   globalFilters?: ExceptionFilter[];
   globalInterceptors?: NestInterceptor[];
   globalPipes?: PipeTransform[];
+  globalGuards?: CanActivate[];
   globalPrefix?: string;
   enableMicroservices?: boolean;
+  shareAppConfigWithMicroservices?: boolean;
   enableShutdownHooks?: boolean;
   versioningOptions?: boolean | VersioningOptions;
   corsOptions?: boolean | CorsOptions | CorsOptionsDelegate<any>;
@@ -143,6 +148,7 @@ export const defaultOptions: BootOptions<BaseConfig> = {
   globalFilters: [],
   globalInterceptors: [],
   globalPipes: [],
+  globalGuards: [],
   enableMicroservices: false,
   enableShutdownHooks: false,
   corsOptions: false,

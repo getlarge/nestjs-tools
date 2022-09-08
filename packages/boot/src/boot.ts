@@ -150,6 +150,14 @@ export class ApplicationBoot<Conf extends BaseConfig> extends EventEmitter {
     }
   }
 
+  setGlobalGuards(globalGuards: BootOptions<Conf>['globalGuards']): void {
+    if (globalGuards?.length) {
+      globalGuards.forEach((guard) => {
+        this.app.useGlobalGuards(guard);
+      });
+    }
+  }
+
   setCompression(compressionOptions: BootOptions<Conf>['compressionOptions']): void {
     if (compressionOptions && typeof compressionOptions === 'boolean') {
       this.app.use(compression());
@@ -191,13 +199,14 @@ export class ApplicationBoot<Conf extends BaseConfig> extends EventEmitter {
   }
 
   setMicroservices(enableMicroservices: BootOptions<Conf>['enableMicroservices']): void {
-    const { microservices } = this.config;
+    const { microservices, hybridOptions = [] } = this.config;
     if (enableMicroservices && microservices?.length) {
-      microservices.forEach((option) => {
+      microservices.forEach((option, index) => {
         const transport = 'transport' in option ? option.transport : null;
         const strategy = 'strategy' in option ? option.strategy : null;
         const options = transport ? { options: option.options, transport } : { options: option.options, strategy };
-        this.app.connectMicroservice(options);
+        const microserviceHybridOptions = hybridOptions[index] || { inheritAppConfig: false };
+        this.app.connectMicroservice(options, microserviceHybridOptions);
       });
     }
   }
@@ -224,6 +233,7 @@ export class ApplicationBoot<Conf extends BaseConfig> extends EventEmitter {
       globalFilters,
       globalInterceptors,
       globalPipes,
+      globalGuards,
       globalPrefix,
       helmetOptions = {},
       rateLimitOptions,
@@ -238,6 +248,7 @@ export class ApplicationBoot<Conf extends BaseConfig> extends EventEmitter {
     this.setGlobalFilters(globalFilters);
     this.setGlobalInterceptors(globalInterceptors);
     this.setGlobalPipes(globalPipes);
+    this.setGlobalGuards(globalGuards);
     this.setCompression(compressionOptions);
     this.setCookieParser(cookieParserOptions);
     this.setCors(corsOptions);

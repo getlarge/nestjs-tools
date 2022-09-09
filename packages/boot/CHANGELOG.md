@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.13.0](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-boot@0.12.6...@s1seven/nestjs-tools-boot@0.13.0) (2022-09-09)
+
+
+### Features
+
+* **boot:** allow to inherit app config in microservices ([0799ef8](https://github.com/s1seven/nestjs-tools/commit/0799ef80cbf4ad0a3b1898210cce30e4fecff8a6))
+
+
+
+
+
 ## [0.12.6](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-boot@0.12.5...@s1seven/nestjs-tools-boot@0.12.6) (2022-08-09)
 
 **Note:** Version bump only for package @s1seven/nestjs-tools-boot

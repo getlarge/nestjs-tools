@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.6.0](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-lock@0.5.0...@s1seven/nestjs-tools-lock@0.6.0) (2022-09-09)
+
+
+### Features
+
+* **lock:** export LockService ([192ee1a](https://github.com/s1seven/nestjs-tools/commit/192ee1aee3c3ad0878cca115736e731b7cff9d38))
+
+
+
+
+
 # [0.5.0](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-lock@0.4.4...@s1seven/nestjs-tools-lock@0.5.0) (2022-08-09)
 
 

@@ -62,8 +62,15 @@ export class ClusterService extends EventEmitter {
     this.signals = this.config.signals || ['SIGTERM', 'SIGINT'];
   }
 
+  /*
+   * @deprecated
+   */
   get isMaster() {
-    return cluster.isMaster;
+    return cluster.isPrimary;
+  }
+
+  get isPrimary() {
+    return cluster.isPrimary;
   }
 
   get isWorker() {

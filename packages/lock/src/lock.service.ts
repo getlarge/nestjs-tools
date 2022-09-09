@@ -83,7 +83,7 @@ export class LockService implements OnModuleInit, OnModuleDestroy {
   }
 
   close(): Promise<void> {
-    this.redlock.removeAllListeners('error');
-    return this.redlock.quit();
+    this.redlock?.removeAllListeners('error');
+    return this.redlock?.quit();
   }
 }

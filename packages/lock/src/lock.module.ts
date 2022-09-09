@@ -1,7 +1,7 @@
 import { Abstract, DynamicModule, Module, ModuleMetadata, Provider, Type } from '@nestjs/common';
 
 import { LOCK_SERVICE_OPTIONS } from './constants';
-import type { LockServiceOptions } from './lock.service';
+import { LockService, LockServiceOptions } from './lock.service';
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type Injection = (Type<unknown> | string | symbol | Abstract<unknown> | Function)[];
@@ -15,20 +15,17 @@ export interface LockModuleModuleAsyncOptions extends Pick<ModuleMetadata, 'impo
 @Module({})
 export class LockModule {
   public static forRoot(options?: LockServiceOptions): DynamicModule {
+    const providers = [
+      {
+        provide: LOCK_SERVICE_OPTIONS,
+        useValue: options,
+      },
+      LockService,
+    ];
     return {
       module: LockModule,
-      providers: [
-        {
-          provide: LOCK_SERVICE_OPTIONS,
-          useValue: options,
-        },
-      ],
-      exports: [
-        {
-          provide: LOCK_SERVICE_OPTIONS,
-          useValue: options,
-        },
-      ],
+      providers,
+      exports: providers,
     };
   }
 
@@ -43,12 +40,12 @@ export class LockModule {
     if (useClass) {
       provider = { ...provider, useClass };
     }
-
+    const providers = [provider, LockService];
     return {
       module: LockModule,
       imports,
-      providers: [provider],
-      exports: [provider],
+      providers,
+      exports: providers,
     };
   }
 }

@@ -9,6 +9,8 @@ export interface AmqpOptions {
   queue?: string;
   prefetchCount?: number;
   isGlobalPrefetchCount?: boolean;
+  noAssert?: boolean;
+  maxConnectionAttempts?: number;
   queueOptions?: Options.AssertQueue;
   socketOptions?: (ConnectionOptions | TcpSocketConnectOpts) & {
     noDelay?: boolean;

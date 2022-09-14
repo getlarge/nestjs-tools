@@ -14,6 +14,7 @@ import {
   DISCONNECTED_RMQ_MESSAGE,
   NO_MESSAGE_HANDLER,
   RQM_DEFAULT_IS_GLOBAL_PREFETCH_COUNT,
+  RQM_DEFAULT_NO_ASSERT,
   RQM_DEFAULT_NOACK,
   RQM_DEFAULT_PREFETCH_COUNT,
   RQM_DEFAULT_QUEUE_OPTIONS,
@@ -38,15 +39,21 @@ export enum AmqpWildcard {
   MULTI_LEVEL = '#',
 }
 
+const INFINITE_CONNECTION_ATTEMPTS = -1;
+
 export class AmqpServer extends Server implements CustomTransportStrategy {
   readonly transportId?: Transport;
   private channel: ChannelWrapper = null;
   private server: AmqpConnectionManager = null;
+  private connectionAttempts = 0;
+
   private urls: string[] | RmqUrl[];
   private queue: string;
   private queueOptions: Options.AssertQueue;
   private prefetchCount: number;
   private isGlobalPrefetchCount: boolean;
+  private noAssert: boolean;
+
   private exchange?: string;
   private exchangeType?: 'direct' | 'fanout' | 'topic';
   private exchangeOptions?: Options.AssertExchange;
@@ -65,6 +72,8 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
     this.prefetchCount = this.getOptionsProp(this.options, 'prefetchCount') || RQM_DEFAULT_PREFETCH_COUNT;
     this.isGlobalPrefetchCount =
       this.getOptionsProp(this.options, 'isGlobalPrefetchCount') || RQM_DEFAULT_IS_GLOBAL_PREFETCH_COUNT;
+    this.noAssert = this.getOptionsProp(this.options, 'noAssert') || RQM_DEFAULT_NO_ASSERT;
+
     this.initializeSerializer(options);
     this.initializeDeserializer(options);
   }
@@ -82,7 +91,7 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
     this.server && this.server.close();
   }
 
-  async start(callback: () => void): Promise<void> {
+  async start(callback?: (error?: unknown) => void): Promise<void> {
     this.server = this.createClient();
     this.server.on(CONNECT_EVENT, () => {
       if (this.channel) {
@@ -93,13 +102,30 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
         setup: (channel: Channel) => this.setupChannel(channel, callback),
       });
     });
+
+    const maxConnectionAttempts = this.getOptionsProp(
+      this.options,
+      'maxConnectionAttempts',
+      INFINITE_CONNECTION_ATTEMPTS,
+    );
+
     this.server.on(DISCONNECT_EVENT, (err) => {
       this.logger.error(DISCONNECTED_RMQ_MESSAGE);
       this.logger.error(err);
     });
-    this.server.on(CONNECT_FAILED_EVENT, (err) => {
+    this.server.on(CONNECT_FAILED_EVENT, (error: Record<string, unknown>) => {
       this.logger.error(CONNECT_FAILED_EVENT_MSG);
-      this.logger.error(err);
+      if (error?.err) {
+        this.logger.error(error.err);
+      }
+      const isReconnecting = !!this.channel;
+      if (maxConnectionAttempts === INFINITE_CONNECTION_ATTEMPTS || isReconnecting) {
+        return;
+      }
+      if (++this.connectionAttempts === maxConnectionAttempts) {
+        this.close();
+        callback?.(error.err ?? new Error(CONNECT_FAILED_EVENT_MSG));
+      }
     });
   }
 
@@ -112,22 +138,47 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
     });
   }
 
-  async setupChannel(channel: Channel, callback: () => void): Promise<void> {
-    const noAck = this.getOptionsProp(this.options, 'noAck', RQM_DEFAULT_NOACK);
-    if (this.exchange) {
-      await channel.assertExchange(this.exchange, this.exchangeType, this.exchangeOptions);
-      const q = await channel.assertQueue(this.queue, this.queueOptions);
-      const registeredPatterns = [...this.messageHandlers.keys()];
-      await Promise.all(registeredPatterns.map((pattern) => channel.bindQueue(q.queue, this.exchange, pattern)));
-    } else {
-      await channel.assertQueue(this.queue, this.queueOptions);
+  async deleteChannel(channel: Channel, callback: (error?: Error) => void) {
+    try {
+      if (this.exchange) {
+        await channel.deleteExchange(this.exchange);
+        await channel.deleteQueue(this.queue);
+        const registeredPatterns = [...this.messageHandlers.keys()];
+        await Promise.all(registeredPatterns.map((pattern) => channel.unbindQueue(this.queue, this.exchange, pattern)));
+      } else {
+        await channel.deleteQueue(this.queue);
+      }
+      return true;
+    } catch (e) {
+      callback(e);
+      return false;
     }
+  }
 
-    await channel.prefetch(this.prefetchCount, this.isGlobalPrefetchCount);
-    channel.consume(this.queue, (msg) => this.handleMessage(msg, channel), {
-      noAck,
-    });
-    callback();
+  async setupChannel(channel: Channel, callback: (error?: Error) => void, retried?: boolean): Promise<void> {
+    try {
+      const noAck = this.getOptionsProp(this.options, 'noAck', RQM_DEFAULT_NOACK);
+      if (this.exchange && !this.noAssert) {
+        await channel.assertExchange(this.exchange, this.exchangeType, this.exchangeOptions);
+        const q = await channel.assertQueue(this.queue, this.queueOptions);
+        const registeredPatterns = [...this.messageHandlers.keys()];
+        await Promise.all(registeredPatterns.map((pattern) => channel.bindQueue(q.queue, this.exchange, pattern)));
+      } else if (!this.noAssert) {
+        await channel.assertQueue(this.queue, this.queueOptions);
+      }
+
+      await channel.prefetch(this.prefetchCount, this.isGlobalPrefetchCount);
+      channel.consume(this.queue, (msg) => this.handleMessage(msg, channel), {
+        noAck,
+      });
+      callback();
+    } catch (e) {
+      const deleted = await this.deleteChannel(channel, callback);
+      if (deleted && !retried) {
+        return this.setupChannel(channel, callback, true);
+      }
+      callback(e);
+    }
   }
 
   matchAmqpPattern(pattern: string, topic: string): boolean {
@@ -181,7 +232,7 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
     }
     const { content, properties } = message;
     const rawMessage = JSON.parse(content.toString());
-    const packet = await this.deserializer.deserialize(rawMessage);
+    const packet = await this.deserializer.deserialize(rawMessage, properties);
     const pattern = isString(packet.pattern) ? packet.pattern : JSON.stringify(packet.pattern);
     const rmqContext = new RmqContext([message, channel, pattern]);
     if (isUndefined((packet as IncomingRequest).id)) {

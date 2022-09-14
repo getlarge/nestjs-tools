@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.4.0](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-amqp-transport@0.3.2...@s1seven/nestjs-tools-amqp-transport@0.4.0) (2022-09-14)
+
+
+### Bug Fixes
+
+* **amqp-transport:** handle channel setup errors ([cafa1df](https://github.com/s1seven/nestjs-tools/commit/cafa1df5492e18b97c9333b8955c9fe06ff8df70))
+
+
+### Features
+
+* **amqp-transport:** apply latest changes from NestJS RMQ ([357bb9e](https://github.com/s1seven/nestjs-tools/commit/357bb9ee369d3849666e627da01c48a1134e03b0))
+
+
+
+
+
 ## [0.3.2](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-amqp-transport@0.3.1...@s1seven/nestjs-tools-amqp-transport@0.3.2) (2022-08-09)
 
 **Note:** Version bump only for package @s1seven/nestjs-tools-amqp-transport

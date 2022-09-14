@@ -82,7 +82,7 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
     this.server && this.server.close();
   }
 
-  async start(callback: () => void): Promise<void> {
+  async start(callback: (error?: Error) => void): Promise<void> {
     this.server = this.createClient();
     this.server.on(CONNECT_EVENT, () => {
       if (this.channel) {
@@ -112,22 +112,47 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
     });
   }
 
-  async setupChannel(channel: Channel, callback: () => void): Promise<void> {
-    const noAck = this.getOptionsProp(this.options, 'noAck', RQM_DEFAULT_NOACK);
-    if (this.exchange) {
-      await channel.assertExchange(this.exchange, this.exchangeType, this.exchangeOptions);
-      const q = await channel.assertQueue(this.queue, this.queueOptions);
-      const registeredPatterns = [...this.messageHandlers.keys()];
-      await Promise.all(registeredPatterns.map((pattern) => channel.bindQueue(q.queue, this.exchange, pattern)));
-    } else {
-      await channel.assertQueue(this.queue, this.queueOptions);
+  async deleteChannel(channel: Channel, callback: (error?: Error) => void) {
+    try {
+      if (this.exchange) {
+        await channel.deleteExchange(this.exchange);
+        await channel.deleteQueue(this.queue);
+        const registeredPatterns = [...this.messageHandlers.keys()];
+        await Promise.all(registeredPatterns.map((pattern) => channel.unbindQueue(this.queue, this.exchange, pattern)));
+      } else {
+        await channel.deleteQueue(this.queue);
+      }
+      return true;
+    } catch (e) {
+      callback(e);
+      return false;
     }
+  }
 
-    await channel.prefetch(this.prefetchCount, this.isGlobalPrefetchCount);
-    channel.consume(this.queue, (msg) => this.handleMessage(msg, channel), {
-      noAck,
-    });
-    callback();
+  async setupChannel(channel: Channel, callback: (error?: Error) => void, retried?: boolean): Promise<void> {
+    try {
+      const noAck = this.getOptionsProp(this.options, 'noAck', RQM_DEFAULT_NOACK);
+      if (this.exchange) {
+        await channel.assertExchange(this.exchange, this.exchangeType, this.exchangeOptions);
+        const q = await channel.assertQueue(this.queue, this.queueOptions);
+        const registeredPatterns = [...this.messageHandlers.keys()];
+        await Promise.all(registeredPatterns.map((pattern) => channel.bindQueue(q.queue, this.exchange, pattern)));
+      } else {
+        await channel.assertQueue(this.queue, this.queueOptions);
+      }
+
+      await channel.prefetch(this.prefetchCount, this.isGlobalPrefetchCount);
+      channel.consume(this.queue, (msg) => this.handleMessage(msg, channel), {
+        noAck,
+      });
+      callback();
+    } catch (e) {
+      const deleted = await this.deleteChannel(channel, callback);
+      if (deleted && !retried) {
+        return this.setupChannel(channel, callback, true);
+      }
+      callback(e);
+    }
   }
 
   matchAmqpPattern(pattern: string, topic: string): boolean {

@@ -89,10 +89,10 @@ export class AmqpClient extends ClientProxy {
   }
 
   createChannel(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       this.channel = this.client.createChannel({
         json: false,
-        setup: (channel: Channel) => this.setupChannel(channel, resolve),
+        setup: (channel: Channel) => this.setupChannel(channel, resolve, reject),
       });
     });
   }
@@ -126,25 +126,28 @@ export class AmqpClient extends ClientProxy {
     return merge(source$, disconnect$, connectFailed$).pipe(first());
   }
 
-  async setupChannel(channel: Channel, resolve: () => void): Promise<void> {
-    const prefetchCount = this.getOptionsProp(this.options, 'prefetchCount') || RQM_DEFAULT_PREFETCH_COUNT;
-    const isGlobalPrefetchCount =
-      this.getOptionsProp(this.options, 'isGlobalPrefetchCount') || RQM_DEFAULT_IS_GLOBAL_PREFETCH_COUNT;
+  async setupChannel(channel: Channel, resolve: () => void, reject: (err: Error) => void): Promise<void> {
+    try {
+      const prefetchCount = this.getOptionsProp(this.options, 'prefetchCount') || RQM_DEFAULT_PREFETCH_COUNT;
+      const isGlobalPrefetchCount =
+        this.getOptionsProp(this.options, 'isGlobalPrefetchCount') || RQM_DEFAULT_IS_GLOBAL_PREFETCH_COUNT;
 
-    if (this.exchange) {
-      await channel.assertExchange(this.exchange, this.exchangeType, this.exchangeOptions);
-    } else {
-      await channel.assertQueue(this.queue, this.queueOptions);
-      await channel.prefetch(prefetchCount, isGlobalPrefetchCount);
-    }
+      if (this.exchange) {
+        await channel.assertExchange(this.exchange, this.exchangeType, this.exchangeOptions);
+      } else {
+        await channel.assertQueue(this.queue, this.queueOptions);
+        await channel.prefetch(prefetchCount, isGlobalPrefetchCount);
+      }
 
-    this.responseEmitter = new EventEmitter();
-    this.responseEmitter.setMaxListeners(0);
-    if (this.replyQueue) {
-      // await this.consumeChannel();
-      await this.consumeChannel(channel);
+      this.responseEmitter = new EventEmitter();
+      this.responseEmitter.setMaxListeners(0);
+      if (this.replyQueue) {
+        await this.consumeChannel(channel);
+      }
+      resolve();
+    } catch (e) {
+      reject(e);
     }
-    resolve();
   }
 
   async consumeChannel(channel: Channel): Promise<void> {

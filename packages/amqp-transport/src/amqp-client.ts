@@ -1,11 +1,13 @@
 import { Logger } from '@nestjs/common/services/logger.service';
 import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
+import { isFunction } from '@nestjs/common/utils/shared.utils';
 import { ClientProxy, ReadPacket, RmqRecord, WritePacket } from '@nestjs/microservices';
 import {
   DISCONNECT_EVENT,
   DISCONNECTED_RMQ_MESSAGE,
   ERROR_EVENT,
   RQM_DEFAULT_IS_GLOBAL_PREFETCH_COUNT,
+  RQM_DEFAULT_NO_ASSERT,
   RQM_DEFAULT_NOACK,
   RQM_DEFAULT_PERSISTENT,
   RQM_DEFAULT_PREFETCH_COUNT,
@@ -43,6 +45,7 @@ export class AmqpClient extends ClientProxy {
   protected exchange?: string;
   protected exchangeType?: string;
   protected exchangeOptions?: Options.AssertExchange;
+  protected noAssert: boolean;
 
   constructor(protected readonly options: AmqpOptions) {
     super();
@@ -54,6 +57,7 @@ export class AmqpClient extends ClientProxy {
     this.exchange = this.getOptionsProp(this.options, 'exchange') || null;
     this.exchangeType = this.getOptionsProp(this.options, 'exchangeType') || AMQP_DEFAULT_EXCHANGE_TYPE;
     this.exchangeOptions = this.getOptionsProp(this.options, 'exchangeOptions') || AMQP_DEFAULT_EXCHANGE_OPTIONS;
+    this.noAssert = this.getOptionsProp(this.options, 'noAssert') || RQM_DEFAULT_NO_ASSERT;
     this.initializeSerializer(options);
     this.initializeDeserializer(options);
   }
@@ -132,12 +136,12 @@ export class AmqpClient extends ClientProxy {
       const isGlobalPrefetchCount =
         this.getOptionsProp(this.options, 'isGlobalPrefetchCount') || RQM_DEFAULT_IS_GLOBAL_PREFETCH_COUNT;
 
-      if (this.exchange) {
+      if (this.exchange && !this.noAssert) {
         await channel.assertExchange(this.exchange, this.exchangeType, this.exchangeOptions);
-      } else {
+      } else if (!this.noAssert) {
         await channel.assertQueue(this.queue, this.queueOptions);
-        await channel.prefetch(prefetchCount, isGlobalPrefetchCount);
       }
+      await channel.prefetch(prefetchCount, isGlobalPrefetchCount);
 
       this.responseEmitter = new EventEmitter();
       this.responseEmitter.setMaxListeners(0);
@@ -181,8 +185,25 @@ export class AmqpClient extends ClientProxy {
     });
   }
 
-  async handleMessage(packet: unknown, callback: (packet: WritePacket) => any): Promise<void> {
-    const { err, response, isDisposed } = await this.deserializer.deserialize(packet);
+  async handleMessage(packet: unknown, callback: (packet: WritePacket) => any): Promise<void>;
+  async handleMessage(
+    packet: unknown,
+    options: Record<string, unknown>,
+    callback: (packet: WritePacket) => any,
+  ): Promise<void>;
+  public async handleMessage(
+    packet: unknown,
+    options: Record<string, unknown> | ((packet: WritePacket) => any),
+    callback?: (packet: WritePacket) => any,
+  ): Promise<void> {
+    if (isFunction(options)) {
+      // eslint-disable-next-line no-param-reassign
+      callback = options as (packet: WritePacket) => any;
+      // eslint-disable-next-line no-param-reassign
+      options = undefined;
+    }
+
+    const { err, response, isDisposed } = await this.deserializer.deserialize(packet, options);
     if (isDisposed || err) {
       callback({
         err,
@@ -201,6 +222,7 @@ export class AmqpClient extends ClientProxy {
       const correlationId = randomStringGenerator();
       const listener = ({ content }: { content: Buffer }) =>
         this.handleMessage(JSON.parse(content.toString()), callback);
+
       Object.assign(message, { id: correlationId });
       const serializedPacket: ReadPacket & Partial<RmqRecord> = this.serializer.serialize(message);
       const options = serializedPacket.options;
@@ -232,6 +254,7 @@ export class AmqpClient extends ClientProxy {
     const serializedPacket: ReadPacket & Partial<RmqRecord> = this.serializer.serialize(packet);
     const options = serializedPacket.options;
     delete serializedPacket.options;
+
     const content = Buffer.from(JSON.stringify(serializedPacket));
     const publishOptions: Options.Publish = {
       persistent: this.persistent,

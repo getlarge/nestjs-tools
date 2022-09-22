@@ -10,6 +10,7 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { AsyncAPIObject } from 'nestjs-asyncapi';
+import { URL } from 'url';
 
 import { getMainServerUrl, setupAsyncApi, setupOpenApi } from './api-specs';
 import { BaseConfig, BootOptions, defaultOptions, SetupOptions } from './options';
@@ -98,10 +99,13 @@ export class ApplicationBoot<Conf extends BaseConfig> extends EventEmitter {
   logInfo(): void {
     const { asyncApi, openApi, serviceName } = this.options;
     const { asyncApiPath, brokerUrl, environment, swaggerPath } = this.config;
+    const brokerUrlObject = new URL(brokerUrl);
+    brokerUrlObject.username = '*****';
+    brokerUrlObject.password = '*****';
     const logger = this.logger;
     const url = getMainServerUrl(this.config);
-    logger.log(chalk.blue.bold(`✅ ${serviceName} microservice running on 👉 ${url}`), 'Bootstrap');
-    logger.log(chalk.blue.bold(`✅ ${serviceName} microservice connecting to 👉 ${brokerUrl}`), 'Bootstrap');
+    logger.log(chalk.blue.bold(`✅ ${serviceName} microservice running on 👉 ${url}`));
+    logger.log(chalk.blue.bold(`✅ ${serviceName} microservice connecting to 👉 ${brokerUrlObject.href}`));
     if (openApi?.enableExplorer) {
       logger.log(chalk.green.bold(`📄 Swagger 👉 ${url}/${swaggerPath}`));
     }

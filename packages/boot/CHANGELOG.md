@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.14.0](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-boot@0.13.0...@s1seven/nestjs-tools-boot@0.14.0) (2022-09-22)
+
+
+### Bug Fixes
+
+* **boot:** hide broker URL credentials ([2c0245a](https://github.com/s1seven/nestjs-tools/commit/2c0245a19e9d5435c22e909657a8fcd3d1bb7dd3))
+
+
+### Features
+
+* **boot:** allow overriding NestApplicationOptions ([53ecdd4](https://github.com/s1seven/nestjs-tools/commit/53ecdd4913bd5e9eb014d6e4f7f071cf1851e9ca))
+
+
+
+
+
 # [0.13.0](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-boot@0.12.6...@s1seven/nestjs-tools-boot@0.13.0) (2022-09-09)
 
 

@@ -3,6 +3,7 @@ import type {
   ExceptionFilter,
   LoggerService,
   LogLevel,
+  NestApplicationOptions,
   NestHybridApplicationOptions,
   NestInterceptor,
   PipeTransform,
@@ -87,6 +88,7 @@ export type BootOptions<Config extends BaseConfig> = {
   AppModule: Function; // eslint-disable-line @typescript-eslint/ban-types
   openApi?: OpenApiOptions;
   asyncApi?: AsyncApiOptions;
+  loggerName?: string;
   logger?: LoggerService;
   logLevels?: LogLevel[];
   staticAssets?: { path: string; options?: ServeStaticOptions }[];
@@ -167,7 +169,7 @@ export const defaultOptions: BootOptions<BaseConfig> = {
   rateLimitOptions: false,
 };
 
-export interface SetupOptions {
+export interface SetupOptions extends NestApplicationOptions {
   workerId?: number;
   preSetup?: (app?: NestExpressApplication) => Promise<void> | void;
   postSetup?: (app?: NestExpressApplication) => Promise<void> | void;

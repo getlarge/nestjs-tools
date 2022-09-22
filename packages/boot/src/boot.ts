@@ -10,6 +10,7 @@ import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import { AsyncAPIObject } from 'nestjs-asyncapi';
+import { URL } from 'url';
 
 import { getMainServerUrl, setupAsyncApi, setupOpenApi } from './api-specs';
 import { BaseConfig, BootOptions, defaultOptions, SetupOptions } from './options';
@@ -23,7 +24,7 @@ export interface ApplicationBootEvents {
 }
 
 export class ApplicationBoot<Conf extends BaseConfig> extends EventEmitter {
-  readonly logger: Logger = new Logger('Bootstrap');
+  readonly logger: Logger;
   private _options: BootOptions<Conf>;
   private _config: Conf;
   private _app: NestExpressApplication;
@@ -64,6 +65,8 @@ export class ApplicationBoot<Conf extends BaseConfig> extends EventEmitter {
   constructor(bootOptions: BootOptions<Conf>) {
     super({ captureRejections: true });
     this.options = { ...defaultOptions, ...bootOptions };
+    this.logger =
+      this.options.logger instanceof Logger ? this.options.logger : new Logger(this.options.loggerName || 'Bootstrap');
     if (!this.options.AppModule) {
       throw new Error('AppModule is required in bootOptions');
     }
@@ -96,10 +99,13 @@ export class ApplicationBoot<Conf extends BaseConfig> extends EventEmitter {
   logInfo(): void {
     const { asyncApi, openApi, serviceName } = this.options;
     const { asyncApiPath, brokerUrl, environment, swaggerPath } = this.config;
+    const brokerUrlObject = new URL(brokerUrl);
+    brokerUrlObject.username = '*****';
+    brokerUrlObject.password = '*****';
     const logger = this.logger;
     const url = getMainServerUrl(this.config);
-    logger.log(chalk.blue.bold(`✅ ${serviceName} microservice running on 👉 ${url}`), 'Bootstrap');
-    logger.log(chalk.blue.bold(`✅ ${serviceName} microservice connecting to 👉 ${brokerUrl}`), 'Bootstrap');
+    logger.log(chalk.blue.bold(`✅ ${serviceName} microservice running on 👉 ${url}`));
+    logger.log(chalk.blue.bold(`✅ ${serviceName} microservice connecting to 👉 ${brokerUrlObject.href}`));
     if (openApi?.enableExplorer) {
       logger.log(chalk.green.bold(`📄 Swagger 👉 ${url}/${swaggerPath}`));
     }
@@ -266,10 +272,10 @@ export class ApplicationBoot<Conf extends BaseConfig> extends EventEmitter {
 
   setLogger(): LoggerService | LogLevel[] {
     let logger: LoggerService | LogLevel[];
-    if (this.options.logLevels?.length) {
-      logger = this.options.logLevels;
-    } else if (this.options.logger) {
+    if (this.options.logger instanceof Logger) {
       logger = this.options.logger;
+    } else if (this.options.logLevels?.length) {
+      logger = this.options.logLevels;
     } else {
       logger = this.logger;
     }
@@ -279,7 +285,8 @@ export class ApplicationBoot<Conf extends BaseConfig> extends EventEmitter {
   // eslint-disable-next-line max-lines-per-function
   async bootstrap(setupOptions: SetupOptions = {}): Promise<NestExpressApplication | null> {
     const AppModule = this.options.AppModule;
-    const appConfig: NestApplicationOptions = { bodyParser: false, logger: this.setLogger() };
+    const { bodyParser = false, bufferLogs } = setupOptions;
+    const appConfig: NestApplicationOptions = { bodyParser, logger: this.setLogger(), bufferLogs };
     const server = express();
     server.disable('x-powered-by');
     try {

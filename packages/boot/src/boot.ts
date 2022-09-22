@@ -23,7 +23,7 @@ export interface ApplicationBootEvents {
 }
 
 export class ApplicationBoot<Conf extends BaseConfig> extends EventEmitter {
-  readonly logger: Logger = new Logger('Bootstrap');
+  readonly logger: Logger;
   private _options: BootOptions<Conf>;
   private _config: Conf;
   private _app: NestExpressApplication;
@@ -64,6 +64,8 @@ export class ApplicationBoot<Conf extends BaseConfig> extends EventEmitter {
   constructor(bootOptions: BootOptions<Conf>) {
     super({ captureRejections: true });
     this.options = { ...defaultOptions, ...bootOptions };
+    this.logger =
+      this.options.logger instanceof Logger ? this.options.logger : new Logger(this.options.loggerName || 'Bootstrap');
     if (!this.options.AppModule) {
       throw new Error('AppModule is required in bootOptions');
     }
@@ -266,10 +268,10 @@ export class ApplicationBoot<Conf extends BaseConfig> extends EventEmitter {
 
   setLogger(): LoggerService | LogLevel[] {
     let logger: LoggerService | LogLevel[];
-    if (this.options.logLevels?.length) {
-      logger = this.options.logLevels;
-    } else if (this.options.logger) {
+    if (this.options.logger instanceof Logger) {
       logger = this.options.logger;
+    } else if (this.options.logLevels?.length) {
+      logger = this.options.logLevels;
     } else {
       logger = this.logger;
     }
@@ -279,7 +281,8 @@ export class ApplicationBoot<Conf extends BaseConfig> extends EventEmitter {
   // eslint-disable-next-line max-lines-per-function
   async bootstrap(setupOptions: SetupOptions = {}): Promise<NestExpressApplication | null> {
     const AppModule = this.options.AppModule;
-    const appConfig: NestApplicationOptions = { bodyParser: false, logger: this.setLogger() };
+    const { bodyParser = false, bufferLogs } = setupOptions;
+    const appConfig: NestApplicationOptions = { bodyParser, logger: this.setLogger(), bufferLogs };
     const server = express();
     server.disable('x-powered-by');
     try {

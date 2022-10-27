@@ -138,9 +138,11 @@ describe('ClusterService', function () {
     const { out } = await done;
     child.kill();
     expect(out).toBe('master\nworker\n');
-  }, 8000);
+  }, 9000);
 
-  describe.skip('with a worker function and 3 workers', () => {
+  describe('with a worker function and 3 workers', () => {
+    if (process.env.CI) return; // those tests are kind of flaky in Github CI runner...
+
     it('should start 3 workers that immediately exit, with lifetime of 0', async () => {
       const { done } = run(getFixture(Fixtures.exit));
       const { out } = await done;
@@ -169,7 +171,7 @@ describe('ClusterService', function () {
     }, 8000);
   });
 
-  describe.skip('with a master function and two workers', () => {
+  describe('with a master function and two workers', () => {
     let output: string;
 
     beforeAll(async () => {
@@ -189,8 +191,9 @@ describe('ClusterService', function () {
     });
   });
 
-  describe.skip('signal handling', () => {
+  describe('signal handling', () => {
     if (process.platform === 'win32') return; // windows does not support signal-based process shutdown
+    if (process.env.CI) return; // those tests are kind of flaky in Github CI runner...
 
     it('should start 2 workers and allow them to shut down, when SIGTERM with 2 workers that exit gracefully', async () => {
       const { child, done } = run(getFixture(Fixtures.graceful));
@@ -202,7 +205,7 @@ describe('ClusterService', function () {
       expect(workers).toBe(2);
       const exits = out.match(/exiting/g).length;
       expect(exits).toBe(2);
-    }, 8000);
+    }, 10000);
 
     it('should start 2 workers and notify them that they should exit, when SIGTERM with 2 workers that fail to exit', async () => {
       const { child, done } = run(getFixture(Fixtures.kill));
@@ -216,7 +219,7 @@ describe('ClusterService', function () {
       expect(exits).toBe(2);
       //   expect(duration).toBeGreaterThanOrEqual(1250);
       //   expect(duration).toBeLessThan(1350);
-    }, 8000);
+    }, 10000);
 
     it('should start 2 workers and allow them to shut down when SIGINT on the process group (Ctrl+C) with 2 workers that exit gracefully', async () => {
       // const delay = 1000;
@@ -228,7 +231,7 @@ describe('ClusterService', function () {
       expect(workers).toBe(2);
       const exits = out.match(/exiting/g).length;
       expect(exits).toBe(2);
-    }, 8000);
+    }, 10000);
 
     it('should start 2 workers and allow them to shut down when using custom shutdown signal with 2 workers that exit gracefully', async () => {
       // const delay = 750;
@@ -240,6 +243,6 @@ describe('ClusterService', function () {
       expect(workers).toBe(2);
       const exits = out.match(/exiting/g).length;
       expect(exits).toBe(2);
-    }, 8000);
+    }, 10000);
   });
 });

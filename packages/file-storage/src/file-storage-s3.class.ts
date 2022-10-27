@@ -1,9 +1,22 @@
 import { S3 } from 'aws-sdk';
-import { DeleteObjectRequest, GetObjectRequest, HeadObjectRequest, PutObjectRequest } from 'aws-sdk/clients/s3';
+import {
+  DeleteObjectRequest,
+  DeleteObjectsRequest,
+  GetObjectRequest,
+  HeadObjectRequest,
+  ListObjectsV2Request,
+  PutObjectRequest,
+} from 'aws-sdk/clients/s3';
 import { Request } from 'express';
 import { PassThrough, Readable, Writable } from 'stream';
 
-import { FileStorage, FileStorageConfig, FileStorageConfigFactory } from './file-storage.class';
+import {
+  FileStorage,
+  FileStorageBaseArgs,
+  FileStorageConfig,
+  FileStorageConfigFactory,
+  FileStorageDirBaseArgs,
+} from './file-storage.class';
 
 export type FileStorageS3Setup = {
   accessKeyId: string;
@@ -43,6 +56,39 @@ function config(setup: FileStorageS3Setup) {
   };
 }
 
+export interface FileStorageS3FileExists extends FileStorageBaseArgs {
+  options?: HeadObjectRequest;
+}
+
+export interface FileStorageS3UploadFile extends FileStorageBaseArgs {
+  content: string | Uint8Array | Buffer;
+  options?: PutObjectRequest;
+}
+
+export interface FileStorageS3UploadStream extends FileStorageBaseArgs {
+  options?: PutObjectRequest;
+}
+
+export interface FileStorageS3DownloadFile extends FileStorageBaseArgs {
+  options?: GetObjectRequest;
+}
+
+export interface FileStorageS3DownloadStream extends FileStorageBaseArgs {
+  options?: GetObjectRequest;
+}
+
+export interface FileStorageS3DeleteFile extends FileStorageBaseArgs {
+  options?: DeleteObjectRequest;
+}
+
+function removeTrailingForwardSlash(string: string) {
+  return string.endsWith('/') ? string.slice(0, -1) : string;
+}
+
+function addTrailingForwardSlash(string: string) {
+  return string.endsWith('/') ? string : `${string}/`;
+}
+
 // TODO: control filesize limit
 export class FileStorageS3 implements FileStorage {
   config: FileStorageConfig & FileStorageS3Config;
@@ -57,7 +103,7 @@ export class FileStorageS3 implements FileStorage {
       : fileName;
   }
 
-  async fileExists(args: { filePath: string; options?: HeadObjectRequest; request?: Request | any }): Promise<boolean> {
+  async fileExists(args: FileStorageS3FileExists): Promise<boolean> {
     const { filePath, options = {}, request } = args;
     const { s3, bucket: Bucket } = this.config;
     const Key = await this.transformFilePath(filePath, request, options);
@@ -65,23 +111,14 @@ export class FileStorageS3 implements FileStorage {
     return true;
   }
 
-  async uploadFile(args: {
-    filePath: string;
-    content: string | Uint8Array | Buffer;
-    options?: PutObjectRequest;
-    request?: Request | any;
-  }): Promise<void> {
+  async uploadFile(args: FileStorageS3UploadFile): Promise<void> {
     const { filePath, content, options = {}, request } = args;
     const { s3, bucket: Bucket } = this.config;
     const Key = await this.transformFilePath(filePath, request, options);
     await s3.upload({ Bucket, Key, Body: content, ...options }).promise();
   }
 
-  async uploadStream(args: {
-    filePath: string;
-    options?: PutObjectRequest;
-    request?: Request | any;
-  }): Promise<Writable> {
+  async uploadStream(args: FileStorageS3UploadStream): Promise<Writable> {
     const { filePath, options = {}, request } = args;
     const Key = await this.transformFilePath(filePath, request, options);
     const { s3, bucket: Bucket } = this.config;
@@ -91,7 +128,7 @@ export class FileStorageS3 implements FileStorage {
     // ? or return {writeStream, promise: s3.upload({ Bucket, Key, Body: writeStream }).promise()};
   }
 
-  async downloadFile(args: { filePath: string; options?: GetObjectRequest; request?: Request | any }): Promise<Buffer> {
+  async downloadFile(args: FileStorageS3DownloadFile): Promise<Buffer> {
     const { filePath, options = {}, request } = args;
     const Key = await this.transformFilePath(filePath, request, options);
     const { s3, bucket: Bucket } = this.config;
@@ -99,26 +136,71 @@ export class FileStorageS3 implements FileStorage {
     return object.Body as Buffer;
   }
 
-  async downloadStream(args: {
-    filePath: string;
-    options?: GetObjectRequest;
-    request?: Request | any;
-  }): Promise<Readable> {
+  async downloadStream(args: FileStorageS3DownloadStream): Promise<Readable> {
     const { filePath, options = {}, request } = args;
     const Key = await this.transformFilePath(filePath, request, options);
     const { s3, bucket: Bucket } = this.config;
     return s3.getObject({ Bucket, Key, ...options }).createReadStream();
   }
 
-  async deleteFile(args: {
-    filePath: string;
-    options?: DeleteObjectRequest;
-    request?: Request | any;
-  }): Promise<boolean> {
+  async deleteFile(args: FileStorageS3DeleteFile): Promise<boolean> {
     const { filePath, options = {}, request } = args;
     const Key = await this.transformFilePath(filePath, request, options);
     const { s3, bucket: Bucket } = this.config;
     await s3.deleteObject({ Bucket, Key, ...options }).promise();
     return true;
+  }
+
+  async deleteDir(args: FileStorageDirBaseArgs): Promise<void> {
+    const { dirPath, request } = args;
+    const { s3, bucket: Bucket } = this.config;
+    const listKey = await this.transformFilePath(dirPath, request);
+    const listParams: ListObjectsV2Request = {
+      Bucket,
+      Prefix: listKey,
+    };
+    // get list of objects in a dir
+    const listedObjects = await s3.listObjectsV2(listParams).promise();
+    if (listedObjects.Contents.length === 0) {
+      return;
+    }
+
+    const deleteParams: DeleteObjectsRequest = {
+      Bucket,
+      Delete: {
+        Objects: listedObjects.Contents.map(({ Key }) => ({
+          Key,
+        })),
+      },
+    };
+    await s3.deleteObjects(deleteParams).promise();
+
+    if (listedObjects.IsTruncated) {
+      await this.deleteDir({ dirPath });
+    }
+  }
+
+  async readDir(args: FileStorageDirBaseArgs) {
+    const { dirPath, request } = args;
+    const { s3, bucket: Bucket } = this.config;
+    const Key = await this.transformFilePath(dirPath, request);
+    const listParams: ListObjectsV2Request = {
+      Bucket,
+      Delimiter: '/',
+    };
+    // Passing in / as Key breaks the folder matching
+    if (Key !== '/' && Key !== '') {
+      listParams.Prefix = addTrailingForwardSlash(Key);
+    }
+    const listedObjects = await s3.listObjectsV2(listParams).promise();
+
+    return listedObjects.CommonPrefixes?.map((prefixObject) => {
+      const prefix = removeTrailingForwardSlash(prefixObject.Prefix);
+      const key = listParams['Prefix'];
+      // If key exists, we are looking for a nested folder such as v0.1.0
+      return key
+        ? prefix.slice(key.length) // e.g. v0.1.0
+        : prefix; // e.g. en10168-schemas
+    });
   }
 }

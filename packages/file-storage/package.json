@@ -29,7 +29,9 @@
     "compile": "tsc -p tsconfig.build.json",
     "lint": "eslint -c ../../.eslintrc.js \"**/*.ts\"",
     "lint:fix": "eslint -c ../../.eslintrc.js \"**/*.ts\" --fix",
-    "test": "jest --ci --passWithNoTests",
+    "test": "jest",
+    "test:cov": "rimraf -rf ./coverage && jest --ci --coverage --logHeapUsage",
+    "scan:deps": "audit-ci --config ../../audit-ci.json",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
@@ -44,6 +46,7 @@
   },
   "devDependencies": {
     "@types/express": "^4.17.13",
-    "@types/node": "^16.11.6"
+    "@types/node": "^16.11.6",
+    "@nestjs/testing": "^9.1.6"
   }
 }

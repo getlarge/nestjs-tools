@@ -28,6 +28,7 @@ concurrency:
 env:
   NX_CLOUD_DISTRIBUTED_EXECUTION: false
   NX_DISTRIBUTED_TASK_EXECUTION: false
+  CI: true
 
 jobs:
   setup-and-test:

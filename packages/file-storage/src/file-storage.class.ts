@@ -14,51 +14,69 @@ export type FileStorageConfigFactory<T = Record<string, any>, S = Record<string,
 
 const defaultErrorMessage = 'Funtion must be implemented';
 
+export interface FileStorageBaseArgs {
+  filePath: string;
+  request?: Request | any;
+}
+
+export interface FileStorageDirBaseArgs {
+  dirPath: string;
+  request?: Request | any;
+}
+
 export abstract class FileStorage {
   config?: FileStorageConfig & Record<string, any>;
 
   constructor(setup: Record<string, any>, factory?: (setup?: Record<string, any>) => any) {
-    throw new Error('Constructor must be implemented');
+    //
   }
 
   transformFilePath(fileName: string, request?: Request, options?: any): string | Promise<string> {
     throw new Error(defaultErrorMessage);
   }
 
-  fileExists(args: { filePath: string; options?: string | any; request?: Request | any }): Promise<boolean> {
+  fileExists(args: FileStorageBaseArgs & { options?: string | any }): Promise<boolean> {
     throw new Error(defaultErrorMessage);
   }
 
-  uploadFile(args: {
-    filePath: string;
-    content: Buffer | string;
-    options?: string | any;
-    request?: Request | any;
-  }): Promise<void> {
+  uploadFile(
+    args: FileStorageBaseArgs & {
+      content: Buffer | Uint8Array | string;
+      options?: string | any;
+    },
+  ): Promise<void> {
     throw new Error(defaultErrorMessage);
   }
 
-  uploadStream(args: {
-    filePath: string;
-    options?: string | any;
-    request?: Request | any;
-  }): Writable | Promise<Writable> {
+  uploadStream(
+    args: FileStorageBaseArgs & {
+      options?: string | any;
+    },
+  ): Writable | Promise<Writable> {
     throw new Error(defaultErrorMessage);
   }
 
-  downloadFile(args: { filePath: string; options?: string | any; request?: Request | any }): Promise<Buffer | string> {
+  downloadFile(args: FileStorageBaseArgs & { options?: string | any }): Promise<Buffer | string> {
     throw new Error(defaultErrorMessage);
   }
 
-  downloadStream(args: {
-    filePath: string;
-    options?: string | any;
-    request?: Request | any;
-  }): Readable | Promise<Readable> {
+  downloadStream(
+    args: FileStorageBaseArgs & {
+      options?: string | any;
+    },
+  ): Readable | Promise<Readable> {
     throw new Error(defaultErrorMessage);
   }
 
-  deleteFile(args: { filePath: string; request?: Request | any }): Promise<boolean> {
+  deleteFile(args: FileStorageBaseArgs): Promise<boolean> {
+    throw new Error(defaultErrorMessage);
+  }
+
+  deleteDir(args: FileStorageDirBaseArgs): Promise<void> {
+    throw new Error(defaultErrorMessage);
+  }
+
+  readDir(args: FileStorageDirBaseArgs): Promise<string[]> {
     throw new Error(defaultErrorMessage);
   }
 }

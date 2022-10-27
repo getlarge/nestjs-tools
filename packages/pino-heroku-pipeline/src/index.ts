@@ -4,7 +4,12 @@ import { pipeline } from 'stream';
 import { HEROKU_LOG_REGEX } from './constants';
 import { DynoType, herokuLogTransformer, parseHerokuAppLogLine } from './utils';
 
-const pinoHerokuStream = async (options: { regex?: RegExp; dyno?: DynoType } = {}) => {
+export interface PipelineOptions {
+  regex?: RegExp;
+  dyno?: DynoType;
+}
+
+const pinoHerokuPipeline = async (options: PipelineOptions = {}) => {
   const { regex = HEROKU_LOG_REGEX, dyno = 'web' } = options;
   return build(
     (source) => {
@@ -21,5 +26,5 @@ const pinoHerokuStream = async (options: { regex?: RegExp; dyno?: DynoType } = {
   );
 };
 
-module.exports = pinoHerokuStream;
-export default pinoHerokuStream;
+module.exports = pinoHerokuPipeline;
+export default pinoHerokuPipeline;

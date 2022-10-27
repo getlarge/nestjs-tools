@@ -50,7 +50,7 @@ export class AccessControlModule {
     };
   }
 
-  public static forRootAsync(options: AccessControlModuleAsyncOptions): DynamicModule {
+  public static forRulesAsync(options: AccessControlModuleAsyncOptions): DynamicModule {
     const { inject = [], imports = [], useFactory, useExisting, useClass } = options;
     let provider: Provider<RulesBuilder | Promise<RulesBuilder>> = {
       provide: RULES_BUILDER_TOKEN,

@@ -7,11 +7,11 @@ import { RULES_BUILDER_TOKEN } from '../src/constants';
 import { GrantsController } from '../src/controller/grants.controller';
 import { RulesBuilder } from '../src/rules-builder.class';
 
-describe('forRootAsync', () => {
+describe('forRulesAsync', () => {
   it('Can create instance with provider method', async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
-        AccessControlModule.forRootAsync({
+        AccessControlModule.forRulesAsync({
           useFactory: (): RulesBuilder => new RulesBuilder(),
         }),
       ],
@@ -25,7 +25,7 @@ describe('forRootAsync', () => {
   it('Can create instance with async provider method', async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [
-        AccessControlModule.forRootAsync({
+        AccessControlModule.forRulesAsync({
           useFactory: async (): Promise<RulesBuilder> => {
             delay(100);
             return new RulesBuilder();
@@ -40,7 +40,7 @@ describe('forRootAsync', () => {
   });
 });
 
-describe('forRoles', () => {
+describe('forRules', () => {
   it('Expose <grantsEndpoint> when options is provided', async () => {
     const rules: RulesBuilder = new RulesBuilder();
     const options: ACOptions = { grantsEndpoint: 'grants' };

@@ -19,6 +19,11 @@ export interface FileStorageBaseArgs {
   request?: Request | any;
 }
 
+export interface FileStorageDirBaseArgs {
+  dirPath: string;
+  request?: Request | any;
+}
+
 export abstract class FileStorage {
   config?: FileStorageConfig & Record<string, any>;
 
@@ -64,6 +69,14 @@ export abstract class FileStorage {
   }
 
   deleteFile(args: FileStorageBaseArgs): Promise<boolean> {
+    throw new Error(defaultErrorMessage);
+  }
+
+  deleteDir(args: FileStorageDirBaseArgs): Promise<void> {
+    throw new Error(defaultErrorMessage);
+  }
+
+  readDir(args: FileStorageDirBaseArgs): Promise<string[]> {
     throw new Error(defaultErrorMessage);
   }
 }

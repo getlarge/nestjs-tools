@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Readable, Writable } from 'stream';
 
 import { InjectFileStorageStrategy } from './decorators';
-import { FileStorage, FileStorageBaseArgs } from './file-storage.class';
+import { FileStorage, FileStorageBaseArgs, FileStorageDirBaseArgs } from './file-storage.class';
 import {
   FileStorageLocalDownloadFile,
   FileStorageLocalDownloadStream,
@@ -45,5 +45,13 @@ export class FileStorageService implements Omit<FileStorage, 'transformFilePath'
 
   deleteFile(args: FileStorageBaseArgs | FileStorageS3DeleteFile): Promise<boolean> {
     return this.fileStorage.deleteFile(args);
+  }
+
+  readDir(args: FileStorageDirBaseArgs): Promise<string[]> {
+    return this.fileStorage.readDir(args);
+  }
+
+  deleteDir(args: FileStorageDirBaseArgs): Promise<void> {
+    return this.fileStorage.deleteDir(args);
   }
 }

@@ -1,3 +1,5 @@
+import { Transform } from 'stream';
+
 import { ASCII_COLORS_REGEX, HEROKU_LOG_REGEX } from './constants';
 
 export type DynoType = 'web' | 'worker';
@@ -27,3 +29,15 @@ export const parseHerokuAppLogLine = (
   const cleanLine = isHerokuAppLog ? cleanHerokuLogLine(line, regex) : null;
   return isHerokuAppLog ? JSON.parse(cleanLine) : null;
 };
+
+export const herokuLogTransformer = new Transform({
+  // Make sure autoDestroy is set,
+  // this is needed in Node v12 or when using the
+  // readable-stream module.
+  autoDestroy: true,
+  objectMode: true,
+  transform(chunk, encoding, callback) {
+    this.push(`${JSON.stringify(chunk)}\n`);
+    callback();
+  },
+});

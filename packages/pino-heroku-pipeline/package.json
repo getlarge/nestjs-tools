@@ -1,6 +1,6 @@
 {
   "name": "@s1seven/pino-heroku-pipeline",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Pipeline to clean and filter out Heroku logs",
   "author": "getlarge <ed@getlarge.eu>",
   "homepage": "https://github.com/s1seven/nestjs-tools/tree/main/packages/pino-heroku-pipeline#readme",

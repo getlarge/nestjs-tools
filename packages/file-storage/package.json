@@ -1,6 +1,6 @@
 {
   "name": "@s1seven/nestjs-tools-file-storage",
-  "version": "0.4.8",
+  "version": "0.5.0",
   "description": "File storage modules",
   "license": "Apache-2.0",
   "author": "getlarge <ed@getlarge.eu>",
@@ -45,8 +45,8 @@
     "rxjs": "^7.5.4"
   },
   "devDependencies": {
+    "@nestjs/testing": "^9.1.6",
     "@types/express": "^4.17.13",
-    "@types/node": "^16.11.6",
-    "@nestjs/testing": "^9.1.6"
+    "@types/node": "^16.11.6"
   }
 }

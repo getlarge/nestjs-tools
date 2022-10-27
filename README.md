@@ -14,3 +14,4 @@ This repository contains resources shared between S1Seven microservices.
 - [Boot](https://github.com/s1seven/nestjs-tools/tree/master/packages/boot#readme)
 - [File-Storage](https://github.com/s1seven/nestjs-tools/tree/master/packages/file-storage#readme)
 - [Lock](https://github.com/s1seven/nestjs-tools/tree/master/packages/lock#readme)
+- [Pino-Heroku-Pipeline](https://github.com/s1seven/nestjs-tools/tree/master/packages/pino-heroku-pipeline#readme)

@@ -1,0 +1,44 @@
+{
+  "name": "@s1seven/pino-heroku-pipeline",
+  "version": "0.0.0",
+  "description": "Pipeline to clean and filter out Heroku logs",
+  "author": "getlarge <ed@getlarge.eu>",
+  "homepage": "https://github.com/s1seven/nestjs-tools/tree/main/packages/pino-heroku-pipeline#readme",
+  "license": "Apache-2.0",
+  "types": "dist/index",
+  "main": "dist/index",
+  "directories": {
+    "src": "src",
+    "lib": "dist",
+    "test": "test"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/s1seven/nestjs-tools.git"
+  },
+  "scripts": {
+    "build": "npm run clean && npm run compile",
+    "clean": "rimraf -rf ./dist",
+    "cleanup": "rimraf -rf dist coverage",
+    "compile": "tsc -p tsconfig.build.json",
+    "lint": "eslint -c ../../.eslintrc.js \"**/*.ts\"",
+    "lint:fix": "eslint -c ../../.eslintrc.js \"**/*.ts\" --fix",
+    "test": "jest",
+    "test:cov": "rimraf -rf ./coverage && jest --ci --coverage --logHeapUsage",
+    "scan:deps": "audit-ci --config ../../audit-ci.json",
+    "prepublishOnly": "npm run build"
+  },
+  "bugs": {
+    "url": "https://github.com/s1seven/nestjs-tools/issues"
+  },
+  "dependencies": {
+    "pino-abstract-transport": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.6",
+    "pino": "^8.7.0"
+  }
+}

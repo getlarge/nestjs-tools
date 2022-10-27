@@ -167,20 +167,20 @@ export class FileStorageS3 implements FileStorage {
       listParams['Prefix'] = addTrailingForwardSlash(Key);
     }
     const listedObjects = await s3.listObjectsV2(listParams).promise();
-    const schemaList: string[] = [];
+    const dirContents: string[] = [];
 
     listedObjects.CommonPrefixes?.forEach((prefixObject) => {
-      const schema = removeTrailingForwardSlash(prefixObject.Prefix);
+      const prefix = removeTrailingForwardSlash(prefixObject.Prefix);
       const key = listParams['Prefix'];
       // If key exists, we are looking for a nested folder such as v0.1.0
       if (key) {
-        const schemaVersion = schema.slice(key.length); // e.g. v0.1.0
-        schemaList.push(schemaVersion);
+        const nestedFolderName = prefix.slice(key.length); // e.g. v0.1.0
+        dirContents.push(nestedFolderName);
       } else {
-        schemaList.push(schema); // e.g. en10168-schemas
+        dirContents.push(prefix); // e.g. en10168-schemas
       }
     });
 
-    return schemaList;
+    return dirContents;
   }
 }

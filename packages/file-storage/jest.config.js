@@ -13,10 +13,10 @@ module.exports = {
   coverageReporters: ['json'],
   coverageThreshold: {
     global: {
-      statements: 60,
-      branches: 40,
-      functions: 55,
-      lines: 60,
+      statements: 35,
+      branches: 10,
+      functions: 15,
+      lines: 30,
     },
   },
   moduleDirectories: ['node_modules'],

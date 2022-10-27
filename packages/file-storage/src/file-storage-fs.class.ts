@@ -17,7 +17,7 @@ import { resolve as resolvePath } from 'path';
 import { Readable, Writable } from 'stream';
 import { promisify } from 'util';
 
-import { FileStorage, FileStorageConfig, FileStorageConfigFactory } from './file-storage.class';
+import { FileStorage, FileStorageBaseArgs, FileStorageConfig, FileStorageConfigFactory } from './file-storage.class';
 
 export type StreamOptions = {
   flags?: string;
@@ -46,6 +46,34 @@ function config(setup: FileStorageLocalSetup) {
   return { filePath, limits };
 }
 
+export interface FileStorageLocalFileExists extends FileStorageBaseArgs {
+  options?: StatOptions | BigIntOptions;
+}
+
+export interface FileStorageLocalUploadFile extends FileStorageBaseArgs {
+  content: string | Uint8Array | Buffer;
+  options?: WriteFileOptions;
+}
+
+export interface FileStorageLocalUploadStream extends FileStorageBaseArgs {
+  options?: BufferEncoding | StreamOptions;
+}
+
+export interface FileStorageLocalDownloadFile extends FileStorageBaseArgs {
+  options:
+    | { encoding?: null; flag?: string }
+    | { encoding: BufferEncoding; flag?: string }
+    | BufferEncoding
+    | (ObjectEncodingOptions & { flag?: string })
+    | undefined
+    | null;
+  // options?: Record<string, any> | BufferEncoding | null;
+}
+
+export interface FileStorageLocalDownloadStream extends FileStorageBaseArgs {
+  options?: BufferEncoding | StreamOptions;
+}
+
 // TODO: control filesize limit
 export class FileStorageLocal implements FileStorage {
   config: FileStorageConfig & Record<string, any>;
@@ -61,32 +89,19 @@ export class FileStorageLocal implements FileStorage {
       : fileName;
   }
 
-  async fileExists(args: {
-    filePath: string;
-    options?: StatOptions | BigIntOptions;
-    request?: Request | any;
-  }): Promise<boolean> {
+  async fileExists(args: FileStorageLocalFileExists): Promise<boolean> {
     const { filePath, options = {}, request } = args;
     const fileName = await this.transformFilePath(filePath, request, options);
     return new Promise<boolean>((resolve, reject) => stat(fileName, (err) => (err ? reject(err) : resolve(true))));
   }
 
-  async uploadFile(args: {
-    filePath: string;
-    content: string | Uint8Array | Buffer;
-    options?: WriteFileOptions;
-    request?: Request | any;
-  }): Promise<void> {
+  async uploadFile(args: FileStorageLocalUploadFile): Promise<void> {
     const { filePath, content, options, request } = args;
     const fileName = await this.transformFilePath(filePath, request, options);
     return promisify(writeFile)(fileName, content, options);
   }
 
-  async uploadStream(args: {
-    filePath: string;
-    options?: BufferEncoding | StreamOptions;
-    request?: Request | any;
-  }): Promise<Writable> {
+  async uploadStream(args: FileStorageLocalUploadStream): Promise<Writable> {
     const { filePath, options, request } = args;
     const fileName = await this.transformFilePath(filePath, request, options);
     return createWriteStream(fileName, options);
@@ -112,27 +127,19 @@ export class FileStorageLocal implements FileStorage {
 
   downloadFile(args: { filePath: string; request?: Request | any }): Promise<Buffer>;
 
-  async downloadFile(args: {
-    filePath: string;
-    options?: Record<string, any> | BufferEncoding | null;
-    request?: Request | any;
-  }) {
+  async downloadFile(args: FileStorageLocalDownloadFile) {
     const { filePath, options, request } = args;
     const fileName = await this.transformFilePath(filePath, request, options);
     return promisify(readFile)(fileName, options);
   }
 
-  async downloadStream(args: {
-    filePath: string;
-    options?: BufferEncoding | StreamOptions;
-    request?: Request | any;
-  }): Promise<Readable> {
+  async downloadStream(args: FileStorageLocalDownloadStream): Promise<Readable> {
     const { filePath, options, request } = args;
     const fileName = await this.transformFilePath(filePath, request, options);
     return createReadStream(fileName, options);
   }
 
-  async deleteFile(args: { filePath: string; request?: Request | any }): Promise<boolean> {
+  async deleteFile(args: FileStorageBaseArgs): Promise<boolean> {
     const { filePath, request } = args;
     const fileName = await this.transformFilePath(filePath, request);
     return new Promise((resolve, reject) =>

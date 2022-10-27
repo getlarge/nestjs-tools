@@ -2,7 +2,6 @@
   "packages": ["packages/*"],
   "npmClient": "npm",
   "version": "independent",
-  "useNx": true,
   "command": {
     "publish": {
       "ignoreChanges": ["**/package-lock.json", "*.md", "**/*.spec.ts", "**/fixtures/*"],

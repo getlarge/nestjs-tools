@@ -23,7 +23,7 @@ export abstract class FileStorage {
   config?: FileStorageConfig & Record<string, any>;
 
   constructor(setup: Record<string, any>, factory?: (setup?: Record<string, any>) => any) {
-    throw new Error('Constructor must be implemented');
+    //
   }
 
   transformFilePath(fileName: string, request?: Request, options?: any): string | Promise<string> {

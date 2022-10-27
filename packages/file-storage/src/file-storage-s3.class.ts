@@ -1,9 +1,22 @@
 import { S3 } from 'aws-sdk';
-import { DeleteObjectRequest, GetObjectRequest, HeadObjectRequest, PutObjectRequest } from 'aws-sdk/clients/s3';
+import {
+  DeleteObjectRequest,
+  DeleteObjectsRequest,
+  GetObjectRequest,
+  HeadObjectRequest,
+  ListObjectsV2Request,
+  PutObjectRequest,
+} from 'aws-sdk/clients/s3';
 import { Request } from 'express';
 import { PassThrough, Readable, Writable } from 'stream';
 
-import { FileStorage, FileStorageBaseArgs, FileStorageConfig, FileStorageConfigFactory } from './file-storage.class';
+import {
+  FileStorage,
+  FileStorageBaseArgs,
+  FileStorageConfig,
+  FileStorageConfigFactory,
+  FileStorageDirBaseArgs,
+} from './file-storage.class';
 
 export type FileStorageS3Setup = {
   accessKeyId: string;
@@ -138,57 +151,56 @@ export class FileStorageS3 implements FileStorage {
     return true;
   }
 
-  async deleteDir(args: { dirPath: string; request?: Request }): Promise<void> {
+  async deleteDir(args: FileStorageDirBaseArgs): Promise<void> {
     const { dirPath, request } = args;
     const { s3, bucket: Bucket } = this.config;
     const listKey = await this.transformFilePath(dirPath, request);
-    const listParams = {
+    const listParams: ListObjectsV2Request = {
       Bucket,
       Prefix: listKey,
     };
     // get list of objects in a dir
     const listedObjects = await s3.listObjectsV2(listParams).promise();
-    if (listedObjects.Contents.length === 0) return;
+    if (listedObjects.Contents.length === 0) {
+      return;
+    }
 
-    const deleteParams = {
+    const deleteParams: DeleteObjectsRequest = {
       Bucket,
-      Delete: { Objects: [] },
+      Delete: {
+        Objects: listedObjects.Contents.map(({ Key }) => ({
+          Key,
+        })),
+      },
     };
-    listedObjects.Contents.forEach(({ Key }) => {
-      deleteParams.Delete.Objects.push({ Key });
-    });
     await s3.deleteObjects(deleteParams).promise();
 
-    if (listedObjects.IsTruncated) await this.deleteDir({ dirPath });
+    if (listedObjects.IsTruncated) {
+      await this.deleteDir({ dirPath });
+    }
   }
 
-  async readDir(args: { dirPath: string }) {
-    const { dirPath } = args;
+  async readDir(args: FileStorageDirBaseArgs) {
+    const { dirPath, request } = args;
     const { s3, bucket: Bucket } = this.config;
-    const Key = await this.transformFilePath(dirPath.toLowerCase());
-    const listParams = {
+    const Key = await this.transformFilePath(dirPath.toLowerCase(), request);
+    const listParams: ListObjectsV2Request = {
       Bucket,
       Delimiter: '/',
     };
     // Passing in / as Key breaks the folder matching
     if (Key !== '/' && Key !== '') {
-      listParams['Prefix'] = addTrailingForwardSlash(Key);
+      listParams.Prefix = addTrailingForwardSlash(Key);
     }
     const listedObjects = await s3.listObjectsV2(listParams).promise();
-    const dirContents: string[] = [];
 
-    listedObjects.CommonPrefixes?.forEach((prefixObject) => {
+    return listedObjects.CommonPrefixes?.map((prefixObject) => {
       const prefix = removeTrailingForwardSlash(prefixObject.Prefix);
       const key = listParams['Prefix'];
       // If key exists, we are looking for a nested folder such as v0.1.0
-      if (key) {
-        const nestedFolderName = prefix.slice(key.length); // e.g. v0.1.0
-        dirContents.push(nestedFolderName);
-      } else {
-        dirContents.push(prefix); // e.g. en10168-schemas
-      }
+      return key
+        ? prefix.slice(key.length) // e.g. v0.1.0
+        : prefix; // e.g. en10168-schemas
     });
-
-    return dirContents;
   }
 }

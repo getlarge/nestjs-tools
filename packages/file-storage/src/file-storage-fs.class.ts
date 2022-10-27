@@ -18,7 +18,13 @@ import { resolve as resolvePath } from 'path';
 import { Readable, Writable } from 'stream';
 import { promisify } from 'util';
 
-import { FileStorage, FileStorageBaseArgs, FileStorageConfig, FileStorageConfigFactory } from './file-storage.class';
+import {
+  FileStorage,
+  FileStorageBaseArgs,
+  FileStorageConfig,
+  FileStorageConfigFactory,
+  FileStorageDirBaseArgs,
+} from './file-storage.class';
 
 export type StreamOptions = {
   flags?: string;
@@ -148,15 +154,15 @@ export class FileStorageLocal implements FileStorage {
     );
   }
 
-  async deleteDir(args: { dirPath: string; request?: Request }): Promise<void> {
+  async deleteDir(args: FileStorageDirBaseArgs): Promise<void> {
     const { dirPath, request } = args;
     const dirName = await this.transformFilePath(dirPath, request);
-    return await rm(dirName, { recursive: true, force: true });
+    return rm(dirName, { recursive: true, force: true });
   }
 
-  async readDir(args: { dirPath: string }): Promise<string[]> {
-    const { dirPath } = args;
-    const transformedDirPath = await this.transformFilePath(dirPath);
-    return await readdir(transformedDirPath);
+  async readDir(args: FileStorageDirBaseArgs): Promise<string[]> {
+    const { dirPath, request } = args;
+    const transformedDirPath = await this.transformFilePath(dirPath, request);
+    return readdir(transformedDirPath);
   }
 }

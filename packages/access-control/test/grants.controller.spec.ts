@@ -25,7 +25,7 @@ describe('Grants Controller #getGrants', () => {
     controller = module.get<GrantsController>(GrantsController);
   });
 
-  it('should should return grants provided', () => {
+  it('should return grants provided', () => {
     expect(controller.getGrants()).toBe(roles.getGrants());
   });
 });

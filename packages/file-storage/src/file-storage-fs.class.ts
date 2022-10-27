@@ -13,6 +13,7 @@ import {
   writeFile,
   WriteFileOptions,
 } from 'fs';
+import { readdir, rm } from 'fs/promises';
 import { resolve as resolvePath } from 'path';
 import { Readable, Writable } from 'stream';
 import { promisify } from 'util';
@@ -145,5 +146,17 @@ export class FileStorageLocal implements FileStorage {
     return new Promise((resolve, reject) =>
       unlink(fileName, (err) => (err && err.message === 'EENOENT' ? reject(err) : resolve(true))),
     );
+  }
+
+  async deleteDir(args: { dirPath: string; request?: Request }): Promise<void> {
+    const { dirPath, request } = args;
+    const dirName = await this.transformFilePath(dirPath, request);
+    return await rm(dirName, { recursive: true, force: true });
+  }
+
+  async readDir(args: { dirPath: string }): Promise<string[]> {
+    const { dirPath } = args;
+    const transformedDirPath = await this.transformFilePath(dirPath);
+    return await readdir(transformedDirPath);
   }
 }

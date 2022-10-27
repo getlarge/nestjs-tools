@@ -183,7 +183,7 @@ export class FileStorageS3 implements FileStorage {
   async readDir(args: FileStorageDirBaseArgs) {
     const { dirPath, request } = args;
     const { s3, bucket: Bucket } = this.config;
-    const Key = await this.transformFilePath(dirPath.toLowerCase(), request);
+    const Key = await this.transformFilePath(dirPath, request);
     const listParams: ListObjectsV2Request = {
       Bucket,
       Delimiter: '/',

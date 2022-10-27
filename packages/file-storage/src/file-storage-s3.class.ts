@@ -43,6 +43,14 @@ function config(setup: FileStorageS3Setup) {
   };
 }
 
+function removeTrailingForwardSlash(string: string) {
+  return string.endsWith('/') ? string.slice(0, -1) : string;
+}
+
+function addTrailingForwardSlash(string: string) {
+  return string.endsWith('/') ? string : `${string}/`;
+}
+
 // TODO: control filesize limit
 export class FileStorageS3 implements FileStorage {
   config: FileStorageConfig & FileStorageS3Config;
@@ -120,5 +128,59 @@ export class FileStorageS3 implements FileStorage {
     const { s3, bucket: Bucket } = this.config;
     await s3.deleteObject({ Bucket, Key, ...options }).promise();
     return true;
+  }
+
+  async deleteDir(args: { dirPath: string; request?: Request }): Promise<void> {
+    const { dirPath, request } = args;
+    const { s3, bucket: Bucket } = this.config;
+    const listKey = await this.transformFilePath(dirPath, request);
+    const listParams = {
+      Bucket,
+      Prefix: listKey,
+    };
+    // get list of objects in a dir
+    const listedObjects = await s3.listObjectsV2(listParams).promise();
+    if (listedObjects.Contents.length === 0) return;
+
+    const deleteParams = {
+      Bucket,
+      Delete: { Objects: [] },
+    };
+    listedObjects.Contents.forEach(({ Key }) => {
+      deleteParams.Delete.Objects.push({ Key });
+    });
+    await s3.deleteObjects(deleteParams).promise();
+
+    if (listedObjects.IsTruncated) await this.deleteDir({ dirPath });
+  }
+
+  async readDir(args: { dirPath: string }) {
+    const { dirPath } = args;
+    const { s3, bucket: Bucket } = this.config;
+    const Key = await this.transformFilePath(dirPath.toLowerCase());
+    const listParams = {
+      Bucket,
+      Delimiter: '/',
+    };
+    // Passing in / as Key breaks the folder matching
+    if (Key !== '/' && Key !== '') {
+      listParams['Prefix'] = addTrailingForwardSlash(Key);
+    }
+    const listedObjects = await s3.listObjectsV2(listParams).promise();
+    const schemaList: string[] = [];
+
+    listedObjects.CommonPrefixes?.forEach((prefixObject) => {
+      const schema = removeTrailingForwardSlash(prefixObject.Prefix);
+      const key = listParams['Prefix'];
+      // If key exists, we are looking for a nested folder such as v0.1.0
+      if (key) {
+        const schemaVersion = schema.slice(key.length); // e.g. v0.1.0
+        schemaList.push(schemaVersion);
+      } else {
+        schemaList.push(schema); // e.g. en10168-schemas
+      }
+    });
+
+    return schemaList;
   }
 }

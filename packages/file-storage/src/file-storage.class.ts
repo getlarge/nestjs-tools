@@ -2,9 +2,16 @@
 import { Request } from 'express';
 import { Readable, Writable } from 'stream';
 
+import { MethodTypes } from './constants';
+
 // TODO: extend configuration
 export interface FileStorageConfig {
-  filePath?: (options: { request?: Request; fileName?: string; [key: string]: any }) => string | Promise<string>;
+  filePath?: (options: {
+    request?: Request;
+    fileName?: string;
+    methodType?: MethodTypes;
+    [key: string]: any;
+  }) => string | Promise<string>;
   limits?: { fileSize: number };
 }
 
@@ -24,6 +31,13 @@ export interface FileStorageDirBaseArgs {
   request?: Request | any;
 }
 
+export type FileStorageTransformPath = (
+  fileName: string,
+  methodType: MethodTypes,
+  request?: Request | any,
+  options?: any,
+) => string | Promise<string>;
+
 export abstract class FileStorage {
   config?: FileStorageConfig & Record<string, any>;
 
@@ -31,9 +45,14 @@ export abstract class FileStorage {
     //
   }
 
-  transformFilePath(fileName: string, request?: Request, options?: any): string | Promise<string> {
+  transformFilePath: FileStorageTransformPath = (
+    fileName,
+    methodType,
+    request,
+    options = {},
+  ): string | Promise<string> => {
     throw new Error(defaultErrorMessage);
-  }
+  };
 
   fileExists(args: FileStorageBaseArgs & { options?: string | any }): Promise<boolean> {
     throw new Error(defaultErrorMessage);
@@ -52,7 +71,7 @@ export abstract class FileStorage {
     args: FileStorageBaseArgs & {
       options?: string | any;
     },
-  ): Writable | Promise<Writable> {
+  ): Promise<Writable> {
     throw new Error(defaultErrorMessage);
   }
 
@@ -64,7 +83,7 @@ export abstract class FileStorage {
     args: FileStorageBaseArgs & {
       options?: string | any;
     },
-  ): Readable | Promise<Readable> {
+  ): Promise<Readable> {
     throw new Error(defaultErrorMessage);
   }
 

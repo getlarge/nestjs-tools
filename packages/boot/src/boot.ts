@@ -99,13 +99,15 @@ export class ApplicationBoot<Conf extends BaseConfig> extends EventEmitter {
   logInfo(): void {
     const { asyncApi, openApi, serviceName } = this.options;
     const { asyncApiPath, brokerUrl, environment, swaggerPath } = this.config;
-    const brokerUrlObject = new URL(brokerUrl);
-    brokerUrlObject.username = '*****';
-    brokerUrlObject.password = '*****';
     const logger = this.logger;
     const url = getMainServerUrl(this.config);
-    logger.log(chalk.blue.bold(`✅ ${serviceName} microservice running on 👉 ${url}`));
-    logger.log(chalk.blue.bold(`✅ ${serviceName} microservice connecting to 👉 ${brokerUrlObject.href}`));
+    logger.log(chalk.blue.bold(`✅ ${serviceName} server is running on 👉 ${url}`));
+    if (brokerUrl) {
+      const brokerUrlObject = new URL(brokerUrl);
+      brokerUrlObject.username = '*****';
+      brokerUrlObject.password = '*****';
+      logger.log(chalk.blue.bold(`✅ ${serviceName} microservice connecting to 👉 ${brokerUrlObject.href}`));
+    }
     if (openApi?.enableExplorer) {
       logger.log(chalk.green.bold(`📄 Swagger 👉 ${url}/${swaggerPath}`));
     }
@@ -113,7 +115,7 @@ export class ApplicationBoot<Conf extends BaseConfig> extends EventEmitter {
       logger.log(chalk.green.bold(`📄 AsyncAPI 👉 ${url}/${asyncApiPath}`));
     }
     logger.log(chalk.green.bold(`🩺 Check Health 👉 ${url}/health`));
-    logger.log(chalk.red.bold(`🚀 Server is running in ${environment} environment`));
+    logger.log(chalk.red.bold(`🚀 Application is running in ${environment} environment`));
   }
 
   setupOpenApi(): Promise<OpenAPIObject> {

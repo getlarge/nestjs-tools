@@ -10,6 +10,7 @@ import {
 import { Request } from 'express';
 import { PassThrough, Readable, Writable } from 'stream';
 
+import { MethodTypes } from './constants';
 import {
   FileStorage,
   FileStorageBaseArgs,
@@ -97,16 +98,21 @@ export class FileStorageS3 implements FileStorage {
     this.config = typeof factory === 'function' ? factory(setup) : config(setup);
   }
 
-  transformFilePath(fileName: string, request?: Request, options: any = {}): string | Promise<string> {
+  transformFilePath(
+    fileName: string,
+    methodType: MethodTypes,
+    request?: Request,
+    options: any = {},
+  ): string | Promise<string> {
     return typeof this.config.filePath === 'function'
-      ? this.config.filePath({ fileName, request, ...options })
+      ? this.config.filePath({ fileName, methodType, request, ...options })
       : fileName;
   }
 
   async fileExists(args: FileStorageS3FileExists): Promise<boolean> {
     const { filePath, options = {}, request } = args;
     const { s3, bucket: Bucket } = this.config;
-    const Key = await this.transformFilePath(filePath, request, options);
+    const Key = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
     await s3.headObject({ Key, Bucket, ...options }).promise();
     return true;
   }
@@ -114,23 +120,30 @@ export class FileStorageS3 implements FileStorage {
   async uploadFile(args: FileStorageS3UploadFile): Promise<void> {
     const { filePath, content, options = {}, request } = args;
     const { s3, bucket: Bucket } = this.config;
-    const Key = await this.transformFilePath(filePath, request, options);
+    const Key = await this.transformFilePath(filePath, MethodTypes.WRITE, request, options);
     await s3.upload({ Bucket, Key, Body: content, ...options }).promise();
   }
 
   async uploadStream(args: FileStorageS3UploadStream): Promise<Writable> {
     const { filePath, options = {}, request } = args;
-    const Key = await this.transformFilePath(filePath, request, options);
+    const Key = await this.transformFilePath(filePath, MethodTypes.WRITE, request, options);
     const { s3, bucket: Bucket } = this.config;
     const writeStream = new PassThrough();
-    s3.upload({ Bucket, Key, Body: writeStream, ...options });
+    s3.upload({
+      Body: writeStream,
+      Key,
+      Bucket,
+      ...options,
+    }).send((err) => writeStream.destroy(err));
+    //? or s3.upload({ Bucket, Key, Body: writeStream, ...options }, (err) => {
+    //   if (err) console.error(err);
+    // });
     return writeStream;
-    // ? or return {writeStream, promise: s3.upload({ Bucket, Key, Body: writeStream }).promise()};
   }
 
   async downloadFile(args: FileStorageS3DownloadFile): Promise<Buffer> {
     const { filePath, options = {}, request } = args;
-    const Key = await this.transformFilePath(filePath, request, options);
+    const Key = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
     const { s3, bucket: Bucket } = this.config;
     const object = await s3.getObject({ Bucket, Key, ...options }).promise();
     return object.Body as Buffer;
@@ -138,14 +151,14 @@ export class FileStorageS3 implements FileStorage {
 
   async downloadStream(args: FileStorageS3DownloadStream): Promise<Readable> {
     const { filePath, options = {}, request } = args;
-    const Key = await this.transformFilePath(filePath, request, options);
+    const Key = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
     const { s3, bucket: Bucket } = this.config;
     return s3.getObject({ Bucket, Key, ...options }).createReadStream();
   }
 
   async deleteFile(args: FileStorageS3DeleteFile): Promise<boolean> {
     const { filePath, options = {}, request } = args;
-    const Key = await this.transformFilePath(filePath, request, options);
+    const Key = await this.transformFilePath(filePath, MethodTypes.DELETE, request, options);
     const { s3, bucket: Bucket } = this.config;
     await s3.deleteObject({ Bucket, Key, ...options }).promise();
     return true;
@@ -154,7 +167,7 @@ export class FileStorageS3 implements FileStorage {
   async deleteDir(args: FileStorageDirBaseArgs): Promise<void> {
     const { dirPath, request } = args;
     const { s3, bucket: Bucket } = this.config;
-    const listKey = await this.transformFilePath(dirPath, request);
+    const listKey = await this.transformFilePath(dirPath, MethodTypes.DELETE, request);
     const listParams: ListObjectsV2Request = {
       Bucket,
       Prefix: listKey,
@@ -183,7 +196,7 @@ export class FileStorageS3 implements FileStorage {
   async readDir(args: FileStorageDirBaseArgs) {
     const { dirPath, request } = args;
     const { s3, bucket: Bucket } = this.config;
-    const Key = await this.transformFilePath(dirPath, request);
+    const Key = await this.transformFilePath(dirPath, MethodTypes.READ, request);
     const listParams: ListObjectsV2Request = {
       Bucket,
       Delimiter: '/',

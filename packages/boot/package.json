@@ -68,5 +68,6 @@
     "aedes": "^0.47.0",
     "mqtt": "^4.3.5",
     "swagger-ui-express": "^4.5.0"
-  }
+  },
+  "gitHead": "990d1604164e9bc5b61c93eca1a2d51416a0dfa6"
 }

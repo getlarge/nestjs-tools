@@ -18,6 +18,7 @@ import { resolve as resolvePath } from 'path';
 import { Readable, Writable } from 'stream';
 import { promisify } from 'util';
 
+import { MethodTypes } from './constants';
 import {
   FileStorage,
   FileStorageBaseArgs,
@@ -42,9 +43,9 @@ export type FileStorageLocalSetup = { storagePath: string; maxPayloadSize: numbe
 
 function config(setup: FileStorageLocalSetup) {
   const { maxPayloadSize, storagePath } = setup;
-  const filePath = (options: { req?: Request; fileName: string }): string => {
-    const { fileName } = options;
-    if (!existsSync(storagePath)) {
+  const filePath = (options: { req?: Request; methodType: MethodTypes; fileName: string }): string => {
+    const { fileName, methodType } = options;
+    if (!existsSync(storagePath) && methodType === MethodTypes.WRITE) {
       mkdirSync(storagePath, { recursive: true });
     }
     return resolvePath(storagePath, fileName);
@@ -90,27 +91,32 @@ export class FileStorageLocal implements FileStorage {
     this.config = typeof factory === 'function' ? factory(setup) : config(setup);
   }
 
-  transformFilePath(fileName: string, request?: Request, options: any = {}): string | Promise<string> {
+  transformFilePath(
+    fileName: string,
+    methodType: MethodTypes,
+    request?: Request,
+    options: any = {},
+  ): string | Promise<string> {
     return typeof this.config.filePath === 'function'
-      ? this.config.filePath({ fileName, request, ...options })
+      ? this.config.filePath({ fileName, request, methodType, ...options })
       : fileName;
   }
 
   async fileExists(args: FileStorageLocalFileExists): Promise<boolean> {
     const { filePath, options = {}, request } = args;
-    const fileName = await this.transformFilePath(filePath, request, options);
+    const fileName = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
     return new Promise<boolean>((resolve, reject) => stat(fileName, (err) => (err ? reject(err) : resolve(true))));
   }
 
   async uploadFile(args: FileStorageLocalUploadFile): Promise<void> {
     const { filePath, content, options, request } = args;
-    const fileName = await this.transformFilePath(filePath, request, options);
+    const fileName = await this.transformFilePath(filePath, MethodTypes.WRITE, request, options);
     return promisify(writeFile)(fileName, content, options);
   }
 
   async uploadStream(args: FileStorageLocalUploadStream): Promise<Writable> {
     const { filePath, options, request } = args;
-    const fileName = await this.transformFilePath(filePath, request, options);
+    const fileName = await this.transformFilePath(filePath, MethodTypes.WRITE, request, options);
     return createWriteStream(fileName, options);
   }
 
@@ -136,19 +142,19 @@ export class FileStorageLocal implements FileStorage {
 
   async downloadFile(args: FileStorageLocalDownloadFile) {
     const { filePath, options, request } = args;
-    const fileName = await this.transformFilePath(filePath, request, options);
+    const fileName = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
     return promisify(readFile)(fileName, options);
   }
 
   async downloadStream(args: FileStorageLocalDownloadStream): Promise<Readable> {
     const { filePath, options, request } = args;
-    const fileName = await this.transformFilePath(filePath, request, options);
+    const fileName = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
     return createReadStream(fileName, options);
   }
 
   async deleteFile(args: FileStorageBaseArgs): Promise<boolean> {
     const { filePath, request } = args;
-    const fileName = await this.transformFilePath(filePath, request);
+    const fileName = await this.transformFilePath(filePath, MethodTypes.DELETE, request);
     return new Promise((resolve, reject) =>
       unlink(fileName, (err) => (err && err.message === 'EENOENT' ? reject(err) : resolve(true))),
     );
@@ -156,13 +162,13 @@ export class FileStorageLocal implements FileStorage {
 
   async deleteDir(args: FileStorageDirBaseArgs): Promise<void> {
     const { dirPath, request } = args;
-    const dirName = await this.transformFilePath(dirPath, request);
+    const dirName = await this.transformFilePath(dirPath, MethodTypes.DELETE, request);
     return rm(dirName, { recursive: true, force: true });
   }
 
   async readDir(args: FileStorageDirBaseArgs): Promise<string[]> {
     const { dirPath, request } = args;
-    const transformedDirPath = await this.transformFilePath(dirPath, request);
+    const transformedDirPath = await this.transformFilePath(dirPath, MethodTypes.READ, request);
     return readdir(transformedDirPath);
   }
 }

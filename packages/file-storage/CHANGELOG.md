@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.6.0](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-file-storage@0.5.0...@s1seven/nestjs-tools-file-storage@0.6.0) (2022-10-31)
+
+### Bug Fixes
+
+- **file-storage:** update stream methods return type ([4de6fc8](https://github.com/s1seven/nestjs-tools/commit/4de6fc8c45a6189dc6348fa540928c0181f42c84))
+- **file-storage:** use S3 managed upload to make writeStream work ([8f9a314](https://github.com/s1seven/nestjs-tools/commit/8f9a31425e367f4a1d8a3921a820ba9291b5090e))
+
+### Features
+
+- **file-storage:** create and apply internal MethodType ([b77fdc0](https://github.com/s1seven/nestjs-tools/commit/b77fdc0071521415ce7afc7270cf281d365fc1bb))
+
 # [0.5.0](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-file-storage@0.4.8...@s1seven/nestjs-tools-file-storage@0.5.0) (2022-10-27)
 
 ### Bug Fixes

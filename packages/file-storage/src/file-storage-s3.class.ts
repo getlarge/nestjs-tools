@@ -123,9 +123,16 @@ export class FileStorageS3 implements FileStorage {
     const Key = await this.transformFilePath(filePath, request, options);
     const { s3, bucket: Bucket } = this.config;
     const writeStream = new PassThrough();
-    s3.upload({ Bucket, Key, Body: writeStream, ...options });
+    s3.upload({
+      Body: writeStream,
+      Key,
+      Bucket,
+      ...options,
+    }).send((err) => writeStream.destroy(err));
+    //? or s3.upload({ Bucket, Key, Body: writeStream, ...options }, (err) => {
+    //   if (err) console.error(err);
+    // });
     return writeStream;
-    // ? or return {writeStream, promise: s3.upload({ Bucket, Key, Body: writeStream }).promise()};
   }
 
   async downloadFile(args: FileStorageS3DownloadFile): Promise<Buffer> {

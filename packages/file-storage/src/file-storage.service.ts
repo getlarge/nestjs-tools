@@ -31,7 +31,7 @@ export class FileStorageService implements Omit<FileStorage, 'transformFilePath'
     return this.fileStorage.uploadFile(args);
   }
 
-  uploadStream(args: FileStorageLocalUploadStream | FileStorageS3UploadStream): Writable | Promise<Writable> {
+  uploadStream(args: FileStorageLocalUploadStream | FileStorageS3UploadStream): Promise<Writable> {
     return this.fileStorage.uploadStream(args);
   }
 
@@ -39,7 +39,7 @@ export class FileStorageService implements Omit<FileStorage, 'transformFilePath'
     return this.fileStorage.downloadFile(args);
   }
 
-  downloadStream(args: FileStorageLocalDownloadStream | FileStorageS3DownloadStream): Readable | Promise<Readable> {
+  downloadStream(args: FileStorageLocalDownloadStream | FileStorageS3DownloadStream): Promise<Readable> {
     return this.fileStorage.downloadStream(args);
   }
 

@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common/decorators';
 import { ClientProxy } from '@nestjs/microservices';
-import { lastValueFrom } from 'rxjs';
+import { lastValueFrom, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { DUMMY_CLIENT, DUMMY_TOPIC } from './dummy.constants';
 
@@ -8,12 +9,14 @@ import { DUMMY_CLIENT, DUMMY_TOPIC } from './dummy.constants';
 export class DummyProducerService {
   constructor(@Inject(DUMMY_CLIENT) private readonly client: ClientProxy) {}
 
-  test() {
-    const response$ = this.client.send(DUMMY_TOPIC, {}).pipe();
-    // catchError((err) => {
-    //   this.logger.error(ctx, err);
-    //   return throwError(() => errorFactory(err));
-    // })
+  test(msg: Record<string, any>) {
+    const response$ = this.client.send(DUMMY_TOPIC, msg).pipe(
+      catchError((err) => {
+        console.error(err);
+        return throwError(() => err);
+      }),
+    );
+
     return lastValueFrom(response$);
   }
 }

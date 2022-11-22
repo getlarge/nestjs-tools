@@ -74,7 +74,7 @@ jobs:
 
       - name: Derive appropriate SHAs for base and head for `nx affected` commands
         id: set-sha
-        uses: nrwl/nx-set-shas@v2
+        uses: nrwl/nx-set-shas@v3
 
       - name: Install dependencies
         run: npm run bootstrap

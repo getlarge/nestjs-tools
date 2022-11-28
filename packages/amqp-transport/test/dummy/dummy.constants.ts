@@ -10,4 +10,4 @@ export const DUMMY_WORKER_ID_NOACK = 'dummy-worker-id-ack';
 
 export const DUMMY_CLIENT = 'DUMMY_CLIENT';
 
-export const RMQ_URL = 'amqp://guest:guest@localhost:5672';
+export const RMQ_URL = process.env.BROKER_URL || 'amqp://guest:guest@localhost:5672';

@@ -33,7 +33,7 @@ export class DummyConsumerController {
     const channel = context.getChannelRef() as Channel;
     const originalMessage = context.getMessage() as Message;
     channel.ack(originalMessage);
-    return { workerId: this.workerId, t: 1 };
+    return { workerId: this.workerId };
   }
 
   @MessagePattern(DUMMY_WORKER_ID_NOACK)

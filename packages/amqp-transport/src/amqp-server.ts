@@ -89,6 +89,8 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
   close(): void {
     this.channel && this.channel.close();
     this.server && this.server.close();
+    this.channel == null;
+    this.channel == null;
   }
 
   async start(callback?: (error?: unknown) => void): Promise<void> {

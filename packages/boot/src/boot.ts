@@ -2,10 +2,10 @@ import { Logger, LoggerService, LogLevel, NestApplicationOptions, VersioningType
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter, NestExpressApplication } from '@nestjs/platform-express';
 import { OpenAPIObject } from '@nestjs/swagger';
+import { EventHandlers, TypedEventEmitter } from '@s1seven/typed-event-emitter';
 import chalk from 'chalk';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
-import { EventEmitter } from 'events';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
@@ -17,27 +17,17 @@ import { BaseConfig, BootOptions, defaultOptions, SetupOptions } from './options
 
 declare const module: any;
 
-export interface ApplicationBootEvents {
+export interface ApplicationBootEvents extends EventHandlers {
   starting: () => void;
   started: (app: NestExpressApplication) => void;
   error: (error: Error) => void;
 }
 
-export class ApplicationBoot<Conf extends BaseConfig> extends EventEmitter {
+export class ApplicationBoot<Conf extends BaseConfig> extends TypedEventEmitter<ApplicationBootEvents> {
   readonly logger: Logger;
   private _options: BootOptions<Conf>;
   private _config: Conf;
   private _app: NestExpressApplication;
-  private untypedOn = this.on;
-  private untypedOnce = this.once;
-  private untypedEmit = this.emit;
-
-  on = <K extends keyof ApplicationBootEvents>(event: K, listener: ApplicationBootEvents[K]): this =>
-    this.untypedOn(event, listener);
-  once = <K extends keyof ApplicationBootEvents>(event: K, listener: ApplicationBootEvents[K]): this =>
-    this.untypedOnce(event, listener);
-  emit = <K extends keyof ApplicationBootEvents>(event: K, ...args: Parameters<ApplicationBootEvents[K]>): boolean =>
-    this.untypedEmit(event, ...args);
 
   static async fromSetup<C extends BaseConfig>(
     bootOptions: BootOptions<C>,

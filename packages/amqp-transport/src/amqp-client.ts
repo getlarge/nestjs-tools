@@ -13,8 +13,8 @@ import {
 } from '@nestjs/microservices/constants';
 import { RmqUrl } from '@nestjs/microservices/external/rmq-url.interface';
 import { EventHandlers, TypedEventEmitter } from '@s1seven/typed-event-emitter';
-import { AmqpConnectionManager, ChannelWrapper, connect } from 'amqp-connection-manager';
-import { Channel, ConsumeMessage, Options } from 'amqplib';
+import { AmqpConnectionManager, Channel, ChannelWrapper, connect } from 'amqp-connection-manager';
+import { ConsumeMessage, Options } from 'amqplib';
 import type PromiseBreaker from 'promise-breaker';
 import { EmptyError, fromEvent, lastValueFrom, merge, Observable } from 'rxjs';
 import { first, map, retryWhen, scan, share, switchMap } from 'rxjs/operators';
@@ -103,19 +103,19 @@ export class AmqpClient extends ClientProxy {
     this.responseEmitter = new TypedEventEmitter();
     this.responseEmitter.setMaxListeners(0);
     const noAck = this.getOptionsProp(this.options, 'noAck', RQM_DEFAULT_NOACK);
-    this.channel = this.client.createChannel({ json: false });
-    await this.channel.addSetup((channel: Channel) =>
-      this.setupChannel(channel).then(() =>
-        this.channel.consume(
-          this.replyQueue,
-          (msg) => this.responseEmitter.emit(msg.properties.correlationId as string, msg),
-          {
-            noAck,
-            prefetch: this.prefetchCount,
-          },
-        ),
-      ),
+    this.channel = this.client.createChannel({
+      json: false,
+      setup: (channel: Channel) => this.setupChannel(channel),
+    });
+
+    await this.channel.consume(
+      this.replyQueue,
+      (msg) => this.responseEmitter.emit(msg.properties.correlationId as string, msg),
+      { noAck, prefetch: this.prefetchCount },
     );
+    return new Promise<void>((resolve) => {
+      this.channel.once('connect', () => resolve());
+    });
   }
 
   createClient(): AmqpConnectionManager {

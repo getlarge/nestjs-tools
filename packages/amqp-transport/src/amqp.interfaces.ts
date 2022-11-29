@@ -7,11 +7,17 @@ import { ConnectionOptions } from 'tls';
 export interface AmqpOptions {
   urls?: string[] | RmqUrl[];
   queue?: string;
+  queueOptions?: Options.AssertQueue;
   prefetchCount?: number;
   isGlobalPrefetchCount?: boolean;
   noAssert?: boolean;
   maxConnectionAttempts?: number;
-  queueOptions?: Options.AssertQueue;
+  persistent?: boolean;
+  replyQueue?: string;
+  replyQueueOptions?: Options.AssertQueue;
+  exchange?: string;
+  exchangeType?: 'direct' | 'fanout' | 'topic';
+  exchangeOptions?: Options.AssertExchange;
   socketOptions?: (ConnectionOptions | TcpSocketConnectOpts) & {
     noDelay?: boolean;
     timeout?: number;
@@ -28,10 +34,5 @@ export interface AmqpOptions {
   noAck?: boolean;
   serializer?: Serializer;
   deserializer?: Deserializer;
-  replyQueue?: string;
-  persistent?: boolean;
-  exchange?: string;
-  exchangeType?: 'direct' | 'fanout' | 'topic';
-  exchangeOptions?: Options.AssertExchange;
   headers?: Record<string, string>;
 }

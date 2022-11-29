@@ -2,61 +2,70 @@
 /* eslint-disable max-lines-per-function */
 import { DynamicModule, INestMicroservice } from '@nestjs/common/interfaces';
 import { ClientsModule } from '@nestjs/microservices';
-import {
-  RQM_DEFAULT_IS_GLOBAL_PREFETCH_COUNT,
-  RQM_DEFAULT_NOACK,
-  RQM_DEFAULT_PREFETCH_COUNT,
-} from '@nestjs/microservices/constants';
+import { RQM_DEFAULT_NOACK, RQM_DEFAULT_PREFETCH_COUNT } from '@nestjs/microservices/constants';
 import { Test, TestingModule } from '@nestjs/testing';
+import { Options } from 'amqplib';
 
 import { AmqpClient, AmqpOptions, AmqpServer } from '../src';
-import { DUMMY_CLIENT, DUMMY_QUEUE, DUMMY_REPLY_QUEUE, RMQ_URL } from './dummy/dummy.constants';
+import { DUMMY_CLIENT, DUMMY_QUEUE, RMQ_URL } from './dummy/dummy.constants';
 import { DummyConsumerController } from './dummy/dummy-consumer.controller';
 import { DummyProducerService } from './dummy/dummy-producer.service';
 
-let openConnections: Closeable[] = [];
-interface BuildClientModuleOptions {
-  prefetchCount?: number;
-  replyQueue?: string;
-  queue?: string;
-  noAck?: boolean;
-  url?: string;
-  brokerUrl?: string;
-  isGlobalPrefetchCount?: boolean;
+interface Closeable {
+  close: () => Promise<any>;
 }
 
-const buildClientModule = (options: BuildClientModuleOptions = {}): DynamicModule => {
+let openConnections: Closeable[] = [];
+
+interface BuildClientModuleOptions {
+  brokerUrl?: string;
+  prefetchCount?: number;
+  isGlobalPrefetchCount?: boolean;
+  queue?: string;
+  queueOptions?: Options.AssertQueue;
+  replyQueue?: string;
+  replyQueueOptions?: Options.AssertQueue;
+  noAck?: boolean;
+  url?: string;
+}
+
+const buildClientModule = (opts: BuildClientModuleOptions = {}): DynamicModule => {
+  const options: AmqpOptions = {
+    urls: [opts.brokerUrl || RMQ_URL],
+    queue: opts.queue || DUMMY_QUEUE,
+    queueOptions: opts.queueOptions || {
+      durable: true,
+      autoDelete: true,
+    },
+    replyQueue: opts.replyQueue || '',
+    replyQueueOptions: opts.replyQueueOptions || {
+      autoDelete: true,
+    },
+    prefetchCount: opts.prefetchCount || RQM_DEFAULT_PREFETCH_COUNT,
+    noAck: opts.noAck ?? RQM_DEFAULT_NOACK,
+  };
+  // console.warn('producer options', options);
   return ClientsModule.register([
     {
       name: DUMMY_CLIENT,
       customClass: AmqpClient,
-      options: {
-        prefetchCount: options.prefetchCount || RQM_DEFAULT_PREFETCH_COUNT,
-        replyQueue: options?.replyQueue || DUMMY_REPLY_QUEUE,
-        queue: options.queue || DUMMY_QUEUE,
-        noAck: options.noAck ?? RQM_DEFAULT_NOACK,
-        urls: [options.brokerUrl || RMQ_URL],
-        queueOptions: {
-          durable: true,
-        },
-      },
+      options,
     },
   ]);
 };
 
 const createNestMicroserviceOptions = (options: AmqpOptions = {}) => {
   const baseOptions: AmqpOptions = {
-    prefetchCount: RQM_DEFAULT_PREFETCH_COUNT,
-    replyQueue: DUMMY_REPLY_QUEUE,
-    noAck: RQM_DEFAULT_NOACK,
-    queue: DUMMY_QUEUE,
     urls: [RMQ_URL],
-    isGlobalPrefetchCount: RQM_DEFAULT_IS_GLOBAL_PREFETCH_COUNT,
+    queue: DUMMY_QUEUE,
     queueOptions: {
       durable: true,
-      exclusive: false,
+      autoDelete: true,
     },
-    persistent: true,
+    // persistent: true,
+    prefetchCount: RQM_DEFAULT_PREFETCH_COUNT,
+    noAck: RQM_DEFAULT_NOACK,
+    deleteChannelOnFailure: true,
     ...options,
   };
   return {
@@ -75,7 +84,10 @@ const setupConsumer = async (testConfiguration: BuildClientModuleOptions = {}, w
       },
     ],
   }).compile();
-  const appConsumer = moduleConsumer.createNestMicroservice(createNestMicroserviceOptions(testConfiguration));
+  const options = createNestMicroserviceOptions(testConfiguration);
+  // console.warn('consumer options', options.options);
+
+  const appConsumer = moduleConsumer.createNestMicroservice(options);
   await appConsumer.listen();
   openConnections.push(appConsumer);
   return { moduleConsumer, appConsumer };
@@ -92,12 +104,9 @@ const setupProducer = async (testConfiguration: BuildClientModuleOptions = {}) =
 
 const message = 'hello consumer';
 
-const makeMultipleRequests = <T>(f: Promise<T>, n = 5) => {
-  const promises: Promise<T>[] = [];
-  for (let i = 0; i < n; i++) {
-    promises.push(f);
-  }
-  return Promise.all(promises);
+const makeMultipleRequests = <T>(f: () => Promise<T>, n: number) => {
+  const fns = [...Array(n)].map(() => f());
+  return Promise.all(fns);
 };
 
 interface SetupAllOptions {
@@ -110,17 +119,12 @@ const setupAll = async (options: SetupAllOptions = {}) => {
   const moduleProducer = await setupProducer(testConfiguration);
   const consumers: { appConsumer: INestMicroservice; moduleConsumer: TestingModule }[] = [];
   for (let i = 0; i < consumersCount; i++) {
-    await (async (index: number) => {
-      consumers.push(await setupConsumer(options.testConfiguration, index));
-    })(i);
+    const consumer = await setupConsumer(options.testConfiguration, i);
+    consumers.push(consumer);
   }
   await new Promise((resolve) => setTimeout(resolve, 0));
   return { moduleProducer, consumers };
 };
-
-interface Closeable {
-  close: () => Promise<any>;
-}
 
 const closeAll = async () => {
   // console.log(openConnections.length);
@@ -139,12 +143,11 @@ const closeAll = async () => {
   openConnections = [];
 };
 
+//! TODO: check that controller aka consumers are called as expected
 describe('AMQP tests', () => {
-  // afterAll(async () => {
-  //   await deleteQueues();
-  // });
-
   afterEach(async () => {
+    //! give time for messages to be published / received
+    await new Promise((resolve) => setTimeout(resolve, 250));
     await closeAll();
     await new Promise((resolve) => setTimeout(resolve, 0));
   });
@@ -160,8 +163,6 @@ describe('AMQP tests', () => {
 
     expect(clientProducer).toBeDefined();
     expect(clientConsumer).toBeDefined();
-
-    // await closeAll(moduleConsumer, appConsumer);
   });
 
   it('should request response with basic configuration', async () => {
@@ -174,25 +175,24 @@ describe('AMQP tests', () => {
     const result = await service.test(msg);
     expect(result).toBeDefined();
     expect(result).toEqual(msg);
-    // await closeAll(appConsumer, moduleProducer);
   });
 
-  it('should request resposne with basic configuration multiple messages', async () => {
+  it('should request response with basic configuration multiple messages', async () => {
     // Given
     const { moduleProducer } = await setupAll();
     const msg = { message };
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const results = await makeMultipleRequests(service.test(msg));
+    const results = await makeMultipleRequests(() => service.test(msg), 5);
     // Expect
     expect(results).toBeDefined();
+    expect(results.length).toBe(5);
     results.forEach((r) => {
       expect(r).toEqual(msg);
     });
-    // await closeAll(appConsumer, moduleProducer);
   });
 
-  it('should request response with ack', async () => {
+  it('should request response with automatic ack', async () => {
     // Given
     const { moduleProducer } = await setupAll({ testConfiguration: { noAck: false } });
     const msg = { message };
@@ -201,39 +201,38 @@ describe('AMQP tests', () => {
     const result = await service.test(msg, false);
     expect(result).toBeDefined();
     expect(result).toEqual(msg);
-    // await closeAll(appConsumer, moduleProducer);
   });
 
-  it('should request response multiple sends with ack', async () => {
+  it('should request response multiple sends with automatic ack', async () => {
     // Given
     const { moduleProducer } = await setupAll({ testConfiguration: { noAck: false } });
     const msg = { message };
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const results = await makeMultipleRequests(service.test({ message }, false));
+    const results = await makeMultipleRequests(() => service.test({ message }, false), 5);
     // Expect
     expect(results).toBeDefined();
+    expect(results.length).toBe(5);
     results.forEach((r) => {
       expect(r).toEqual(msg);
     });
-    // await closeAll(appConsumer, moduleProducer);
   });
 
-  // describe('configuration with prefetch non zero noack', () => {
-  //   let moduleProducer: TestingModule;
-  //   let appConsumer: INestMicroservice;
-  //   const testConfiguration: BuildClientModuleOptions = { prefetchCount: 5 };
+  // // describe('configuration with prefetch non zero noack', () => {
+  // //   let moduleProducer: TestingModule;
+  // //   let appConsumer: INestMicroservice;
+  // //   const testConfiguration: BuildClientModuleOptions = { prefetchCount: 5 };
 
-  //   beforeAll(async () => {
-  //     moduleProducer = await setupProducer(testConfiguration);
-  //     ({ appConsumer } = await setupConsumer(testConfiguration));
-  //   });
+  // //   beforeAll(async () => {
+  // //     moduleProducer = await setupProducer(testConfiguration);
+  // //     ({ appConsumer } = await setupConsumer(testConfiguration));
+  // //   });
 
-  //   afterAll(() => {
-  //     appConsumer.close();
-  //     moduleProducer.close();
-  //   });
-  it('should request response with noack', async () => {
+  // //   afterAll(() => {
+  // //     appConsumer.close();
+  // //     moduleProducer.close();
+  // //   });
+  it('should request response with manual ack', async () => {
     // Given
     const msg = { message };
     const { moduleProducer } = await setupAll({ testConfiguration: { noAck: true } });
@@ -244,56 +243,57 @@ describe('AMQP tests', () => {
     expect(result).toEqual(msg);
   });
 
-  it('should handle multiple sends with noack', async () => {
+  it('should handle multiple sends with manual ack', async () => {
     // Given
     const msg = { message };
     const { moduleProducer } = await setupAll({ testConfiguration: { noAck: true } });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const results = await makeMultipleRequests(service.test(msg, true));
+    const results = await makeMultipleRequests(() => service.test(msg, true), 5);
     // Expect
     expect(results).toBeDefined();
+    expect(results.length).toBe(5);
     results.forEach((r) => {
       expect(r).toEqual(msg);
     });
   });
 
-  it('should handle multiple sends with noack greater prefetchCount', async () => {
+  it('should handle multiple sends with manual ack and prefetchCount set to 5', async () => {
     // Given
     const msg = { message };
     const { moduleProducer } = await setupAll({
-      testConfiguration: { noAck: true, prefetchCount: 5, isGlobalPrefetchCount: true },
+      testConfiguration: { noAck: true, prefetchCount: 5 },
     });
-
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const results = await makeMultipleRequests(service.test(msg, true), 10);
+    const results = await makeMultipleRequests(() => service.test(msg, true), 10);
     // Expect
     expect(results).toBeDefined();
+    expect(results.length).toBe(10);
     results.forEach((r) => {
       expect(r).toEqual(msg);
     });
   });
 
-  // describe('configuration with prefetch non zero ack', () => {
-  //   let moduleProducer: TestingModule;
-  //   let appConsumer: INestMicroservice;
-  //   const testConfiguration: BuildClientModuleOptions = { prefetchCount: 3, noAck: false };
+  // // describe('configuration with prefetch non zero ack', () => {
+  // //   let moduleProducer: TestingModule;
+  // //   let appConsumer: INestMicroservice;
+  // //   const testConfiguration: BuildClientModuleOptions = { prefetchCount: 3, noAck: false };
 
-  //   beforeAll(async () => {
-  //     moduleProducer = await setupProducer(testConfiguration);
-  //     ({ appConsumer } = await setupConsumer(testConfiguration));
-  //   });
+  // //   beforeAll(async () => {
+  // //     moduleProducer = await setupProducer(testConfiguration);
+  // //     ({ appConsumer } = await setupConsumer(testConfiguration));
+  // //   });
 
-  //   afterAll(() => {
-  //     appConsumer.close();
-  //     moduleProducer.close();
-  //   });
-  it('should handle multiple sends with prefetch non zero and ack', async () => {
+  // //   afterAll(() => {
+  // //     appConsumer.close();
+  // //     moduleProducer.close();
+  // //   });
+  it('should handle multiple sends with prefetch non zero and automatic ack', async () => {
     // Given
     const msg = { message };
     const { moduleProducer } = await setupAll({
-      testConfiguration: { noAck: false, prefetchCount: 5, isGlobalPrefetchCount: true },
+      testConfiguration: { noAck: false, prefetchCount: 5 },
     });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
@@ -302,7 +302,7 @@ describe('AMQP tests', () => {
     expect(result).toEqual(msg);
   });
 
-  it('should handle multiple sends with prefetch and ack', async () => {
+  it('should handle multiple sends with prefetch and automatic ack', async () => {
     // Given
     const msg = { message };
     const { moduleProducer } = await setupAll({
@@ -310,76 +310,77 @@ describe('AMQP tests', () => {
     });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const results = await makeMultipleRequests(service.test(msg, false));
+    const results = await makeMultipleRequests(() => service.test(msg, false), 5);
     // Expect
     expect(results).toBeDefined();
+    expect(results.length).toBe(5);
     results.forEach((r) => {
       expect(r).toEqual(msg);
     });
   });
 
-  it('should handle multiple sends with ack greater prefetchCount', async () => {
-    // Given
-    const msg = { message };
-    const { moduleProducer } = await setupAll({
-      testConfiguration: { noAck: false, prefetchCount: 5, isGlobalPrefetchCount: true },
-    });
-    const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
-    // Then
-    const results = await makeMultipleRequests(service.test(msg, false), 10);
-    // Expect
-    expect(results).toBeDefined();
-    results.forEach((r) => {
-      expect(r).toEqual(msg);
-    });
-  });
+  // it('should handle multiple sends with ack greater prefetchCount', async () => {
+  //   // Given
+  //   const msg = { message };
+  //   const { moduleProducer } = await setupAll({
+  //     testConfiguration: { noAck: false, prefetchCount: 5, isGlobalPrefetchCount: true },
+  //   });
+  //   const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
+  //   // Then
+  //   const results = await makeMultipleRequests(service.test(msg, false), 10);
+  //   // Expect
+  //   expect(results).toBeDefined();
+  //   results.forEach((r) => {
+  //     expect(r).toEqual(msg);
+  //   });
   // });
+  // // });
 
-  // describe('configuration with noack prefetchCount and clustering consumer', () => {
-  //   let moduleProducer: TestingModule;
-  //   const consumers: { appConsumer: INestMicroservice; moduleConsumer: TestingModule }[] = [];
-  //   const numberOfConsumers = 2;
-  //   const testConfiguration: BuildClientModuleOptions = { prefetchCount: 1, noAck: true };
+  // // describe('configuration with noack prefetchCount and clustering consumer', () => {
+  // //   let moduleProducer: TestingModule;
+  // //   const consumers: { appConsumer: INestMicroservice; moduleConsumer: TestingModule }[] = [];
+  // //   const numberOfConsumers = 2;
+  // //   const testConfiguration: BuildClientModuleOptions = { prefetchCount: 1, noAck: true };
 
-  //   beforeAll(async () => {
-  //     try {
-  //       moduleProducer = await setupProducer(testConfiguration);
-  //       for (let i = 0; i < numberOfConsumers; i++) {
-  //         await (async (index: number) => {
-  //           consumers.push(await setupConsumer(testConfiguration, index));
-  //         })(i);
-  //       }
-  //     } catch (beforeAllException) {
-  //       console.error({ beforeAllException });
-  //       throw beforeAllException;
-  //     }
-  //     // await new Promise((resolve) => setTimeout(resolve, 10));
+  // //   beforeAll(async () => {
+  // //     try {
+  // //       moduleProducer = await setupProducer(testConfiguration);
+  // //       for (let i = 0; i < numberOfConsumers; i++) {
+  // //         await (async (index: number) => {
+  // //           consumers.push(await setupConsumer(testConfiguration, index));
+  // //         })(i);
+  // //       }
+  // //     } catch (beforeAllException) {
+  // //       console.error({ beforeAllException });
+  // //       throw beforeAllException;
+  // //     }
+  // //     // await new Promise((resolve) => setTimeout(resolve, 10));
+  // //   });
+
+  // //   afterAll(() => {
+  // //     try {
+  // //       consumers.forEach((app) => {
+  // //         app.appConsumer.close();
+  // //       });
+  // //       moduleProducer.close();
+  // //     } catch (afterAllException) {
+  // //       console.error({ afterAllException });
+  // //     }
+  // //   });
+
+  // it('should handle multiple sends with prefetch and ack', async () => {
+  //   // Given
+  //   const { moduleProducer } = await setupAll({
+  //     testConfiguration: { noAck: true, prefetchCount: 1, isGlobalPrefetchCount: true },
   //   });
-
-  //   afterAll(() => {
-  //     try {
-  //       consumers.forEach((app) => {
-  //         app.appConsumer.close();
-  //       });
-  //       moduleProducer.close();
-  //     } catch (afterAllException) {
-  //       console.error({ afterAllException });
-  //     }
-  //   });
-
-  it('should handle multiple sends with prefetch and ack', async () => {
-    // Given
-    const { moduleProducer } = await setupAll({
-      testConfiguration: { noAck: true, prefetchCount: 1, isGlobalPrefetchCount: true },
-    });
-    const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
-    // Then
-    const results = await makeMultipleRequests(service.getConsumerWorkerId(true), 20);
-    // console.log(results.map((r) => r.workerId));
-    // Expect
-    expect(results).toBeDefined();
-    expect(results).toEqual(expect.arrayContaining([expect.objectContaining({ workerId: 0 })]));
-    expect(results).toEqual(expect.arrayContaining([expect.objectContaining({ workerId: 1 })]));
-  });
+  //   const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
+  //   // Then
+  //   const results = await makeMultipleRequests(service.getConsumerWorkerId(true), 20);
+  //   // console.log(results.map((r) => r.workerId));
+  //   // Expect
+  //   expect(results).toBeDefined();
+  //   expect(results).toEqual(expect.arrayContaining([expect.objectContaining({ workerId: 0 })]));
+  //   expect(results).toEqual(expect.arrayContaining([expect.objectContaining({ workerId: 1 })]));
+  // });
   // });
 });

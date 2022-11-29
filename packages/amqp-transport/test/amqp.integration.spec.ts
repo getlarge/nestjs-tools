@@ -9,7 +9,6 @@ import {
 } from '@nestjs/microservices/constants';
 import { Test, TestingModule } from '@nestjs/testing';
 
-// import { connect as ampqConnect } from 'amqplib';
 import { AmqpClient, AmqpOptions, AmqpServer } from '../src';
 import { DUMMY_CLIENT, DUMMY_QUEUE, DUMMY_REPLY_QUEUE, RMQ_URL } from './dummy/dummy.constants';
 import { DummyConsumerController } from './dummy/dummy-consumer.controller';
@@ -83,7 +82,6 @@ const setupConsumer = async (testConfiguration: BuildClientModuleOptions = {}, w
 };
 
 const setupProducer = async (testConfiguration: BuildClientModuleOptions = {}) => {
-  // eslint-disable-next-line sonarjs/prefer-immediate-return
   const moduleProducer = await Test.createTestingModule({
     imports: [buildClientModule(testConfiguration)],
     providers: [DummyProducerService],
@@ -377,7 +375,7 @@ describe('AMQP tests', () => {
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
     const results = await makeMultipleRequests(service.getConsumerWorkerId(true), 20);
-    console.log(results.map((r) => r.workerId));
+    // console.log(results.map((r) => r.workerId));
     // Expect
     expect(results).toBeDefined();
     expect(results).toEqual(expect.arrayContaining([expect.objectContaining({ workerId: 0 })]));

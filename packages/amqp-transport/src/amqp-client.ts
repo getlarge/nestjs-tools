@@ -1,5 +1,4 @@
 import { Logger } from '@nestjs/common/services/logger.service';
-import { randomStringGenerator } from '@nestjs/common/utils/random-string-generator.util';
 import { isFunction } from '@nestjs/common/utils/shared.utils';
 import { ClientProxy, ReadPacket, RmqRecord, WritePacket } from '@nestjs/microservices';
 import {
@@ -15,12 +14,13 @@ import {
   RQM_DEFAULT_URL,
 } from '@nestjs/microservices/constants';
 import { RmqUrl } from '@nestjs/microservices/external/rmq-url.interface';
+import { EventHandlers, TypedEventEmitter } from '@s1seven/typed-event-emitter';
 import { AmqpConnectionManager, ChannelWrapper, connect } from 'amqp-connection-manager';
-import { Channel, Options } from 'amqplib';
-import { EventEmitter } from 'events';
+import { Channel, ConsumeMessage, Options } from 'amqplib';
 import type PromiseBreaker from 'promise-breaker';
 import { EmptyError, fromEvent, lastValueFrom, merge, Observable } from 'rxjs';
 import { first, map, retryWhen, scan, share, switchMap } from 'rxjs/operators';
+import { v4 as uuid } from 'uuid';
 
 import {
   AMQP_DEFAULT_EXCHANGE_OPTIONS,
@@ -31,6 +31,10 @@ import {
 import { AmqpOptions } from './amqp.interfaces';
 import { AmqpRecordSerializer } from './amqp-record.serializer';
 
+export interface ConsumeMessageEvent extends EventHandlers {
+  [correlationId: string]: (msg: ConsumeMessage | null) => Promise<void> | void;
+}
+
 export class AmqpClient extends ClientProxy {
   protected readonly logger = new Logger(ClientProxy.name);
   protected connection: Promise<any>;
@@ -39,7 +43,7 @@ export class AmqpClient extends ClientProxy {
   protected urls: string[] | RmqUrl[];
   protected queue: string;
   protected queueOptions: Options.AssertQueue;
-  protected responseEmitter: EventEmitter;
+  protected responseEmitter: TypedEventEmitter<ConsumeMessageEvent>;
   protected replyQueue: string;
   protected persistent: boolean;
   protected exchange?: string;
@@ -143,7 +147,7 @@ export class AmqpClient extends ClientProxy {
       }
       await channel.prefetch(prefetchCount, isGlobalPrefetchCount);
 
-      this.responseEmitter = new EventEmitter();
+      this.responseEmitter = new TypedEventEmitter();
       this.responseEmitter.setMaxListeners(0);
       if (this.replyQueue) {
         await this.consumeChannel(channel);
@@ -162,7 +166,7 @@ export class AmqpClient extends ClientProxy {
     //? const q = await this.channel.assertQueue(this.replyQueue, {});
     //? const replyQueue = q.queue;
     this.channel.addSetup((channel: Channel) =>
-      channel.consume(replyQueue, (msg) => this.responseEmitter.emit(msg.properties.correlationId, msg), {
+      channel.consume(replyQueue, (msg) => this.responseEmitter.emit(msg.properties.correlationId as string, msg), {
         noAck,
       }),
     );
@@ -219,7 +223,7 @@ export class AmqpClient extends ClientProxy {
 
   protected publish(message: ReadPacket, callback: (packet: WritePacket) => any): () => void {
     try {
-      const correlationId = randomStringGenerator();
+      const correlationId: string = uuid();
       const listener = ({ content }: { content: Buffer }) =>
         this.handleMessage(JSON.parse(content.toString()), callback);
 

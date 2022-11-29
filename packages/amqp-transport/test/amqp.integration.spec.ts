@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 /* eslint-disable max-nested-callbacks */
 /* eslint-disable max-lines-per-function */
 import { DynamicModule, INestMicroservice } from '@nestjs/common/interfaces';
@@ -145,8 +146,11 @@ const closeAll = async () => {
 
 //! TODO: check that controller aka consumers are called as expected
 describe('AMQP tests', () => {
+  const spy = jest.spyOn(DummyConsumerController.prototype, 'littleSpy');
+
   afterEach(async () => {
     //! give time for messages to be published / received
+    spy.mockClear();
     await new Promise((resolve) => setTimeout(resolve, 250));
     await closeAll();
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -168,13 +172,15 @@ describe('AMQP tests', () => {
   it('should request response with basic configuration', async () => {
     // Given
     const { moduleProducer } = await setupAll();
-
     const msg = { message };
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
+
     // Then
     const result = await service.test(msg);
     expect(result).toBeDefined();
     expect(result).toEqual(msg);
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: msg }));
   });
 
   it('should request response with basic configuration multiple messages', async () => {
@@ -190,6 +196,8 @@ describe('AMQP tests', () => {
     results.forEach((r) => {
       expect(r).toEqual(msg);
     });
+    expect(spy).toBeCalledTimes(5);
+    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: msg }));
   });
 
   it('should request response with automatic ack', async () => {
@@ -201,6 +209,8 @@ describe('AMQP tests', () => {
     const result = await service.test(msg, false);
     expect(result).toBeDefined();
     expect(result).toEqual(msg);
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: msg }));
   });
 
   it('should request response multiple sends with automatic ack', async () => {
@@ -216,6 +226,8 @@ describe('AMQP tests', () => {
     results.forEach((r) => {
       expect(r).toEqual(msg);
     });
+    expect(spy).toHaveBeenCalledTimes(5);
+    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: msg }));
   });
 
   // // describe('configuration with prefetch non zero noack', () => {
@@ -241,6 +253,8 @@ describe('AMQP tests', () => {
     const result = await service.test(msg, true);
     expect(result).toBeDefined();
     expect(result).toEqual(msg);
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: msg }));
   });
 
   it('should handle multiple sends with manual ack', async () => {
@@ -256,6 +270,8 @@ describe('AMQP tests', () => {
     results.forEach((r) => {
       expect(r).toEqual(msg);
     });
+    expect(spy).toHaveBeenCalledTimes(5);
+    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: msg }));
   });
 
   it('should handle multiple sends with manual ack and prefetchCount set to 5', async () => {
@@ -273,6 +289,8 @@ describe('AMQP tests', () => {
     results.forEach((r) => {
       expect(r).toEqual(msg);
     });
+    expect(spy).toHaveBeenCalledTimes(10);
+    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: msg }));
   });
 
   // // describe('configuration with prefetch non zero ack', () => {
@@ -368,19 +386,20 @@ describe('AMQP tests', () => {
   // //     }
   // //   });
 
-  // it('should handle multiple sends with prefetch and ack', async () => {
-  //   // Given
-  //   const { moduleProducer } = await setupAll({
-  //     testConfiguration: { noAck: true, prefetchCount: 1, isGlobalPrefetchCount: true },
-  //   });
-  //   const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
-  //   // Then
-  //   const results = await makeMultipleRequests(service.getConsumerWorkerId(true), 20);
-  //   // console.log(results.map((r) => r.workerId));
-  //   // Expect
-  //   expect(results).toBeDefined();
-  //   expect(results).toEqual(expect.arrayContaining([expect.objectContaining({ workerId: 0 })]));
-  //   expect(results).toEqual(expect.arrayContaining([expect.objectContaining({ workerId: 1 })]));
-  // });
-  // });
+  it('should handle multiple sends with prefetch and ack', async () => {
+    // Given
+    const { moduleProducer } = await setupAll({
+      testConfiguration: { noAck: true, prefetchCount: 1, isGlobalPrefetchCount: true },
+    });
+    const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
+    // Then
+    const results = await makeMultipleRequests(() => service.getConsumerWorkerId(true), 20);
+    // console.log(results.map((r) => r.workerId));
+    // Expect
+    expect(results).toBeDefined();
+    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ workerId: 0 }));
+    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ workerId: 1 }));
+    // expect(results).toEqual(expect.arrayContaining([expect.objectContaining({ workerId: 0 })]));
+    // expect(results).toEqual(expect.arrayContaining([expect.objectContaining({ workerId: 1 })]));
+  });
 });

@@ -10,7 +10,6 @@ export interface AmqpOptions {
   queueOptions?: Options.AssertQueue;
   prefetchCount?: number;
   isGlobalPrefetchCount?: boolean;
-  noAssert?: boolean;
   maxConnectionAttempts?: number;
   persistent?: boolean;
   replyQueue?: string;
@@ -18,6 +17,9 @@ export interface AmqpOptions {
   exchange?: string;
   exchangeType?: 'direct' | 'fanout' | 'topic';
   exchangeOptions?: Options.AssertExchange;
+  noAck?: boolean;
+  noAssert?: boolean;
+  deleteChannelOnFailure?: boolean;
   socketOptions?: (ConnectionOptions | TcpSocketConnectOpts) & {
     noDelay?: boolean;
     timeout?: number;
@@ -31,7 +33,6 @@ export interface AmqpOptions {
       response: () => Buffer;
     };
   } & { heartbeatIntervalInSeconds: 30; reconnectTimeInSeconds: 1 };
-  noAck?: boolean;
   serializer?: Serializer;
   deserializer?: Deserializer;
   headers?: Record<string, string>;

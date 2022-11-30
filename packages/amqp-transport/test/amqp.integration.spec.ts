@@ -45,7 +45,6 @@ const buildClientModule = (opts: BuildClientModuleOptions = {}): DynamicModule =
     prefetchCount: opts.prefetchCount || RQM_DEFAULT_PREFETCH_COUNT,
     noAck: opts.noAck ?? RQM_DEFAULT_NOACK,
   };
-  // console.warn('producer options', options);
   return ClientsModule.register([
     {
       name: DUMMY_CLIENT,
@@ -86,8 +85,6 @@ const setupConsumer = async (testConfiguration: BuildClientModuleOptions = {}, w
     ],
   }).compile();
   const options = createNestMicroserviceOptions(testConfiguration);
-  // console.warn('consumer options', options.options);
-
   const appConsumer = moduleConsumer.createNestMicroservice(options);
   await appConsumer.listen();
   openConnections.push(appConsumer);
@@ -102,8 +99,6 @@ const setupProducer = async (testConfiguration: BuildClientModuleOptions = {}) =
   openConnections.push(moduleProducer);
   return moduleProducer;
 };
-
-const message = 'hello consumer';
 
 const makeMultipleRequests = <T>(f: () => Promise<T>, n: number) => {
   const fns = [...Array(n)].map(() => f());
@@ -128,24 +123,12 @@ const setupAll = async (options: SetupAllOptions = {}) => {
 };
 
 const closeAll = async () => {
-  // console.log(openConnections.length);
   await Promise.all(openConnections.map((c) => c.close()));
-  // try {
-  //   await Promise.all(
-  //     args.map((c, i) => {
-  //       console.log(i);
-  //       return c.close();
-  //     }),
-  //   );
-  // } catch (e) {
-  //   console.error(e);
-  // }
-
   openConnections = [];
 };
 
-//! TODO: check that controller aka consumers are called as expected
 describe('AMQP tests', () => {
+  const message = 'hello consumer';
   const spy = jest.spyOn(DummyConsumerController.prototype, 'emptySpy');
 
   afterEach(async () => {
@@ -195,7 +178,7 @@ describe('AMQP tests', () => {
     results.forEach((r) => {
       expect(r).toEqual(msg);
     });
-    expect(spy).toBeCalledTimes(5);
+    expect(spy).toBeCalledTimes(results.length);
     expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: msg }));
   });
 
@@ -225,24 +208,10 @@ describe('AMQP tests', () => {
     results.forEach((r) => {
       expect(r).toEqual(msg);
     });
-    expect(spy).toHaveBeenCalledTimes(5);
+    expect(spy).toHaveBeenCalledTimes(results.length);
     expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: msg }));
   });
 
-  // // describe('configuration with prefetch non zero noack', () => {
-  // //   let moduleProducer: TestingModule;
-  // //   let appConsumer: INestMicroservice;
-  // //   const testConfiguration: BuildClientModuleOptions = { prefetchCount: 5 };
-
-  // //   beforeAll(async () => {
-  // //     moduleProducer = await setupProducer(testConfiguration);
-  // //     ({ appConsumer } = await setupConsumer(testConfiguration));
-  // //   });
-
-  // //   afterAll(() => {
-  // //     appConsumer.close();
-  // //     moduleProducer.close();
-  // //   });
   it('should request response with manual ack', async () => {
     // Given
     const msg = { message };
@@ -269,7 +238,7 @@ describe('AMQP tests', () => {
     results.forEach((r) => {
       expect(r).toEqual(msg);
     });
-    expect(spy).toHaveBeenCalledTimes(5);
+    expect(spy).toHaveBeenCalledTimes(results.length);
     expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: msg }));
   });
 
@@ -288,24 +257,10 @@ describe('AMQP tests', () => {
     results.forEach((r) => {
       expect(r).toEqual(msg);
     });
-    expect(spy).toHaveBeenCalledTimes(10);
+    expect(spy).toHaveBeenCalledTimes(results.length);
     expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: msg }));
   });
 
-  // // describe('configuration with prefetch non zero ack', () => {
-  // //   let moduleProducer: TestingModule;
-  // //   let appConsumer: INestMicroservice;
-  // //   const testConfiguration: BuildClientModuleOptions = { prefetchCount: 3, noAck: false };
-
-  // //   beforeAll(async () => {
-  // //     moduleProducer = await setupProducer(testConfiguration);
-  // //     ({ appConsumer } = await setupConsumer(testConfiguration));
-  // //   });
-
-  // //   afterAll(() => {
-  // //     appConsumer.close();
-  // //     moduleProducer.close();
-  // //   });
   it('should handle multiple sends with prefetch non zero and automatic ack', async () => {
     // Given
     const msg = { message };
@@ -336,7 +291,7 @@ describe('AMQP tests', () => {
     });
   });
 
-  it('should handle multiple sends with ack greater prefetchCount', async () => {
+  it('should handle multiple sends with automatic ack and message count greater than prefetchCount', async () => {
     // Given
     const msg = { message };
     const { moduleProducer } = await setupAll({
@@ -352,7 +307,7 @@ describe('AMQP tests', () => {
     });
   });
 
-  it('should handle multiple sends with prefetch and noack', async () => {
+  it('should spread load on 2 consumers with prefetch set to 1 and manual ack', async () => {
     // Given
     const { moduleProducer } = await setupAll({
       testConfiguration: { noAck: true, prefetchCount: 1 },

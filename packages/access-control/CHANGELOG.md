@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.1.14](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-access-control@0.1.13...@s1seven/nestjs-tools-access-control@0.1.14) (2022-11-30)
+
+### Bug Fixes
+
+- **access-control:** create `forRoot` and `forRootAsync` aliases methods ([5450dec](https://github.com/s1seven/nestjs-tools/commit/5450dec27e076c023f668d5713b31eecd9b29f56))
+
 ## [0.1.13](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-access-control@0.1.12...@s1seven/nestjs-tools-access-control@0.1.13) (2022-10-27)
 
 ### Bug Fixes

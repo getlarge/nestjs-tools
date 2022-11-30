@@ -1,6 +1,6 @@
 {
   "name": "@s1seven/typed-event-emitter",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Event emitter with generic event types",
   "keywords": [
     "evenemitter"

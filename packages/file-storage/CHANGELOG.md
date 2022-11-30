@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.6.1](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-file-storage@0.6.0...@s1seven/nestjs-tools-file-storage@0.6.1) (2022-11-30)
+
+### Bug Fixes
+
+- **file-storage:** update invalid type check ([397f877](https://github.com/s1seven/nestjs-tools/commit/397f8776766aec97c96cfe70067935c03b6496bf))
+
+### Reverts
+
+- **file-storage:** come back to computed property ([76f6680](https://github.com/s1seven/nestjs-tools/commit/76f6680bb1e1157aea5b8ac168c05a846d498751))
+
 # [0.6.0](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-file-storage@0.5.0...@s1seven/nestjs-tools-file-storage@0.6.0) (2022-10-31)
 
 ### Bug Fixes

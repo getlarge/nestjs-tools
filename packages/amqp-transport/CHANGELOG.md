@@ -3,116 +3,76 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-# [0.4.0](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-amqp-transport@0.3.2...@s1seven/nestjs-tools-amqp-transport@0.4.0) (2022-09-14)
-
+## [0.4.1](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-amqp-transport@0.4.0...@s1seven/nestjs-tools-amqp-transport@0.4.1) (2022-11-30)
 
 ### Bug Fixes
 
-* **amqp-transport:** handle channel setup errors ([cafa1df](https://github.com/s1seven/nestjs-tools/commit/cafa1df5492e18b97c9333b8955c9fe06ff8df70))
+- **amqp-transport:** improve channel and reply queue handling in producer ([717c08d](https://github.com/s1seven/nestjs-tools/commit/717c08d70d99326d6893635de47d9c9d622229ff))
+- **amqp-transport:** improve channel error handling in consumer ([e0eb127](https://github.com/s1seven/nestjs-tools/commit/e0eb127d0319c8259d46177860b4ddbf3068ce24))
+- **amqp-transport:** wait for channel readiness ([b43a667](https://github.com/s1seven/nestjs-tools/commit/b43a667a853a9ebed75e80549fd2b24d2a9889ab))
 
+# [0.4.0](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-amqp-transport@0.3.2...@s1seven/nestjs-tools-amqp-transport@0.4.0) (2022-09-14)
+
+### Bug Fixes
+
+- **amqp-transport:** handle channel setup errors ([cafa1df](https://github.com/s1seven/nestjs-tools/commit/cafa1df5492e18b97c9333b8955c9fe06ff8df70))
 
 ### Features
 
-* **amqp-transport:** apply latest changes from NestJS RMQ ([357bb9e](https://github.com/s1seven/nestjs-tools/commit/357bb9ee369d3849666e627da01c48a1134e03b0))
-
-
-
-
+- **amqp-transport:** apply latest changes from NestJS RMQ ([357bb9e](https://github.com/s1seven/nestjs-tools/commit/357bb9ee369d3849666e627da01c48a1134e03b0))
 
 ## [0.3.2](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-amqp-transport@0.3.1...@s1seven/nestjs-tools-amqp-transport@0.3.2) (2022-08-09)
 
 **Note:** Version bump only for package @s1seven/nestjs-tools-amqp-transport
 
-
-
-
-
 ## [0.3.1](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-amqp-transport@0.3.0...@s1seven/nestjs-tools-amqp-transport@0.3.1) (2022-08-03)
-
 
 ### Bug Fixes
 
-* **amqp-transport:** add missing callback ([036c1e6](https://github.com/s1seven/nestjs-tools/commit/036c1e6a50e5abc3602d94d6a907399d4364c10c))
-
-
-
-
+- **amqp-transport:** add missing callback ([036c1e6](https://github.com/s1seven/nestjs-tools/commit/036c1e6a50e5abc3602d94d6a907399d4364c10c))
 
 # [0.3.0](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-amqp-transport@0.2.2...@s1seven/nestjs-tools-amqp-transport@0.3.0) (2022-06-14)
 
-
 ### Bug Fixes
 
-* **amqp-transport:** improve message and errors handling ([db8d334](https://github.com/s1seven/nestjs-tools/commit/db8d33497d6c54f04ab16657bd1f0ab2bbf38ac5))
-
+- **amqp-transport:** improve message and errors handling ([db8d334](https://github.com/s1seven/nestjs-tools/commit/db8d33497d6c54f04ab16657bd1f0ab2bbf38ac5))
 
 ### Features
 
-* **amqp-transport:** add AMQP record serializer ([edc4b7e](https://github.com/s1seven/nestjs-tools/commit/edc4b7eec751145c989ef4e2321e29f6c8dd45d9))
-
-
-
-
+- **amqp-transport:** add AMQP record serializer ([edc4b7e](https://github.com/s1seven/nestjs-tools/commit/edc4b7eec751145c989ef4e2321e29f6c8dd45d9))
 
 ## [0.2.2](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-amqp-transport@0.2.1...@s1seven/nestjs-tools-amqp-transport@0.2.2) (2022-06-02)
 
 **Note:** Version bump only for package @s1seven/nestjs-tools-amqp-transport
 
-
-
-
-
 ## 0.2.1 (2022-03-17)
 
 **Note:** Version bump only for package @s1seven/nestjs-tools-amqp-transport
 
-
-
-
-
 # [0.2.0](https://github.com/s1seven/microservices-common/compare/@s1seven/microservices-amqp-transport@0.1.3...@s1seven/microservices-amqp-transport@0.2.0) (2022-02-10)
-
 
 ### Features
 
-* **amqp-transport:** integrate new `connectFailed` event ([37a7fcb](https://github.com/s1seven/microservices-common/commit/37a7fcba2f31a97aeeffd630aff497d8e9e68ef2))
-
-
-
-
+- **amqp-transport:** integrate new `connectFailed` event ([37a7fcb](https://github.com/s1seven/microservices-common/commit/37a7fcba2f31a97aeeffd630aff497d8e9e68ef2))
 
 ## [0.1.3](https://github.com/s1seven/microservices-common/compare/@s1seven/microservices-amqp-transport@0.1.2...@s1seven/microservices-amqp-transport@0.1.3) (2021-11-22)
 
 **Note:** Version bump only for package @s1seven/microservices-amqp-transport
 
-
-
-
-
 ## [0.1.2](https://github.com/s1seven/microservices-common/compare/@s1seven/microservices-amqp-transport@0.1.1...@s1seven/microservices-amqp-transport@0.1.2) (2021-10-29)
 
 **Note:** Version bump only for package @s1seven/microservices-amqp-transport
-
-
-
-
 
 ## [0.1.1](https://github.com/s1seven/microservices-common/compare/@s1seven/microservices-amqp-transport@0.1.0...@s1seven/microservices-amqp-transport@0.1.1) (2021-10-08)
 
 **Note:** Version bump only for package @s1seven/microservices-amqp-transport
 
-
-
-
-
 # 0.1.0 (2021-09-20)
-
 
 ### Bug Fixes
 
-* allow deserialize to be a promise ([f958f1d](https://github.com/s1seven/microservices-common/commit/f958f1db10c2455165017c463af4d50533e09cca))
-
+- allow deserialize to be a promise ([f958f1d](https://github.com/s1seven/microservices-common/commit/f958f1db10c2455165017c463af4d50533e09cca))
 
 ### Features
 
-* create amqp-transport package ([c26c394](https://github.com/s1seven/microservices-common/commit/c26c394512c599357f45930a8a5c6af3d17ca296))
+- create amqp-transport package ([c26c394](https://github.com/s1seven/microservices-common/commit/c26c394512c599357f45930a8a5c6af3d17ca296))

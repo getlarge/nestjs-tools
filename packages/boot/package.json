@@ -1,6 +1,6 @@
 {
   "name": "@s1seven/nestjs-tools-boot",
-  "version": "0.14.1",
+  "version": "0.14.2",
   "description": "Application bootstrap class",
   "author": "getlarge <ed@getlarge.eu>",
   "homepage": "https://github.com/s1seven/nestjs-tools/tree/main/packages/boot#readme",
@@ -42,7 +42,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@s1seven/typed-event-emitter": "^0.0.0",
+    "@s1seven/typed-event-emitter": "^0.1.0",
     "chalk": "^4.1.0",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",

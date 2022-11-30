@@ -47,7 +47,7 @@ export class FileStorageModule {
     isGlobal?: boolean,
   ): DynamicModule {
     if (!(storageType in options)) {
-      throw new TypeError(`Options ${storageType} is missing.`);
+      throw new TypeError(`${storageType} options is missing.`);
     }
     const { setup, factory } = options[storageType];
     const fileStorage = getFileStorageStrategy(storageType, setup, factory);

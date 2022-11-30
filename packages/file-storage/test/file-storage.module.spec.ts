@@ -57,7 +57,9 @@ describe('forRootAsync', () => {
 describe('forRoot', () => {
   it('Can create FileStorageLocal instance from options', async () => {
     const storageType: StorageType = StorageType.FS;
-    const options: FileStorageModuleOptions = { [storageType]: { setup: { storagePath: '', maxPayloadSize: 1 } } };
+    const options: FileStorageModuleOptions = {
+      [storageType]: { setup: { storagePath: '', maxPayloadSize: 1 } },
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       imports: [FileStorageModule.forRoot(storageType, options)],

@@ -29,9 +29,13 @@
     "compile": "tsc -p tsconfig.build.json",
     "lint": "eslint -c ../../.eslintrc.js \"**/*.ts\"",
     "lint:fix": "eslint -c ../../.eslintrc.js \"**/*.ts\" --fix",
-    "test": "jest --ci --passWithNoTests",
+    "test": "jest",
+    "test:cov": "rimraf -rf ./coverage && jest --ci --coverage --logHeapUsage",
     "scan:deps": "audit-ci --config ../../audit-ci.json",
     "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@s1seven/typed-event-emitter": "^0.0.0"
   },
   "peerDependencies": {
     "@nestjs/common": "^9.0.8",

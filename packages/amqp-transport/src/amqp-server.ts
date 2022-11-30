@@ -50,13 +50,13 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
   private urls: string[] | RmqUrl[];
   private queue: string;
   private queueOptions: Options.AssertQueue;
-  private prefetchCount: number;
-  private isGlobalPrefetchCount: boolean;
-  private noAssert: boolean;
-
   private exchange?: string;
   private exchangeType?: 'direct' | 'fanout' | 'topic';
   private exchangeOptions?: Options.AssertExchange;
+  private prefetchCount: number;
+  private isGlobalPrefetchCount: boolean;
+  private noAssert: boolean;
+  private deleteChannelOnFailure: boolean;
 
   constructor(private options: AmqpOptions, transportId: number | Transport = Transport.RMQ) {
     super();
@@ -73,6 +73,7 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
     this.isGlobalPrefetchCount =
       this.getOptionsProp(this.options, 'isGlobalPrefetchCount') || RQM_DEFAULT_IS_GLOBAL_PREFETCH_COUNT;
     this.noAssert = this.getOptionsProp(this.options, 'noAssert') || RQM_DEFAULT_NO_ASSERT;
+    this.deleteChannelOnFailure = this.getOptionsProp(this.options, 'deleteChannelOnFailure') || true;
 
     this.initializeSerializer(options);
     this.initializeDeserializer(options);
@@ -89,6 +90,8 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
   close(): void {
     this.channel && this.channel.close();
     this.server && this.server.close();
+    this.channel = null;
+    this.server = null;
   }
 
   async start(callback?: (error?: unknown) => void): Promise<void> {
@@ -173,9 +176,11 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
       });
       callback();
     } catch (e) {
-      const deleted = await this.deleteChannel(channel, callback);
-      if (deleted && !retried) {
-        return this.setupChannel(channel, callback, true);
+      if (this.deleteChannelOnFailure) {
+        const deleted = await this.deleteChannel(channel, callback);
+        if (deleted && !retried) {
+          return this.setupChannel(channel, callback, true);
+        }
       }
       callback(e);
     }
@@ -241,7 +246,7 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
     const handler = this.getHandlerByPattern(pattern);
     if (!handler) {
       const status = 'error';
-      const noHandlerPacket = {
+      const noHandlerPacket: OutgoingResponse = {
         id: (packet as IncomingRequest).id,
         err: NO_MESSAGE_HANDLER,
         status,
@@ -253,7 +258,7 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
     response$ && this.send(response$, publish);
   }
 
-  sendMessage<T = any>(message: T, replyTo: string, correlationId: string): void {
+  sendMessage<T = OutgoingResponse>(message: T, replyTo: string, correlationId: string): void {
     const outgoingResponse = this.serializer.serialize(message as unknown as OutgoingResponse);
     const options = outgoingResponse.options;
     delete outgoingResponse.options;

@@ -7,11 +7,19 @@ import { ConnectionOptions } from 'tls';
 export interface AmqpOptions {
   urls?: string[] | RmqUrl[];
   queue?: string;
+  queueOptions?: Options.AssertQueue;
   prefetchCount?: number;
   isGlobalPrefetchCount?: boolean;
-  noAssert?: boolean;
   maxConnectionAttempts?: number;
-  queueOptions?: Options.AssertQueue;
+  persistent?: boolean;
+  replyQueue?: string;
+  replyQueueOptions?: Options.AssertQueue;
+  exchange?: string;
+  exchangeType?: 'direct' | 'fanout' | 'topic';
+  exchangeOptions?: Options.AssertExchange;
+  noAck?: boolean;
+  noAssert?: boolean;
+  deleteChannelOnFailure?: boolean;
   socketOptions?: (ConnectionOptions | TcpSocketConnectOpts) & {
     noDelay?: boolean;
     timeout?: number;
@@ -25,13 +33,7 @@ export interface AmqpOptions {
       response: () => Buffer;
     };
   } & { heartbeatIntervalInSeconds: 30; reconnectTimeInSeconds: 1 };
-  noAck?: boolean;
   serializer?: Serializer;
   deserializer?: Deserializer;
-  replyQueue?: string;
-  persistent?: boolean;
-  exchange?: string;
-  exchangeType?: 'direct' | 'fanout' | 'topic';
-  exchangeOptions?: Options.AssertExchange;
   headers?: Record<string, string>;
 }

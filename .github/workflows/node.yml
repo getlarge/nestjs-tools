@@ -41,6 +41,16 @@ jobs:
         node-version: [16.x]
 
     services:
+      rabbitmq:
+        image: rabbitmq:3.9-management-alpine
+        options: >-
+          --health-cmd "rabbitmq-diagnostics status"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5672:5672
+
       redis:
         image: redis
         options: >-
@@ -110,6 +120,8 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3

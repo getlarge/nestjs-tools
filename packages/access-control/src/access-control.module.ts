@@ -50,6 +50,8 @@ export class AccessControlModule {
     };
   }
 
+  public static forRoot = AccessControlModule.forRules;
+
   public static forRulesAsync(options: AccessControlModuleAsyncOptions): DynamicModule {
     const { inject = [], imports = [], useFactory, useExisting, useClass } = options;
     let provider: Provider<RulesBuilder | Promise<RulesBuilder>> = {
@@ -71,4 +73,6 @@ export class AccessControlModule {
       exports: [provider],
     };
   }
+
+  public static forRootAsync = AccessControlModule.forRulesAsync;
 }

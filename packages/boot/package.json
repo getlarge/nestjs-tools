@@ -42,6 +42,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
+    "@s1seven/typed-event-emitter": "^0.0.0",
     "chalk": "^4.1.0",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",

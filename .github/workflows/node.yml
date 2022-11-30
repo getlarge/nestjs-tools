@@ -41,6 +41,21 @@ jobs:
         node-version: [16.x]
 
     services:
+      rabbitmq:
+        image: ghcr.io/s1seven/rabbitmq:latest
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        options: >-
+          --health-cmd "rabbitmq-diagnostics status"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5672:5672
+          - 1883:1883
+          - 15675:15675
+
       redis:
         image: redis
         options: >-

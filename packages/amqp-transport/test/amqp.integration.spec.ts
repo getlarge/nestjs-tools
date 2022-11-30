@@ -146,14 +146,13 @@ const closeAll = async () => {
 
 //! TODO: check that controller aka consumers are called as expected
 describe('AMQP tests', () => {
-  const spy = jest.spyOn(DummyConsumerController.prototype, 'littleSpy');
+  const spy = jest.spyOn(DummyConsumerController.prototype, 'emptySpy');
 
   afterEach(async () => {
     //! give time for messages to be published / received
     spy.mockClear();
     await new Promise((resolve) => setTimeout(resolve, 250));
     await closeAll();
-    await new Promise((resolve) => setTimeout(resolve, 0));
   });
 
   it('AMQP clients should be defined', async () => {
@@ -337,69 +336,34 @@ describe('AMQP tests', () => {
     });
   });
 
-  // it('should handle multiple sends with ack greater prefetchCount', async () => {
-  //   // Given
-  //   const msg = { message };
-  //   const { moduleProducer } = await setupAll({
-  //     testConfiguration: { noAck: false, prefetchCount: 5, isGlobalPrefetchCount: true },
-  //   });
-  //   const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
-  //   // Then
-  //   const results = await makeMultipleRequests(service.test(msg, false), 10);
-  //   // Expect
-  //   expect(results).toBeDefined();
-  //   results.forEach((r) => {
-  //     expect(r).toEqual(msg);
-  //   });
-  // });
-  // // });
+  it('should handle multiple sends with ack greater prefetchCount', async () => {
+    // Given
+    const msg = { message };
+    const { moduleProducer } = await setupAll({
+      testConfiguration: { noAck: false, prefetchCount: 5, isGlobalPrefetchCount: true },
+    });
+    const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
+    // Then
+    const results = await makeMultipleRequests(() => service.test(msg, false), 10);
+    // Expect
+    expect(results).toBeDefined();
+    results.forEach((r) => {
+      expect(r).toEqual(msg);
+    });
+  });
 
-  // // describe('configuration with noack prefetchCount and clustering consumer', () => {
-  // //   let moduleProducer: TestingModule;
-  // //   const consumers: { appConsumer: INestMicroservice; moduleConsumer: TestingModule }[] = [];
-  // //   const numberOfConsumers = 2;
-  // //   const testConfiguration: BuildClientModuleOptions = { prefetchCount: 1, noAck: true };
-
-  // //   beforeAll(async () => {
-  // //     try {
-  // //       moduleProducer = await setupProducer(testConfiguration);
-  // //       for (let i = 0; i < numberOfConsumers; i++) {
-  // //         await (async (index: number) => {
-  // //           consumers.push(await setupConsumer(testConfiguration, index));
-  // //         })(i);
-  // //       }
-  // //     } catch (beforeAllException) {
-  // //       console.error({ beforeAllException });
-  // //       throw beforeAllException;
-  // //     }
-  // //     // await new Promise((resolve) => setTimeout(resolve, 10));
-  // //   });
-
-  // //   afterAll(() => {
-  // //     try {
-  // //       consumers.forEach((app) => {
-  // //         app.appConsumer.close();
-  // //       });
-  // //       moduleProducer.close();
-  // //     } catch (afterAllException) {
-  // //       console.error({ afterAllException });
-  // //     }
-  // //   });
-
-  it('should handle multiple sends with prefetch and ack', async () => {
+  it('should handle multiple sends with prefetch and noack', async () => {
     // Given
     const { moduleProducer } = await setupAll({
-      testConfiguration: { noAck: true, prefetchCount: 1, isGlobalPrefetchCount: true },
+      testConfiguration: { noAck: true, prefetchCount: 1 },
+      consumersCount: 2,
     });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
     const results = await makeMultipleRequests(() => service.getConsumerWorkerId(true), 20);
-    // console.log(results.map((r) => r.workerId));
     // Expect
     expect(results).toBeDefined();
     expect(spy).toHaveBeenCalledWith(expect.objectContaining({ workerId: 0 }));
     expect(spy).toHaveBeenCalledWith(expect.objectContaining({ workerId: 1 }));
-    // expect(results).toEqual(expect.arrayContaining([expect.objectContaining({ workerId: 0 })]));
-    // expect(results).toEqual(expect.arrayContaining([expect.objectContaining({ workerId: 1 })]));
   });
 });

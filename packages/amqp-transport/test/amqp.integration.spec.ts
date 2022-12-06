@@ -199,13 +199,14 @@ describe('AMQP tests', () => {
 
   it('should request response with automatic ack', async () => {
     // Given
+    const noAck = false;
     const {
       producers: [moduleProducer],
-    } = await setupAll({ testConfiguration: { noAck: false } });
+    } = await setupAll({ testConfiguration: { noAck } });
     const msg = { message };
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const result = await service.test(msg, false);
+    const result = await service.test(msg, noAck);
     expect(result).toBeDefined();
     expect(result).toEqual(expect.objectContaining(msg));
     expect(spy).toHaveBeenCalledTimes(1);
@@ -214,13 +215,14 @@ describe('AMQP tests', () => {
 
   it('should request response multiple sends with automatic ack', async () => {
     // Given
+    const noAck = false;
     const {
       producers: [moduleProducer],
-    } = await setupAll({ testConfiguration: { noAck: false } });
+    } = await setupAll({ testConfiguration: { noAck } });
     const msg = { message };
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const results = await makeMultipleRequests(() => service.test({ message }, false), 5);
+    const results = await makeMultipleRequests(() => service.test({ message }, noAck), 5);
     // Expect
     expect(results).toBeDefined();
     expect(results.length).toBe(5);
@@ -233,13 +235,14 @@ describe('AMQP tests', () => {
 
   it('should request response with manual ack', async () => {
     // Given
+    const noAck = true;
     const msg = { message };
     const {
       producers: [moduleProducer],
-    } = await setupAll({ testConfiguration: { noAck: true } });
+    } = await setupAll({ testConfiguration: { noAck } });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const result = await service.test(msg, true);
+    const result = await service.test(msg, noAck);
     expect(result).toBeDefined();
     expect(result).toEqual(expect.objectContaining(msg));
     expect(spy).toHaveBeenCalledTimes(1);
@@ -248,13 +251,14 @@ describe('AMQP tests', () => {
 
   it('should handle multiple sends with manual ack', async () => {
     // Given
+    const noAck = true;
     const msg = { message };
     const {
       producers: [moduleProducer],
-    } = await setupAll({ testConfiguration: { noAck: true } });
+    } = await setupAll({ testConfiguration: { noAck } });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const results = await makeMultipleRequests(() => service.test(msg, true), 5);
+    const results = await makeMultipleRequests(() => service.test(msg, noAck), 5);
     // Expect
     expect(results).toBeDefined();
     expect(results.length).toBe(5);
@@ -267,15 +271,16 @@ describe('AMQP tests', () => {
 
   it('should handle multiple sends with manual ack and prefetchCount set to 5', async () => {
     // Given
+    const noAck = true;
     const msg = { message };
     const {
       producers: [moduleProducer],
     } = await setupAll({
-      testConfiguration: { noAck: true, prefetchCount: 5 },
+      testConfiguration: { noAck, prefetchCount: 5 },
     });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const results = await makeMultipleRequests(() => service.test(msg, true), 10);
+    const results = await makeMultipleRequests(() => service.test(msg, noAck), 10);
     // Expect
     expect(results).toBeDefined();
     expect(results.length).toBe(10);
@@ -288,30 +293,32 @@ describe('AMQP tests', () => {
 
   it('should handle multiple sends with prefetch non zero and automatic ack', async () => {
     // Given
+    const noAck = false;
     const msg = { message };
     const {
       producers: [moduleProducer],
     } = await setupAll({
-      testConfiguration: { noAck: false, prefetchCount: 5 },
+      testConfiguration: { noAck, prefetchCount: 5 },
     });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const result = await service.test(msg, false);
+    const result = await service.test(msg, noAck);
     expect(result).toBeDefined();
     expect(result).toEqual(expect.objectContaining(msg));
   });
 
   it('should handle multiple sends with prefetch and automatic ack', async () => {
     // Given
+    const noAck = false;
     const msg = { message };
     const {
       producers: [moduleProducer],
     } = await setupAll({
-      testConfiguration: { noAck: false, prefetchCount: 5, isGlobalPrefetchCount: true },
+      testConfiguration: { noAck, prefetchCount: 5, isGlobalPrefetchCount: true },
     });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const results = await makeMultipleRequests(() => service.test(msg, false), 5);
+    const results = await makeMultipleRequests(() => service.test(msg, noAck), 5);
     // Expect
     expect(results).toBeDefined();
     expect(results.length).toBe(5);
@@ -322,15 +329,16 @@ describe('AMQP tests', () => {
 
   it('should handle multiple sends with automatic ack and message count greater than prefetchCount', async () => {
     // Given
+    const noAck = false;
     const msg = { message };
     const {
       producers: [moduleProducer],
     } = await setupAll({
-      testConfiguration: { noAck: false, prefetchCount: 5, isGlobalPrefetchCount: true },
+      testConfiguration: { noAck, prefetchCount: 5, isGlobalPrefetchCount: true },
     });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const results = await makeMultipleRequests(() => service.test(msg, false), 10);
+    const results = await makeMultipleRequests(() => service.test(msg, noAck), 10);
     // Expect
     expect(results).toBeDefined();
     results.forEach((r) => {
@@ -340,36 +348,40 @@ describe('AMQP tests', () => {
 
   it('should spread load on 2 consumers with prefetch set to 1 and manual ack', async () => {
     // Given
+    const noAck = true;
     const {
       producers: [moduleProducer],
     } = await setupAll({
-      testConfiguration: { noAck: true, prefetchCount: 1 },
+      testConfiguration: { noAck, prefetchCount: 1 },
       consumersCount: 2,
     });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const results = await makeMultipleRequests(() => service.getConsumerWorkerId(true), 20);
+    const results = await makeMultipleRequests(() => service.getConsumerWorkerId(noAck), 20);
     // Expect
     expect(results).toBeDefined();
     expect(spy).toHaveBeenCalledWith(expect.objectContaining({ workerId: 0 }));
     expect(spy).toHaveBeenCalledWith(expect.objectContaining({ workerId: 1 }));
   });
 
-  it('should response to the right producer with prefetch set to 1 and manual ack', async () => {
+  it('should respond to the right producer with prefetch set to 1 and manual ack', async () => {
+    // Given
+    const noAck = true;
     const msg = { message };
     const {
       producers: [moduleProducer1, moduleProducer2],
     } = await setupAll({
-      testConfiguration: { noAck: true, prefetchCount: 1 },
+      testConfiguration: { noAck, prefetchCount: 1 },
       producersCount: 2,
     });
     const service1 = moduleProducer1.get<DummyProducerService>(DummyProducerService);
     const service2 = moduleProducer2.get<DummyProducerService>(DummyProducerService);
-
+    // Then
     const resultsMatrix = await Promise.all([
-      makeMultipleRequests(() => service1.test(msg, true), 10),
-      makeMultipleRequests(() => service2.test(msg, true), 10),
+      makeMultipleRequests(() => service1.test(msg, noAck), 10),
+      makeMultipleRequests(() => service2.test(msg, noAck), 10),
     ]);
+    // Expect
     expect(resultsMatrix.length).toBe(2);
     expect(resultsMatrix[0].length).toBe(10);
     expect(resultsMatrix[1].length).toBe(10);
@@ -383,25 +395,28 @@ describe('AMQP tests', () => {
     });
   });
 
-  it('should response to the right producer with prefetch set to 1 exclusive reply queue and manual ack', async () => {
+  it('should respond to the right producer with prefetch set to 1, exclusive reply queue and manual ack', async () => {
+    // Given
+    const noAck = true;
     const msg = { message };
     const {
       producers: [moduleProducer1, moduleProducer2],
     } = await setupAll({
       testConfiguration: {
-        noAck: true,
+        noAck,
         prefetchCount: 1,
-        replyQueueOptions: { exclusive: true },
+        replyQueueOptions: { exclusive: true, autoDelete: true },
       },
       producersCount: 2,
     });
     const service1 = moduleProducer1.get<DummyProducerService>(DummyProducerService);
     const service2 = moduleProducer2.get<DummyProducerService>(DummyProducerService);
-
+    // Then
     const resultsMatrix = await Promise.all([
-      makeMultipleRequests(() => service1.test(msg, true), 10),
-      makeMultipleRequests(() => service2.test(msg, true), 10),
+      makeMultipleRequests(() => service1.test(msg, noAck), 10),
+      makeMultipleRequests(() => service2.test(msg, noAck), 10),
     ]);
+    // Expect
     expect(resultsMatrix.length).toBe(2);
     expect(resultsMatrix[0].length).toBe(10);
     expect(resultsMatrix[1].length).toBe(10);
@@ -416,20 +431,23 @@ describe('AMQP tests', () => {
   });
 
   it('should response single producer with fixed replyQueue name ', async () => {
+    // Given
+    const noAck = true;
     const msg = { message };
     const {
       producers: [moduleProducer1],
     } = await setupAll({
       testConfiguration: {
-        noAck: true,
+        noAck,
         prefetchCount: 1,
         replyQueue: 'testingSingleQueue',
       },
       producersCount: 1,
     });
     const service1 = moduleProducer1.get<DummyProducerService>(DummyProducerService);
-
-    const resultsMatrix = await Promise.all([makeMultipleRequests(() => service1.test(msg, true), 10)]);
+    // Then
+    const resultsMatrix = await Promise.all([makeMultipleRequests(() => service1.test(msg, noAck), 10)]);
+    // Expect
     expect(resultsMatrix.length).toBe(1);
     expect(resultsMatrix[0].length).toBe(10);
     resultsMatrix[0].forEach((r) => {
@@ -439,13 +457,15 @@ describe('AMQP tests', () => {
   });
 
   it('should timeout with multiple producer with fixed replyQueue name ', async () => {
+    // Given
+    const noAck = true;
+    const msg = { message };
     try {
-      const msg = { message };
       const {
         producers: [moduleProducer1, moduleProducer2],
       } = await setupAll({
         testConfiguration: {
-          noAck: true,
+          noAck,
           prefetchCount: 1,
           replyQueue: 'testingMultipleQueues',
         },
@@ -453,12 +473,13 @@ describe('AMQP tests', () => {
       });
       const service1 = moduleProducer1.get<DummyProducerService>(DummyProducerService);
       const service2 = moduleProducer2.get<DummyProducerService>(DummyProducerService);
-
+      // Then
       await Promise.all([
-        makeMultipleRequests(() => service1.test(msg, true), 10),
-        makeMultipleRequests(() => service2.test(msg, true), 10),
+        makeMultipleRequests(() => service1.test(msg, noAck), 10),
+        makeMultipleRequests(() => service2.test(msg, noAck), 10),
       ]);
     } catch (ex) {
+      // Expect
       expect(ex).toBeDefined();
       expect(ex).toEqual('TimeoutError');
     }

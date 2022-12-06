@@ -91,10 +91,16 @@ const setupConsumer = async (testConfiguration: BuildClientModuleOptions = {}, w
   return { moduleConsumer, appConsumer };
 };
 
-const setupProducer = async (testConfiguration: BuildClientModuleOptions = {}) => {
+const setupProducer = async (testConfiguration: BuildClientModuleOptions = {}, workerId = 0) => {
   const moduleProducer = await Test.createTestingModule({
     imports: [buildClientModule(testConfiguration)],
-    providers: [DummyProducerService],
+    providers: [
+      DummyProducerService,
+      {
+        provide: 'WORKER_ID',
+        useValue: workerId,
+      },
+    ],
   }).compile();
   openConnections.push(moduleProducer);
   return moduleProducer;
@@ -107,19 +113,24 @@ const makeMultipleRequests = <T>(f: () => Promise<T>, n: number) => {
 
 interface SetupAllOptions {
   consumersCount?: number;
+  producersCount?: number;
   testConfiguration?: BuildClientModuleOptions;
 }
 
 const setupAll = async (options: SetupAllOptions = {}) => {
-  const { testConfiguration = {}, consumersCount = 1 } = options;
-  const moduleProducer = await setupProducer(testConfiguration);
+  const { testConfiguration = {}, consumersCount = 1, producersCount = 1 } = options;
   const consumers: { appConsumer: INestMicroservice; moduleConsumer: TestingModule }[] = [];
+  const producers: TestingModule[] = [];
+  for (let i = 0; i < producersCount; i++) {
+    const producer = await setupProducer(testConfiguration, i);
+    producers.push(producer);
+  }
   for (let i = 0; i < consumersCount; i++) {
-    const consumer = await setupConsumer(options.testConfiguration, i);
+    const consumer = await setupConsumer(testConfiguration, i);
     consumers.push(consumer);
   }
   await new Promise((resolve) => setTimeout(resolve, 0));
-  return { moduleProducer, consumers };
+  return { producers, consumers };
 };
 
 const closeAll = async () => {
@@ -140,7 +151,7 @@ describe('AMQP tests', () => {
 
   it('AMQP clients should be defined', async () => {
     const {
-      moduleProducer,
+      producers: [moduleProducer],
       consumers: [{ moduleConsumer }],
     } = await setupAll();
 
@@ -153,7 +164,9 @@ describe('AMQP tests', () => {
 
   it('should request response with basic configuration', async () => {
     // Given
-    const { moduleProducer } = await setupAll();
+    const {
+      producers: [moduleProducer],
+    } = await setupAll();
     const msg = { message };
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
 
@@ -167,7 +180,9 @@ describe('AMQP tests', () => {
 
   it('should request response with basic configuration multiple messages', async () => {
     // Given
-    const { moduleProducer } = await setupAll();
+    const {
+      producers: [moduleProducer],
+    } = await setupAll();
     const msg = { message };
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
@@ -184,7 +199,9 @@ describe('AMQP tests', () => {
 
   it('should request response with automatic ack', async () => {
     // Given
-    const { moduleProducer } = await setupAll({ testConfiguration: { noAck: false } });
+    const {
+      producers: [moduleProducer],
+    } = await setupAll({ testConfiguration: { noAck: false } });
     const msg = { message };
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
@@ -197,7 +214,9 @@ describe('AMQP tests', () => {
 
   it('should request response multiple sends with automatic ack', async () => {
     // Given
-    const { moduleProducer } = await setupAll({ testConfiguration: { noAck: false } });
+    const {
+      producers: [moduleProducer],
+    } = await setupAll({ testConfiguration: { noAck: false } });
     const msg = { message };
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
@@ -215,7 +234,9 @@ describe('AMQP tests', () => {
   it('should request response with manual ack', async () => {
     // Given
     const msg = { message };
-    const { moduleProducer } = await setupAll({ testConfiguration: { noAck: true } });
+    const {
+      producers: [moduleProducer],
+    } = await setupAll({ testConfiguration: { noAck: true } });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
     const result = await service.test(msg, true);
@@ -228,7 +249,9 @@ describe('AMQP tests', () => {
   it('should handle multiple sends with manual ack', async () => {
     // Given
     const msg = { message };
-    const { moduleProducer } = await setupAll({ testConfiguration: { noAck: true } });
+    const {
+      producers: [moduleProducer],
+    } = await setupAll({ testConfiguration: { noAck: true } });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
     const results = await makeMultipleRequests(() => service.test(msg, true), 5);
@@ -245,7 +268,9 @@ describe('AMQP tests', () => {
   it('should handle multiple sends with manual ack and prefetchCount set to 5', async () => {
     // Given
     const msg = { message };
-    const { moduleProducer } = await setupAll({
+    const {
+      producers: [moduleProducer],
+    } = await setupAll({
       testConfiguration: { noAck: true, prefetchCount: 5 },
     });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
@@ -264,20 +289,24 @@ describe('AMQP tests', () => {
   it('should handle multiple sends with prefetch non zero and automatic ack', async () => {
     // Given
     const msg = { message };
-    const { moduleProducer } = await setupAll({
+    const {
+      producers: [moduleProducer],
+    } = await setupAll({
       testConfiguration: { noAck: false, prefetchCount: 5 },
     });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
     const result = await service.test(msg, false);
     expect(result).toBeDefined();
-    expect(result).toEqual(msg);
+    expect(result).toEqual(expect.objectContaining(msg));
   });
 
   it('should handle multiple sends with prefetch and automatic ack', async () => {
     // Given
     const msg = { message };
-    const { moduleProducer } = await setupAll({
+    const {
+      producers: [moduleProducer],
+    } = await setupAll({
       testConfiguration: { noAck: false, prefetchCount: 5, isGlobalPrefetchCount: true },
     });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
@@ -287,14 +316,16 @@ describe('AMQP tests', () => {
     expect(results).toBeDefined();
     expect(results.length).toBe(5);
     results.forEach((r) => {
-      expect(r).toEqual(msg);
+      expect(r).toEqual(expect.objectContaining(msg));
     });
   });
 
   it('should handle multiple sends with automatic ack and message count greater than prefetchCount', async () => {
     // Given
     const msg = { message };
-    const { moduleProducer } = await setupAll({
+    const {
+      producers: [moduleProducer],
+    } = await setupAll({
       testConfiguration: { noAck: false, prefetchCount: 5, isGlobalPrefetchCount: true },
     });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
@@ -303,13 +334,15 @@ describe('AMQP tests', () => {
     // Expect
     expect(results).toBeDefined();
     results.forEach((r) => {
-      expect(r).toEqual(msg);
+      expect(r).toEqual(expect.objectContaining(msg));
     });
   });
 
   it('should spread load on 2 consumers with prefetch set to 1 and manual ack', async () => {
     // Given
-    const { moduleProducer } = await setupAll({
+    const {
+      producers: [moduleProducer],
+    } = await setupAll({
       testConfiguration: { noAck: true, prefetchCount: 1 },
       consumersCount: 2,
     });
@@ -320,5 +353,70 @@ describe('AMQP tests', () => {
     expect(results).toBeDefined();
     expect(spy).toHaveBeenCalledWith(expect.objectContaining({ workerId: 0 }));
     expect(spy).toHaveBeenCalledWith(expect.objectContaining({ workerId: 1 }));
+  });
+
+  it('should response to the right producer with prefetch set to 1 and manual ack', async () => {
+    const msg = { message };
+    const {
+      producers: [moduleProducer1, moduleProducer2],
+    } = await setupAll({
+      testConfiguration: { noAck: true, prefetchCount: 1 },
+      producersCount: 2,
+    });
+    const service1 = moduleProducer1.get<DummyProducerService>(DummyProducerService);
+    const service2 = moduleProducer2.get<DummyProducerService>(DummyProducerService);
+
+    const resultsMatrix = await Promise.all([
+      makeMultipleRequests(() => service1.test(msg, true), 10),
+      makeMultipleRequests(() => service2.test(msg, true), 10),
+    ]);
+    expect(resultsMatrix.length).toBe(2);
+    expect(resultsMatrix[0].length).toBe(10);
+    expect(resultsMatrix[1].length).toBe(10);
+    resultsMatrix[0].forEach((r) => {
+      expect(r).toHaveProperty('producerId');
+      expect(r.producerId).toEqual(0);
+    });
+    resultsMatrix[1].forEach((r) => {
+      expect(r).toHaveProperty('producerId');
+      expect(r.producerId).toEqual(1);
+    });
+  });
+
+  it('should response to the right producer with prefetch set to 1 and manual ack and replyQueue', async () => {
+    const msg = { message };
+    const {
+      producers: [moduleProducer1, moduleProducer2],
+    } = await setupAll({
+      testConfiguration: {
+        noAck: true,
+        prefetchCount: 1,
+        queue: 'test',
+        queueOptions: {
+          autoDelete: false,
+        },
+        replyQueue: 'testingQueue',
+        replyQueueOptions: { autoDelete: false },
+      },
+      producersCount: 2,
+    });
+    const service1 = moduleProducer1.get<DummyProducerService>(DummyProducerService);
+    const service2 = moduleProducer2.get<DummyProducerService>(DummyProducerService);
+
+    const resultsMatrix = await Promise.all([
+      makeMultipleRequests(() => service1.test(msg, true), 10),
+      makeMultipleRequests(() => service2.test(msg, true), 10),
+    ]);
+    expect(resultsMatrix.length).toBe(2);
+    expect(resultsMatrix[0].length).toBe(10);
+    expect(resultsMatrix[1].length).toBe(10);
+    resultsMatrix[0].forEach((r) => {
+      expect(r).toHaveProperty('producerId');
+      expect(r.producerId).toEqual(0);
+    });
+    resultsMatrix[1].forEach((r) => {
+      expect(r).toHaveProperty('producerId');
+      expect(r.producerId).toEqual(1);
+    });
   });
 });

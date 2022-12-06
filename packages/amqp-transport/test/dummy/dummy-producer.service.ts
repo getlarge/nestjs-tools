@@ -14,11 +14,14 @@ import {
 
 @Injectable()
 export class DummyProducerService {
-  constructor(@Inject(DUMMY_CLIENT) private readonly client: ClientProxy) {}
+  constructor(
+    @Inject(DUMMY_CLIENT) private readonly client: ClientProxy,
+    @Inject('WORKER_ID') private readonly workerId: number = 0,
+  ) {}
 
   test(msg: Record<string, any>, noAck = RQM_DEFAULT_NOACK) {
     const topic = noAck ? DUMMY_TOPIC_NOACK : DUMMY_TOPIC_ACK;
-    const response$ = this.client.send(topic, msg).pipe(
+    const response$ = this.client.send(topic, { ...msg, producerId: this.workerId }).pipe(
       catchError((err) => {
         console.error(err);
         return throwError(() => err);

@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common/decorators';
 import { ClientProxy } from '@nestjs/microservices';
 import { RQM_DEFAULT_NOACK } from '@nestjs/microservices/constants';
 import { lastValueFrom, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, timeout } from 'rxjs/operators';
 
 import {
   DUMMY_CLIENT,
@@ -14,6 +14,7 @@ import {
 
 @Injectable()
 export class DummyProducerService {
+  private timeToTimeout = 1000; // ms
   constructor(
     @Inject(DUMMY_CLIENT) private readonly client: ClientProxy,
     @Inject('WORKER_ID') private readonly workerId: number = 0,
@@ -25,6 +26,10 @@ export class DummyProducerService {
       catchError((err) => {
         console.error(err);
         return throwError(() => err);
+      }),
+      timeout(this.timeToTimeout),
+      catchError(() => {
+        return throwError(() => 'TimeoutError');
       }),
     );
 

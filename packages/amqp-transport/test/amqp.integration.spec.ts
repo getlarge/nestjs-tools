@@ -91,10 +91,16 @@ const setupConsumer = async (testConfiguration: BuildClientModuleOptions = {}, w
   return { moduleConsumer, appConsumer };
 };
 
-const setupProducer = async (testConfiguration: BuildClientModuleOptions = {}) => {
+const setupProducer = async (testConfiguration: BuildClientModuleOptions = {}, workerId = 0) => {
   const moduleProducer = await Test.createTestingModule({
     imports: [buildClientModule(testConfiguration)],
-    providers: [DummyProducerService],
+    providers: [
+      DummyProducerService,
+      {
+        provide: 'WORKER_ID',
+        useValue: workerId,
+      },
+    ],
   }).compile();
   openConnections.push(moduleProducer);
   return moduleProducer;
@@ -107,19 +113,24 @@ const makeMultipleRequests = <T>(f: () => Promise<T>, n: number) => {
 
 interface SetupAllOptions {
   consumersCount?: number;
+  producersCount?: number;
   testConfiguration?: BuildClientModuleOptions;
 }
 
 const setupAll = async (options: SetupAllOptions = {}) => {
-  const { testConfiguration = {}, consumersCount = 1 } = options;
-  const moduleProducer = await setupProducer(testConfiguration);
+  const { testConfiguration = {}, consumersCount = 1, producersCount = 1 } = options;
   const consumers: { appConsumer: INestMicroservice; moduleConsumer: TestingModule }[] = [];
+  const producers: TestingModule[] = [];
+  for (let i = 0; i < producersCount; i++) {
+    const producer = await setupProducer(testConfiguration, i);
+    producers.push(producer);
+  }
   for (let i = 0; i < consumersCount; i++) {
-    const consumer = await setupConsumer(options.testConfiguration, i);
+    const consumer = await setupConsumer(testConfiguration, i);
     consumers.push(consumer);
   }
   await new Promise((resolve) => setTimeout(resolve, 0));
-  return { moduleProducer, consumers };
+  return { producers, consumers };
 };
 
 const closeAll = async () => {
@@ -140,7 +151,7 @@ describe('AMQP tests', () => {
 
   it('AMQP clients should be defined', async () => {
     const {
-      moduleProducer,
+      producers: [moduleProducer],
       consumers: [{ moduleConsumer }],
     } = await setupAll();
 
@@ -153,21 +164,25 @@ describe('AMQP tests', () => {
 
   it('should request response with basic configuration', async () => {
     // Given
-    const { moduleProducer } = await setupAll();
+    const {
+      producers: [moduleProducer],
+    } = await setupAll();
     const msg = { message };
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
 
     // Then
     const result = await service.test(msg);
     expect(result).toBeDefined();
-    expect(result).toEqual(msg);
+    expect(result).toEqual(expect.objectContaining(msg));
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: msg }));
+    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining(msg) }));
   });
 
   it('should request response with basic configuration multiple messages', async () => {
     // Given
-    const { moduleProducer } = await setupAll();
+    const {
+      producers: [moduleProducer],
+    } = await setupAll();
     const msg = { message };
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
@@ -176,149 +191,297 @@ describe('AMQP tests', () => {
     expect(results).toBeDefined();
     expect(results.length).toBe(5);
     results.forEach((r) => {
-      expect(r).toEqual(msg);
+      expect(r).toEqual(expect.objectContaining(msg));
     });
     expect(spy).toBeCalledTimes(results.length);
-    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: msg }));
+    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining(msg) }));
   });
 
   it('should request response with automatic ack', async () => {
     // Given
-    const { moduleProducer } = await setupAll({ testConfiguration: { noAck: false } });
+    const noAck = false;
+    const {
+      producers: [moduleProducer],
+    } = await setupAll({ testConfiguration: { noAck } });
     const msg = { message };
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const result = await service.test(msg, false);
+    const result = await service.test(msg, noAck);
     expect(result).toBeDefined();
-    expect(result).toEqual(msg);
+    expect(result).toEqual(expect.objectContaining(msg));
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: msg }));
+    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining(msg) }));
   });
 
   it('should request response multiple sends with automatic ack', async () => {
     // Given
-    const { moduleProducer } = await setupAll({ testConfiguration: { noAck: false } });
+    const noAck = false;
+    const {
+      producers: [moduleProducer],
+    } = await setupAll({ testConfiguration: { noAck } });
     const msg = { message };
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const results = await makeMultipleRequests(() => service.test({ message }, false), 5);
+    const results = await makeMultipleRequests(() => service.test({ message }, noAck), 5);
     // Expect
     expect(results).toBeDefined();
     expect(results.length).toBe(5);
     results.forEach((r) => {
-      expect(r).toEqual(msg);
+      expect(r).toEqual(expect.objectContaining(msg));
     });
     expect(spy).toHaveBeenCalledTimes(results.length);
-    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: msg }));
+    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining(msg) }));
   });
 
   it('should request response with manual ack', async () => {
     // Given
+    const noAck = true;
     const msg = { message };
-    const { moduleProducer } = await setupAll({ testConfiguration: { noAck: true } });
+    const {
+      producers: [moduleProducer],
+    } = await setupAll({ testConfiguration: { noAck } });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const result = await service.test(msg, true);
+    const result = await service.test(msg, noAck);
     expect(result).toBeDefined();
-    expect(result).toEqual(msg);
+    expect(result).toEqual(expect.objectContaining(msg));
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: msg }));
+    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining(msg) }));
   });
 
   it('should handle multiple sends with manual ack', async () => {
     // Given
+    const noAck = true;
     const msg = { message };
-    const { moduleProducer } = await setupAll({ testConfiguration: { noAck: true } });
+    const {
+      producers: [moduleProducer],
+    } = await setupAll({ testConfiguration: { noAck } });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const results = await makeMultipleRequests(() => service.test(msg, true), 5);
+    const results = await makeMultipleRequests(() => service.test(msg, noAck), 5);
     // Expect
     expect(results).toBeDefined();
     expect(results.length).toBe(5);
     results.forEach((r) => {
-      expect(r).toEqual(msg);
+      expect(r).toEqual(expect.objectContaining(msg));
     });
     expect(spy).toHaveBeenCalledTimes(results.length);
-    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: msg }));
+    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining(msg) }));
   });
 
   it('should handle multiple sends with manual ack and prefetchCount set to 5', async () => {
     // Given
+    const noAck = true;
     const msg = { message };
-    const { moduleProducer } = await setupAll({
-      testConfiguration: { noAck: true, prefetchCount: 5 },
+    const {
+      producers: [moduleProducer],
+    } = await setupAll({
+      testConfiguration: { noAck, prefetchCount: 5 },
     });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const results = await makeMultipleRequests(() => service.test(msg, true), 10);
+    const results = await makeMultipleRequests(() => service.test(msg, noAck), 10);
     // Expect
     expect(results).toBeDefined();
     expect(results.length).toBe(10);
     results.forEach((r) => {
-      expect(r).toEqual(msg);
+      expect(r).toEqual(expect.objectContaining(msg));
     });
     expect(spy).toHaveBeenCalledTimes(results.length);
-    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: msg }));
+    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining(msg) }));
   });
 
   it('should handle multiple sends with prefetch non zero and automatic ack', async () => {
     // Given
+    const noAck = false;
     const msg = { message };
-    const { moduleProducer } = await setupAll({
-      testConfiguration: { noAck: false, prefetchCount: 5 },
+    const {
+      producers: [moduleProducer],
+    } = await setupAll({
+      testConfiguration: { noAck, prefetchCount: 5 },
     });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const result = await service.test(msg, false);
+    const result = await service.test(msg, noAck);
     expect(result).toBeDefined();
-    expect(result).toEqual(msg);
+    expect(result).toEqual(expect.objectContaining(msg));
   });
 
   it('should handle multiple sends with prefetch and automatic ack', async () => {
     // Given
+    const noAck = false;
     const msg = { message };
-    const { moduleProducer } = await setupAll({
-      testConfiguration: { noAck: false, prefetchCount: 5, isGlobalPrefetchCount: true },
+    const {
+      producers: [moduleProducer],
+    } = await setupAll({
+      testConfiguration: { noAck, prefetchCount: 5, isGlobalPrefetchCount: true },
     });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const results = await makeMultipleRequests(() => service.test(msg, false), 5);
+    const results = await makeMultipleRequests(() => service.test(msg, noAck), 5);
     // Expect
     expect(results).toBeDefined();
     expect(results.length).toBe(5);
     results.forEach((r) => {
-      expect(r).toEqual(msg);
+      expect(r).toEqual(expect.objectContaining(msg));
     });
   });
 
   it('should handle multiple sends with automatic ack and message count greater than prefetchCount', async () => {
     // Given
+    const noAck = false;
     const msg = { message };
-    const { moduleProducer } = await setupAll({
-      testConfiguration: { noAck: false, prefetchCount: 5, isGlobalPrefetchCount: true },
+    const {
+      producers: [moduleProducer],
+    } = await setupAll({
+      testConfiguration: { noAck, prefetchCount: 5, isGlobalPrefetchCount: true },
     });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const results = await makeMultipleRequests(() => service.test(msg, false), 10);
+    const results = await makeMultipleRequests(() => service.test(msg, noAck), 10);
     // Expect
     expect(results).toBeDefined();
     results.forEach((r) => {
-      expect(r).toEqual(msg);
+      expect(r).toEqual(expect.objectContaining(msg));
     });
   });
 
   it('should spread load on 2 consumers with prefetch set to 1 and manual ack', async () => {
     // Given
-    const { moduleProducer } = await setupAll({
-      testConfiguration: { noAck: true, prefetchCount: 1 },
+    const noAck = true;
+    const {
+      producers: [moduleProducer],
+    } = await setupAll({
+      testConfiguration: { noAck, prefetchCount: 1 },
       consumersCount: 2,
     });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const results = await makeMultipleRequests(() => service.getConsumerWorkerId(true), 20);
+    const results = await makeMultipleRequests(() => service.getConsumerWorkerId(noAck), 20);
     // Expect
     expect(results).toBeDefined();
     expect(spy).toHaveBeenCalledWith(expect.objectContaining({ workerId: 0 }));
     expect(spy).toHaveBeenCalledWith(expect.objectContaining({ workerId: 1 }));
   });
+
+  it('should respond to the right producer with prefetch set to 1 and manual ack', async () => {
+    // Given
+    const noAck = true;
+    const msg = { message };
+    const {
+      producers: [moduleProducer1, moduleProducer2],
+    } = await setupAll({
+      testConfiguration: { noAck, prefetchCount: 1 },
+      producersCount: 2,
+    });
+    const service1 = moduleProducer1.get<DummyProducerService>(DummyProducerService);
+    const service2 = moduleProducer2.get<DummyProducerService>(DummyProducerService);
+    // Then
+    const resultsMatrix = await Promise.all([
+      makeMultipleRequests(() => service1.test(msg, noAck), 10),
+      makeMultipleRequests(() => service2.test(msg, noAck), 10),
+    ]);
+    // Expect
+    expect(resultsMatrix.length).toBe(2);
+    expect(resultsMatrix[0].length).toBe(10);
+    expect(resultsMatrix[1].length).toBe(10);
+    resultsMatrix[0].forEach((r) => {
+      expect(r).toHaveProperty('producerId');
+      expect(r.producerId).toEqual(0);
+    });
+    resultsMatrix[1].forEach((r) => {
+      expect(r).toHaveProperty('producerId');
+      expect(r.producerId).toEqual(1);
+    });
+  });
+
+  it('should respond to the right producer with prefetch set to 1, exclusive reply queue and manual ack', async () => {
+    // Given
+    const noAck = true;
+    const msg = { message };
+    const {
+      producers: [moduleProducer1, moduleProducer2],
+    } = await setupAll({
+      testConfiguration: {
+        noAck,
+        prefetchCount: 1,
+        replyQueueOptions: { exclusive: true, autoDelete: true },
+      },
+      producersCount: 2,
+    });
+    const service1 = moduleProducer1.get<DummyProducerService>(DummyProducerService);
+    const service2 = moduleProducer2.get<DummyProducerService>(DummyProducerService);
+    // Then
+    const resultsMatrix = await Promise.all([
+      makeMultipleRequests(() => service1.test(msg, noAck), 10),
+      makeMultipleRequests(() => service2.test(msg, noAck), 10),
+    ]);
+    // Expect
+    expect(resultsMatrix.length).toBe(2);
+    expect(resultsMatrix[0].length).toBe(10);
+    expect(resultsMatrix[1].length).toBe(10);
+    resultsMatrix[0].forEach((r) => {
+      expect(r).toHaveProperty('producerId');
+      expect(r.producerId).toEqual(0);
+    });
+    resultsMatrix[1].forEach((r) => {
+      expect(r).toHaveProperty('producerId');
+      expect(r.producerId).toEqual(1);
+    });
+  });
+
+  it('should response single producer with fixed replyQueue name ', async () => {
+    // Given
+    const noAck = true;
+    const msg = { message };
+    const {
+      producers: [moduleProducer1],
+    } = await setupAll({
+      testConfiguration: {
+        noAck,
+        prefetchCount: 1,
+        replyQueue: 'testingSingleQueue',
+      },
+      producersCount: 1,
+    });
+    const service1 = moduleProducer1.get<DummyProducerService>(DummyProducerService);
+    // Then
+    const resultsMatrix = await Promise.all([makeMultipleRequests(() => service1.test(msg, noAck), 10)]);
+    // Expect
+    expect(resultsMatrix.length).toBe(1);
+    expect(resultsMatrix[0].length).toBe(10);
+    resultsMatrix[0].forEach((r) => {
+      expect(r).toHaveProperty('producerId');
+      expect(r.producerId).toEqual(0);
+    });
+  });
+
+  it('should timeout with multiple producer with fixed replyQueue name ', async () => {
+    // Given
+    const noAck = true;
+    const msg = { message };
+    try {
+      const {
+        producers: [moduleProducer1, moduleProducer2],
+      } = await setupAll({
+        testConfiguration: {
+          noAck,
+          prefetchCount: 1,
+          replyQueue: 'testingMultipleQueues',
+        },
+        producersCount: 2,
+      });
+      const service1 = moduleProducer1.get<DummyProducerService>(DummyProducerService);
+      const service2 = moduleProducer2.get<DummyProducerService>(DummyProducerService);
+      // Then
+      await Promise.all([
+        makeMultipleRequests(() => service1.test(msg, noAck), 10),
+        makeMultipleRequests(() => service2.test(msg, noAck), 10),
+      ]);
+    } catch (ex) {
+      // Expect
+      expect(ex).toBeDefined();
+      expect(ex).toEqual('TimeoutError');
+    }
+  }, 6000);
 });

@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.4.2](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-amqp-transport@0.4.1...@s1seven/nestjs-tools-amqp-transport@0.4.2) (2022-12-07)
+
+### Bug Fixes
+
+- **amqp-transport:** set proper types for AmqpOptions.socketOptions ([f57a0d1](https://github.com/s1seven/nestjs-tools/commit/f57a0d152421347d3fa23f6f4b72792cc18a0f2e))
+
 ## [0.4.1](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-amqp-transport@0.4.0...@s1seven/nestjs-tools-amqp-transport@0.4.1) (2022-11-30)
 
 ### Bug Fixes

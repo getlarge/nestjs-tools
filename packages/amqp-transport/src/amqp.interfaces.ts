@@ -32,7 +32,7 @@ export interface AmqpOptions {
       password: string;
       response: () => Buffer;
     };
-  } & { heartbeatIntervalInSeconds: 30; reconnectTimeInSeconds: 1 };
+  } & { heartbeatIntervalInSeconds: number; reconnectTimeInSeconds: number };
   serializer?: Serializer;
   deserializer?: Deserializer;
   headers?: Record<string, string>;

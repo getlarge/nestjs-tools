@@ -5,7 +5,7 @@ import { AddressInfo, createServer, Server } from 'net';
 import { ApplicationBoot } from '../src';
 import { bootOptions, Config } from './bootstrap.mock';
 
-describe('Boot unit tests', () => {
+describe('ApplicationBoot', () => {
   let applicationBoot: ApplicationBoot<Config>;
   let broker: Aedes;
   let tcpServer: Server;
@@ -25,7 +25,7 @@ describe('Boot unit tests', () => {
   });
 
   afterEach(async () => {
-    applicationBoot.removeAllListeners();
+    applicationBoot?.removeAllListeners();
     if (applicationBoot.app) {
       await applicationBoot.app.close();
     }
@@ -44,11 +44,46 @@ describe('Boot unit tests', () => {
     expect(applicationBoot).toBeDefined();
   });
 
+  it('ApplicationBoot should throw when AppModule and appModuleFactory are undefined', async () => {
+    applicationBoot = new ApplicationBoot<Config>({ ...bootOptions, appModuleFactory: null, AppModule: null });
+    const getAppModule = jest.spyOn(applicationBoot, 'getAppModule');
+    //
+    applicationBoot.bootstrap();
+    await new Promise<void>((resolve, reject) => {
+      applicationBoot.once('started', () => reject(new Error('Should not happen'))).once('error', () => resolve());
+    });
+    expect(getAppModule).toBeCalled();
+    expect(getAppModule).rejects.toThrowError(TypeError);
+  }, 8000);
+
+  it('ApplicationBoot should call appModuleFactory, when it is defined', async () => {
+    const getAppModule = jest.spyOn(applicationBoot, 'getAppModule');
+    const appModuleFactory = jest.spyOn(applicationBoot.options, 'appModuleFactory');
+    //
+    applicationBoot.bootstrap();
+    await new Promise<void>((resolve, reject) => {
+      applicationBoot.once('started', () => resolve()).once('error', reject);
+    });
+    expect(getAppModule).toBeCalledTimes(1);
+    expect(appModuleFactory).toBeCalledTimes(1);
+  }, 8000);
+
+  it('ApplicationBoot should use AppModule when appModuleFactory is undefined', async () => {
+    applicationBoot = new ApplicationBoot<Config>({ ...bootOptions, appModuleFactory: null });
+    const getAppModule = jest.spyOn(applicationBoot, 'getAppModule');
+    //
+    applicationBoot.bootstrap();
+    await new Promise<void>((resolve, reject) => {
+      applicationBoot.once('started', () => resolve()).once('error', reject);
+    });
+    expect(getAppModule).toBeCalledTimes(1);
+  }, 8000);
+
   it('ApplicationBoot should call preSetup hook, when it is defined', async () => {
     const preSetup = jest.fn();
     const setupAppSpy = jest.spyOn(applicationBoot, 'setupApp');
-    applicationBoot.bootstrap({ preSetup });
     //
+    applicationBoot.bootstrap({ preSetup });
     await new Promise<void>((resolve, reject) => {
       applicationBoot.once('started', () => resolve()).once('error', reject);
     });
@@ -65,8 +100,8 @@ describe('Boot unit tests', () => {
     const setCorsSpy = jest.spyOn(applicationBoot, 'setCors');
     const setHelmetSpy = jest.spyOn(applicationBoot, 'setHelmet');
     const setRateLimitSpy = jest.spyOn(applicationBoot, 'setRateLimit');
-    applicationBoot.bootstrap();
     //
+    applicationBoot.bootstrap();
     await new Promise<void>((resolve, reject) => {
       applicationBoot.once('started', () => resolve()).once('error', reject);
     });
@@ -83,8 +118,8 @@ describe('Boot unit tests', () => {
   it('ApplicationBoot should call postSetup hook, when it is defined', async () => {
     const postSetup = jest.fn();
     const setupAppSpy = jest.spyOn(applicationBoot, 'setupApp');
-    applicationBoot.bootstrap({ postSetup });
     //
+    applicationBoot.bootstrap({ postSetup });
     await new Promise<void>((resolve, reject) => {
       applicationBoot.once('started', () => resolve()).once('error', reject);
     });
@@ -95,8 +130,8 @@ describe('Boot unit tests', () => {
   it('ApplicationBoot should call postInit hook, when it is defined', async () => {
     const postInit = jest.fn();
     const setupAppSpy = jest.spyOn(applicationBoot, 'setupApp');
-    applicationBoot.bootstrap({ postInit });
     //
+    applicationBoot.bootstrap({ postInit });
     await new Promise<void>((resolve, reject) => {
       applicationBoot.once('started', () => resolve()).once('error', reject);
     });

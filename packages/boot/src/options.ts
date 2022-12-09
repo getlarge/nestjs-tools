@@ -3,10 +3,12 @@ import type {
   ExceptionFilter,
   LoggerService,
   LogLevel,
+  ModuleMetadata,
   NestApplicationOptions,
   NestHybridApplicationOptions,
   NestInterceptor,
   PipeTransform,
+  Type,
   VersioningOptions,
 } from '@nestjs/common';
 import type { CorsOptions, CorsOptionsDelegate } from '@nestjs/common/interfaces/external/cors-options.interface';
@@ -85,7 +87,8 @@ export type BootOptions<Config extends BaseConfig> = {
   serviceVersion: string;
   workerId?: number;
   config: (app?: NestExpressApplication) => Config;
-  AppModule: Function; // eslint-disable-line @typescript-eslint/ban-types
+  AppModule?: Type<ModuleMetadata>;
+  appModuleFactory?: () => Type<ModuleMetadata> | Promise<Type<ModuleMetadata>>;
   openApi?: OpenApiOptions;
   asyncApi?: AsyncApiOptions;
   loggerName?: string;

@@ -60,25 +60,27 @@ describe('ClusterService', function () {
   });
 
   it('should emit online event when a new worker is online', async () => {
-    let workerOnline = false;
-    let workerId: number;
+    const workersOnline = { 1: false, 2: false };
     const clusterService = new ClusterService({
-      workers: 1,
+      workers: 2,
       lifetime: 0,
       showLogs: true,
     });
-    const worker = (_opts, disconnect) => {
+    const workerFn = (opts: { workerId: number }, disconnect) => {
       disconnect();
     };
-    clusterService.once('online', (worker) => {
-      workerOnline = true;
-      workerId = worker.id;
+    let workerCount = 0;
+    clusterService.on('online', (worker) => {
+      workersOnline[worker.id] = true;
+      delay(250).then(() => clusterService.kill(worker.id));
+      expect(worker.id).toBe((workerCount += 1));
     });
-    await clusterService.clusterize(worker);
-    await delay(1000);
-    clusterService.kill(workerId);
-    await delay(1000);
-    expect(workerOnline).toBe(true);
+    await clusterService.clusterize(workerFn);
+    await delay(500);
+    clusterService.shutdown('SIGTERM')(false);
+    await delay(500);
+    expect(workersOnline[1]).toBe(true);
+    expect(workersOnline[2]).toBe(true);
   });
 
   it('should emit disconnect event when a worker is disconnected', async () => {
@@ -88,7 +90,7 @@ describe('ClusterService', function () {
       workers: 1,
       lifetime: 0,
     });
-    const worker = (_opts, disconnect) => {
+    const workerFn = (opts: { workerId: number }, disconnect) => {
       disconnect();
     };
     clusterService.once('online', (worker) => {
@@ -97,10 +99,12 @@ describe('ClusterService', function () {
     clusterService.once('disconnect', () => {
       workerOffline = true;
     });
-    await clusterService.clusterize(worker);
-    await delay(1000);
+    await clusterService.clusterize(workerFn);
+    await delay(500);
     clusterService.kill(workerId);
-    await delay(1000);
+    await delay(250);
+    clusterService.shutdown('SIGTERM')(false);
+    await delay(500);
     expect(workerOffline).toBe(true);
   });
 
@@ -111,19 +115,22 @@ describe('ClusterService', function () {
       workers: 1,
       lifetime: 0,
     });
-    const worker = (opts: { workerId: number }, disconnect, send) => {
-      send(`${baseMessage} ${process.pid}`);
+    const workerFn = (opts: { workerId: number }, disconnect, send) => {
+      send(`${baseMessage} ${opts.workerId} ${process.pid}`);
+      disconnect();
     };
-    await clusterService.clusterize(worker);
     const receivedMessage = await new Promise((resolve) => {
       clusterService.once('message', (worker, msg) => {
         clusterService.kill(worker.id);
         resolve(msg);
       });
+      clusterService.clusterize(workerFn);
     });
 
+    clusterService.shutdown('SIGTERM')(false);
+    await delay(500);
     expect(receivedMessage).toEqual(expect.stringContaining(baseMessage));
-  }, 20000);
+  }, 6000);
 
   it('should start one worker per CPU when no worker count specified', async () => {
     const { child, done } = run(getFixture(Fixtures.cpus));

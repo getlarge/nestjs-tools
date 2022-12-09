@@ -8,6 +8,7 @@ import type {
   NestHybridApplicationOptions,
   NestInterceptor,
   PipeTransform,
+  Type,
   VersioningOptions,
 } from '@nestjs/common';
 import type { CorsOptions, CorsOptionsDelegate } from '@nestjs/common/interfaces/external/cors-options.interface';
@@ -86,8 +87,8 @@ export type BootOptions<Config extends BaseConfig> = {
   serviceVersion: string;
   workerId?: number;
   config: (app?: NestExpressApplication) => Config;
-  AppModule?: ModuleMetadata;
-  appModuleFactory?: () => ModuleMetadata | Promise<ModuleMetadata>;
+  AppModule?: Type<ModuleMetadata>;
+  appModuleFactory?: () => Type<ModuleMetadata> | Promise<Type<ModuleMetadata>>;
   openApi?: OpenApiOptions;
   asyncApi?: AsyncApiOptions;
   loggerName?: string;

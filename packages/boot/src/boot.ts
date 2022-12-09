@@ -1,4 +1,12 @@
-import { Logger, LoggerService, LogLevel, NestApplicationOptions, VersioningType } from '@nestjs/common';
+import {
+  Logger,
+  LoggerService,
+  LogLevel,
+  ModuleMetadata,
+  NestApplicationOptions,
+  Type,
+  VersioningType,
+} from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter, NestExpressApplication } from '@nestjs/platform-express';
 import { OpenAPIObject } from '@nestjs/swagger';
@@ -57,9 +65,6 @@ export class ApplicationBoot<Conf extends BaseConfig> extends TypedEventEmitter<
     this.options = { ...defaultOptions, ...bootOptions };
     this.logger =
       this.options.logger instanceof Logger ? this.options.logger : new Logger(this.options.loggerName || 'Bootstrap');
-    if (!this.options.AppModule && typeof this.options.appModuleFactory !== 'function') {
-      throw new Error('`AppModule` or `appModuleFactory` is required in bootOptions');
-    }
   }
 
   get options(): BootOptions<Conf> {
@@ -256,9 +261,7 @@ export class ApplicationBoot<Conf extends BaseConfig> extends TypedEventEmitter<
 
     // TODO: restrict trusted proxies in prod
     app.set('trust proxy', 1);
-    if (enableShutdownHooks) {
-      app.enableShutdownHooks();
-    }
+    enableShutdownHooks && app.enableShutdownHooks();
     this.setMicroservices(enableMicroservices);
   }
 
@@ -274,20 +277,22 @@ export class ApplicationBoot<Conf extends BaseConfig> extends TypedEventEmitter<
     return logger;
   }
 
-  async getAppModule() {
-    if (typeof this.options.appModuleFactory === 'function') {
-      return this.options.appModuleFactory();
+  async getAppModule(): Promise<Type<ModuleMetadata>> {
+    if (!this.options.AppModule && typeof this.options.appModuleFactory !== 'function') {
+      return Promise.reject(new Error('`AppModule` or `appModuleFactory` is required in bootOptions'));
     }
-    return this.options.AppModule;
+    return typeof this.options.appModuleFactory === 'function'
+      ? this.options.appModuleFactory()
+      : Promise.resolve(this.options.AppModule);
   }
 
   async bootstrap(setupOptions: SetupOptions = {}): Promise<NestExpressApplication | null> {
-    const AppModule = await this.getAppModule();
     const { bodyParser = false, bufferLogs } = setupOptions;
     const appConfig: NestApplicationOptions = { bodyParser, logger: this.setLogger(), bufferLogs };
     const server = express();
     server.disable('x-powered-by');
     try {
+      const AppModule = await this.getAppModule();
       const app = await NestFactory.create<NestExpressApplication>(AppModule, new ExpressAdapter(server), appConfig);
       this.app = app;
       this.config = this.options.config(app);
@@ -296,26 +301,18 @@ export class ApplicationBoot<Conf extends BaseConfig> extends TypedEventEmitter<
         await setupOptions.preSetup(app);
       }
       this.setupApp();
-      if (this.options.openApi) {
-        await this.setupOpenApi();
-      }
-      if (this.options.asyncApi) {
-        await this.setupAsyncApi();
-      }
+      this.options.openApi && (await this.setupOpenApi());
+      this.options.asyncApi && (await this.setupAsyncApi());
       if (typeof setupOptions.postSetup === 'function') {
         await setupOptions.postSetup(app);
       }
       this.emit('starting');
-      if (serviceIdentifier) {
-        this.logger.log(chalk.blue.bold(`Microservice Identitier : ${serviceIdentifier}`));
-      }
+      serviceIdentifier && this.logger.log(chalk.blue.bold(`Microservice Identitier : ${serviceIdentifier}`));
       await app.init();
       if (typeof setupOptions.postInit === 'function') {
         await setupOptions.postInit(app);
       }
-      if (this.options.enableMicroservices) {
-        await app.startAllMicroservices();
-      }
+      this.options.enableMicroservices && (await app.startAllMicroservices());
       await app.listen(serverPort);
       this.emit('started', app);
       if (module?.hot) {

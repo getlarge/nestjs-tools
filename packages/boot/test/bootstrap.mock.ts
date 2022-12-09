@@ -39,6 +39,7 @@ export const bootOptions: BootOptions<Config> = {
   serviceDescription: 'Microservice handling authentication',
   serviceVersion: JSON.parse(readFileSync(join('package.json'), 'utf8')).version || '0.0.1',
   config,
+  appModuleFactory: async () => (await import('./app.module.mock')).AppModule,
   AppModule,
   openApi: {
     customSiteTitle: 'Test API',

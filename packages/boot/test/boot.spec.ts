@@ -25,7 +25,7 @@ describe('Boot unit tests', () => {
   });
 
   afterEach(async () => {
-    applicationBoot.removeAllListeners();
+    applicationBoot?.removeAllListeners();
     if (applicationBoot.app) {
       await applicationBoot.app.close();
     }

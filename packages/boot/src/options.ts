@@ -3,6 +3,7 @@ import type {
   ExceptionFilter,
   LoggerService,
   LogLevel,
+  ModuleMetadata,
   NestApplicationOptions,
   NestHybridApplicationOptions,
   NestInterceptor,
@@ -85,7 +86,8 @@ export type BootOptions<Config extends BaseConfig> = {
   serviceVersion: string;
   workerId?: number;
   config: (app?: NestExpressApplication) => Config;
-  AppModule: Function; // eslint-disable-line @typescript-eslint/ban-types
+  AppModule?: ModuleMetadata;
+  appModuleFactory?: () => ModuleMetadata | Promise<ModuleMetadata>;
   openApi?: OpenApiOptions;
   asyncApi?: AsyncApiOptions;
   loggerName?: string;

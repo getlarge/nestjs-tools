@@ -57,8 +57,8 @@ export class ApplicationBoot<Conf extends BaseConfig> extends TypedEventEmitter<
     this.options = { ...defaultOptions, ...bootOptions };
     this.logger =
       this.options.logger instanceof Logger ? this.options.logger : new Logger(this.options.loggerName || 'Bootstrap');
-    if (!this.options.AppModule) {
-      throw new Error('AppModule is required in bootOptions');
+    if (!this.options.AppModule && typeof this.options.appModuleFactory !== 'function') {
+      throw new Error('`AppModule` or `appModuleFactory` is required in bootOptions');
     }
   }
 
@@ -274,9 +274,15 @@ export class ApplicationBoot<Conf extends BaseConfig> extends TypedEventEmitter<
     return logger;
   }
 
-  // eslint-disable-next-line max-lines-per-function
+  async getAppModule() {
+    if (typeof this.options.appModuleFactory === 'function') {
+      return this.options.appModuleFactory();
+    }
+    return this.options.AppModule;
+  }
+
   async bootstrap(setupOptions: SetupOptions = {}): Promise<NestExpressApplication | null> {
-    const AppModule = this.options.AppModule;
+    const AppModule = await this.getAppModule();
     const { bodyParser = false, bufferLogs } = setupOptions;
     const appConfig: NestApplicationOptions = { bodyParser, logger: this.setLogger(), bufferLogs };
     const server = express();

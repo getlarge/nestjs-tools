@@ -1,6 +1,6 @@
 {
   "name": "@s1seven/nestjs-tools-boot",
-  "version": "0.14.2",
+  "version": "0.15.0",
   "description": "Application bootstrap class",
   "author": "getlarge <ed@getlarge.eu>",
   "homepage": "https://github.com/s1seven/nestjs-tools/tree/main/packages/boot#readme",

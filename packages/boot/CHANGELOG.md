@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.15.0](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-boot@0.14.2...@s1seven/nestjs-tools-boot@0.15.0) (2022-12-09)
+
+### Features
+
+- **boot:** allow AppModule to be provided via async factory ([cfe9bb4](https://github.com/s1seven/nestjs-tools/commit/cfe9bb49b29711125a3299d5dff994470849fa18))
+
 ## [0.14.2](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-boot@0.14.1...@s1seven/nestjs-tools-boot@0.14.2) (2022-11-30)
 
 ### Reverts

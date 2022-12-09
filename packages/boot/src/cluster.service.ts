@@ -1,7 +1,7 @@
 // inspired by https://github.com/hunterloftis/throng/blob/master/lib/throng.js
 import { Logger } from '@nestjs/common';
+import { EventHandlers, TypedEventEmitter } from '@s1seven/typed-event-emitter';
 import cluster, { Worker } from 'cluster';
-import EventEmitter from 'events';
 import os from 'os';
 
 export type ClusterServiceConfig = {
@@ -14,10 +14,7 @@ export type ClusterServiceConfig = {
   signals?: NodeJS.Signals[];
 };
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const noOp = () => {};
-
-export interface ClusterServiceEmissions {
+export interface ClusterServiceEmissions extends EventHandlers {
   online: (worker: Worker) => void;
   disconnect: (worker: Worker) => void;
   revive: (worker: Worker) => void;
@@ -26,7 +23,18 @@ export interface ClusterServiceEmissions {
   error: (error: Error) => void;
 }
 
-export class ClusterService extends EventEmitter {
+export type WorkerFn = (
+  opts: { workerId?: number },
+  disconnect?: (workerId?: number) => void,
+  send?: (message: any, workerId?: number) => void,
+) => void | Promise<void>;
+
+export type PrimaryFn = () => void | Promise<void>;
+
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const noOp: PrimaryFn = () => {};
+
+export class ClusterService extends TypedEventEmitter<ClusterServiceEmissions> {
   readonly logger = new Logger(ClusterService.name);
   private showLogs: boolean;
   private restartOnExit: boolean;
@@ -37,19 +45,6 @@ export class ClusterService extends EventEmitter {
   private signals: NodeJS.Signals[];
   private workers: number;
   private running = false;
-
-  private untypedOn = this.on;
-  private untypedOnce = this.once;
-  private untypedEmit = this.emit;
-
-  on = <K extends keyof ClusterServiceEmissions>(event: K, listener: ClusterServiceEmissions[K]): this =>
-    this.untypedOn(event, listener);
-  once = <K extends keyof ClusterServiceEmissions>(event: K, listener: ClusterServiceEmissions[K]): this =>
-    this.untypedOnce(event, listener);
-  emit = <K extends keyof ClusterServiceEmissions>(
-    event: K,
-    ...args: Parameters<ClusterServiceEmissions[K]>
-  ): boolean => this.untypedEmit(event, ...args);
 
   constructor(private config: ClusterServiceConfig = {}) {
     super({ captureRejections: true });
@@ -94,27 +89,22 @@ export class ClusterService extends EventEmitter {
     }
   }
 
-  async clusterize(
-    worker: (
-      opts: { workerId?: number },
-      disconnect?: () => void,
-      send?: (message: any) => void,
-    ) => void | Promise<void>,
-    master: () => void | Promise<void> = noOp,
-  ): Promise<void> {
-    if (typeof worker !== 'function') {
-      throw new Error('Start function required');
+  async clusterize(workerFn: WorkerFn, primaryFn: PrimaryFn = noOp): Promise<number> {
+    if (typeof workerFn !== 'function') {
+      throw new TypeError('Start function required');
     }
     if (this.isWorker) {
-      return await worker({ workerId: this.workerId }, this.disconnect, this.send);
+      await workerFn({ workerId: this.workerId }, this.disconnect, this.send);
+      return this.workerId;
     }
 
     this.reviveUntil = Date.now() + this.lifetime;
     this.running = true;
     this.listen();
-    await master();
+    await primaryFn();
     await this.fork();
     this.emit('ready');
+    return 0;
   }
 
   listen(): void {
@@ -129,12 +119,13 @@ export class ClusterService extends EventEmitter {
     this.signals.forEach((signal) => process.on(signal, this.shutdown(signal)));
   }
 
-  shutdown(signal: NodeJS.Signals): () => void {
-    return () => {
+  shutdown(signal: NodeJS.Signals): (killProcess?: boolean) => void {
+    return (killProcess = true) => {
       this.running = false;
-      setTimeout(() => this.forceKill(signal), this.grace).unref();
+      setTimeout(() => this.forceKill(signal, killProcess), this.grace).unref();
       Object.values(cluster.workers).forEach((w) => {
         w.process.kill(signal);
+        w.removeAllListeners();
       });
     };
   }
@@ -149,11 +140,11 @@ export class ClusterService extends EventEmitter {
     cluster.fork();
   }
 
-  forceKill(signal: NodeJS.Signals): void {
+  forceKill(signal: NodeJS.Signals, killProcess = true): void {
     Object.values(cluster.workers).forEach((w) => w.kill(signal));
     this.removeAllListeners();
     this.log('Kill process');
-    process.exit();
+    killProcess && process.exit(0);
   }
 
   kill(workerId: number): void {
@@ -161,7 +152,7 @@ export class ClusterService extends EventEmitter {
   }
 
   send(msg: any, workerId?: number): void {
-    if (typeof workerId === 'number') {
+    if (typeof workerId === 'number' && this.isPrimary) {
       cluster.workers[workerId]?.send(msg);
     } else {
       cluster.worker.send(msg);
@@ -170,7 +161,7 @@ export class ClusterService extends EventEmitter {
 
   disconnect(workerId?: number): void {
     setTimeout(() => {
-      if (typeof workerId === 'number') {
+      if (typeof workerId === 'number' && this.isPrimary) {
         cluster.workers[workerId]?.disconnect();
       } else {
         cluster.worker.disconnect();

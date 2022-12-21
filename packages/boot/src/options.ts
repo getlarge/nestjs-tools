@@ -3,7 +3,6 @@ import type {
   ExceptionFilter,
   LoggerService,
   LogLevel,
-  ModuleMetadata,
   NestApplicationOptions,
   NestHybridApplicationOptions,
   NestInterceptor,
@@ -25,7 +24,7 @@ import type { CompressionOptions } from 'compression';
 import type { CookieParseOptions } from 'cookie-parser';
 import type { Options as RateLimiterOptions } from 'express-rate-limit';
 import type { HelmetOptions } from 'helmet';
-import { AsyncSecuritySchemeObject } from 'nestjs-asyncapi';
+import type { AsyncSecuritySchemeObject } from 'nestjs-asyncapi';
 
 export type BaseConfig = Readonly<{
   brokerUrl?: string;
@@ -87,8 +86,8 @@ export type BootOptions<Config extends BaseConfig> = {
   serviceVersion: string;
   workerId?: number;
   config: (app?: NestExpressApplication) => Config;
-  AppModule?: Type<ModuleMetadata>;
-  appModuleFactory?: () => Type<ModuleMetadata> | Promise<Type<ModuleMetadata>>;
+  AppModule?: Type<unknown>;
+  appModuleFactory?: () => Type<unknown> | Promise<Type<unknown>>;
   openApi?: OpenApiOptions;
   asyncApi?: AsyncApiOptions;
   loggerName?: string;
@@ -129,26 +128,8 @@ export const defaultOptions: BootOptions<BaseConfig> = {
     };
   },
   AppModule: null,
-  openApi: {
-    filePath: null,
-    extraModels: [],
-    externalDocs: [],
-    contacts: [],
-    securityRequirements: [],
-    securitySchemes: [],
-    tags: [],
-    enableExplorer: true,
-  },
-  asyncApi: {
-    defaultContentType: 'application/json',
-    filePath: null,
-    extraModels: [],
-    externalDocs: [],
-    contacts: [],
-    securityRequirements: [],
-    securitySchemes: [],
-    tags: [],
-  },
+  openApi: null,
+  asyncApi: null,
   staticAssets: [],
   globalFilters: [],
   globalInterceptors: [],

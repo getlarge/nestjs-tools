@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter, NestExpressApplication } from '@nestjs/platform-express';
-import { OpenAPIObject } from '@nestjs/swagger';
+import type { OpenAPIObject } from '@nestjs/swagger';
 import { EventHandlers, TypedEventEmitter } from '@s1seven/typed-event-emitter';
 import chalk from 'chalk';
 import compression from 'compression';
@@ -17,7 +17,7 @@ import cookieParser from 'cookie-parser';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
-import { AsyncAPIObject } from 'nestjs-asyncapi';
+import type { AsyncAPIObject } from 'nestjs-asyncapi';
 import { URL } from 'url';
 
 import { getMainServerUrl, setupAsyncApi, setupOpenApi } from './api-specs';

@@ -1,10 +1,9 @@
 import { Transport } from '@nestjs/microservices';
-import { NestExpressApplication } from '@nestjs/platform-express';
-import { DocumentBuilder, OpenAPIObject, SwaggerCustomOptions, SwaggerModule } from '@nestjs/swagger';
+import type { NestExpressApplication } from '@nestjs/platform-express';
+import type { DocumentBuilder, OpenAPIObject, SwaggerCustomOptions } from '@nestjs/swagger';
 import { existsSync, unlink, writeFile } from 'fs';
-import {
+import type {
   AsyncApiDocumentBuilder,
-  AsyncApiModule,
   AsyncAPIObject,
   AsyncApiTemplateOptions,
   AsyncServerObject,
@@ -87,11 +86,14 @@ function setCommonOptions(
   return apiOptionsBuilder;
 }
 
+// eslint-disable-next-line max-lines-per-function
 export async function setupOpenApi<Conf extends BaseConfig>(
   app: NestExpressApplication,
   options: BootOptions<Conf>,
   config: Conf,
 ): Promise<OpenAPIObject> {
+  const { DocumentBuilder, SwaggerModule } = await import('@nestjs/swagger');
+
   const { openApi, serviceDescription, serviceName, serviceVersion } = options;
   const { customSiteTitle, customFavIcon, enableExplorer, extraModels, filePath } = openApi;
   const { proxyServerUrl, proxyServerUrls, serverUrl, swaggerPath } = config;
@@ -180,6 +182,7 @@ export async function setupAsyncApi<Conf extends BaseConfig>(
   options: BootOptions<Conf>,
   config: Conf,
 ): Promise<AsyncAPIObject> {
+  const { AsyncApiDocumentBuilder, AsyncApiModule } = await import('nestjs-asyncapi');
   const { asyncApi, serviceDescription, serviceName, serviceVersion } = options;
   const { defaultContentType, enableExplorer, extraModels, filePath } = asyncApi;
   const { asyncApiPath, brokerUrl, microservices } = config;

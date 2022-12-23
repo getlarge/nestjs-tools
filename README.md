@@ -3,7 +3,8 @@
 [![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lerna.js.org/)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 [![NestJS tools CI](https://github.com/s1seven/nestjs-tools/actions/workflows/node.yml/badge.svg)](https://github.com/s1seven/nestjs-tools/actions/workflows/node.yml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=s1seven%3Anestjs-tools&metric=alert_status&token=54c5ee771ef7c1defe2d4f350cf7476f107675d9)](https://sonarcloud.io/dashboard?id=s1seven%3Anestjs-tools)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=s1seven_nestjs-tools&metric=coverage)](https://sonarcloud.io/summary/new_code?id=s1seven_nestjs-tools)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=s1seven_nestjs-tools&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=s1seven_nestjs-tools)
 
 This repository contains resources shared between S1Seven microservices.
 

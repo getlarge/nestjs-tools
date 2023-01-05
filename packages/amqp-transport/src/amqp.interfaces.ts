@@ -19,6 +19,9 @@ export interface AmqpOptions {
   exchangeOptions?: Options.AssertExchange;
   noAck?: boolean;
   noAssert?: boolean;
+  noQueueAssert?: boolean;
+  noReplyQueueAssert?: boolean;
+  noExchangeAssert?: boolean;
   deleteChannelOnFailure?: boolean;
   socketOptions?: (ConnectionOptions | TcpSocketConnectOpts) & {
     noDelay?: boolean;

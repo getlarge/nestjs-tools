@@ -35,11 +35,12 @@ const buildClientModule = (opts: BuildClientModuleOptions = {}): DynamicModule =
     urls: [opts.brokerUrl || RMQ_URL],
     queue: opts.queue || DUMMY_QUEUE,
     queueOptions: opts.queueOptions || {
-      durable: true,
+      durable: false,
       autoDelete: true,
     },
     replyQueue: opts.replyQueue || '',
     replyQueueOptions: opts.replyQueueOptions || {
+      durable: false,
       autoDelete: true,
     },
     prefetchCount: opts.prefetchCount || RQM_DEFAULT_PREFETCH_COUNT,
@@ -59,7 +60,7 @@ const createNestMicroserviceOptions = (options: AmqpOptions = {}) => {
     urls: [RMQ_URL],
     queue: DUMMY_QUEUE,
     queueOptions: {
-      durable: true,
+      durable: false,
       autoDelete: true,
     },
     // persistent: true,
@@ -405,7 +406,7 @@ describe('AMQP tests', () => {
       testConfiguration: {
         noAck,
         prefetchCount: 1,
-        replyQueueOptions: { exclusive: true, autoDelete: true },
+        replyQueueOptions: { exclusive: true, autoDelete: true, durable: false },
       },
       producersCount: 2,
     });
@@ -430,7 +431,7 @@ describe('AMQP tests', () => {
     });
   });
 
-  it('should response single producer with fixed replyQueue name ', async () => {
+  it('should reply to single producer with fixed replyQueue name ', async () => {
     // Given
     const noAck = true;
     const msg = { message };
@@ -456,7 +457,7 @@ describe('AMQP tests', () => {
     });
   });
 
-  it('should timeout with multiple producer with fixed replyQueue name ', async () => {
+  it('should timeout with multiple producer with identical replyQueue name', async () => {
     // Given
     const noAck = true;
     const msg = { message };

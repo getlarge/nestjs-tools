@@ -126,18 +126,25 @@ export class AmqpClient extends ClientProxy {
       setup: (channel: Channel) => this.setupChannel(channel),
     });
 
-    // at this time `setReplyQueue` should have ben called to assert the reply queue
-    // if replyQueue is still undefined it means that we don't need a reply queue for this client
-    //? if (this.replyQueue) {
-    await this.channel.consume(
-      this.replyQueue,
-      (msg) => this.responseEmitter.emit(msg.properties.correlationId as string, msg),
-      { noAck, prefetch: this.prefetchCount },
-    );
-    // }
-
-    return new Promise<void>((resolve) => {
-      this.channel.once('connect', () => resolve());
+    return new Promise<void>((resolve, reject) => {
+      this.channel
+        .once('connect', () => {
+          // at this time `setReplyQueue` should have ben called to assert the reply queue
+          // if replyQueue is still undefined it means that we don't need a reply queue for this client
+          if (!this.replyQueue) {
+            return resolve();
+          }
+          this.channel
+            .consume(this.replyQueue, (msg) => this.responseEmitter.emit(msg.properties.correlationId, msg), {
+              noAck,
+              prefetch: this.prefetchCount,
+            })
+            .then(() => resolve())
+            .catch((e) => reject(e));
+        })
+        .once('error', (err) => {
+          reject(err);
+        });
     });
   }
 
@@ -171,8 +178,7 @@ export class AmqpClient extends ClientProxy {
   }
 
   async setReplyQueue(channel: Channel): Promise<void> {
-    if (this.skipReplyQueueAssert) return;
-    if (!this.replyQueue) {
+    if (!this.skipReplyQueueAssert) {
       // autogenerate replyQueue name when it is empty and replace the property replyQueue with this name (amq.gen-****)
       const q = await channel.assertQueue(this.replyQueue, this.replyQueueOptions);
       this.replyQueue = q.queue;

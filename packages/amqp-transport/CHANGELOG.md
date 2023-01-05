@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.5.0](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-amqp-transport@0.4.3...@s1seven/nestjs-tools-amqp-transport@0.5.0) (2023-01-05)
+
+### Bug Fixes
+
+- **amqp-transport:** wait for channel to be connected to set reply queue consumer ([d8346d3](https://github.com/s1seven/nestjs-tools/commit/d8346d3f7cea197251f49e203c2e90dbad3214c8))
+
+### Features
+
+- **amqp-transport:** add options to selectively enable amqp assertions ([b8b36c6](https://github.com/s1seven/nestjs-tools/commit/b8b36c6a15886e5a736649f2e0211051e2c88f5d))
+
 ## [0.4.3](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-amqp-transport@0.4.2...@s1seven/nestjs-tools-amqp-transport@0.4.3) (2022-12-21)
 
 **Note:** Version bump only for package @s1seven/nestjs-tools-amqp-transport

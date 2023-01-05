@@ -49,6 +49,9 @@ export class AmqpClient extends ClientProxy {
   protected exchangeOptions?: Options.AssertExchange;
   protected prefetchCount: number;
   protected noAssert: boolean;
+  protected noQueueAssert: boolean;
+  protected noReplyQueueAssert: boolean;
+  protected noExchangeAssert: boolean;
   protected responseEmitter: TypedEventEmitter<ConsumeMessageEvent>;
 
   constructor(protected readonly options: AmqpOptions) {
@@ -65,8 +68,23 @@ export class AmqpClient extends ClientProxy {
     this.exchangeOptions = this.getOptionsProp(this.options, 'exchangeOptions') || AMQP_DEFAULT_EXCHANGE_OPTIONS;
     this.prefetchCount = this.getOptionsProp(this.options, 'prefetchCount') || RQM_DEFAULT_PREFETCH_COUNT;
     this.noAssert = this.getOptionsProp(this.options, 'noAssert') || RQM_DEFAULT_NO_ASSERT;
+    this.noQueueAssert = this.getOptionsProp(this.options, 'noQueueAssert') || RQM_DEFAULT_NO_ASSERT;
+    this.noReplyQueueAssert = this.getOptionsProp(this.options, 'noReplyQueueAssert') || RQM_DEFAULT_NO_ASSERT;
+    this.noExchangeAssert = this.getOptionsProp(this.options, 'noExchangeAssert') || RQM_DEFAULT_NO_ASSERT;
     this.initializeSerializer(options);
     this.initializeDeserializer(options);
+  }
+
+  private get skipQueueAssert(): boolean {
+    return this.noAssert || this.noQueueAssert;
+  }
+
+  private get skipReplyQueueAssert(): boolean {
+    return this.noAssert || this.noReplyQueueAssert;
+  }
+
+  private get skipExchangeAssert(): boolean {
+    return this.noAssert || this.noExchangeAssert;
   }
 
   close(): void {
@@ -108,11 +126,16 @@ export class AmqpClient extends ClientProxy {
       setup: (channel: Channel) => this.setupChannel(channel),
     });
 
+    // at this time `setReplyQueue` should have ben called to assert the reply queue
+    // if replyQueue is still undefined it means that we don't need a reply queue for this client
+    //? if (this.replyQueue) {
     await this.channel.consume(
       this.replyQueue,
       (msg) => this.responseEmitter.emit(msg.properties.correlationId as string, msg),
       { noAck, prefetch: this.prefetchCount },
     );
+    // }
+
     return new Promise<void>((resolve) => {
       this.channel.once('connect', () => resolve());
     });
@@ -148,17 +171,19 @@ export class AmqpClient extends ClientProxy {
   }
 
   async setReplyQueue(channel: Channel): Promise<void> {
-    if (!this.noAssert || !this.replyQueue) {
+    if (this.skipReplyQueueAssert) return;
+    if (!this.replyQueue) {
+      // autogenerate replyQueue name when it is empty and replace the property replyQueue with this name (amq.gen-****)
       const q = await channel.assertQueue(this.replyQueue, this.replyQueueOptions);
       this.replyQueue = q.queue;
     }
   }
 
   async setupChannel(channel: Channel): Promise<void> {
-    if (!this.noAssert) {
-      if (this.exchange) {
-        await channel.assertExchange(this.exchange, this.exchangeType, this.exchangeOptions);
-      }
+    if (this.exchange && !this.skipExchangeAssert) {
+      await channel.assertExchange(this.exchange, this.exchangeType, this.exchangeOptions);
+    }
+    if (!this.skipQueueAssert) {
       await channel.assertQueue(this.queue, this.queueOptions);
     }
     await this.setReplyQueue(channel);

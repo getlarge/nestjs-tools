@@ -56,6 +56,8 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
   private prefetchCount: number;
   private isGlobalPrefetchCount: boolean;
   private noAssert: boolean;
+  private noQueueAssert: boolean;
+  private noExchangeAssert: boolean;
   private deleteChannelOnFailure: boolean;
 
   constructor(private options: AmqpOptions, transportId: number | Transport = Transport.RMQ) {
@@ -73,10 +75,20 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
     this.isGlobalPrefetchCount =
       this.getOptionsProp(this.options, 'isGlobalPrefetchCount') || RQM_DEFAULT_IS_GLOBAL_PREFETCH_COUNT;
     this.noAssert = this.getOptionsProp(this.options, 'noAssert') || RQM_DEFAULT_NO_ASSERT;
+    this.noQueueAssert = this.getOptionsProp(this.options, 'noQueueAssert') || RQM_DEFAULT_NO_ASSERT;
+    this.noExchangeAssert = this.getOptionsProp(this.options, 'noExchangeAssert') || RQM_DEFAULT_NO_ASSERT;
     this.deleteChannelOnFailure = this.getOptionsProp(this.options, 'deleteChannelOnFailure') || true;
 
     this.initializeSerializer(options);
     this.initializeDeserializer(options);
+  }
+
+  private get skipQueueAssert(): boolean {
+    return this.noAssert || this.noQueueAssert;
+  }
+
+  private get skipExchangeAssert(): boolean {
+    return this.noAssert || this.noExchangeAssert;
   }
 
   async listen(callback: (err?: unknown, ...optionalParams: unknown[]) => void): Promise<void> {
@@ -161,12 +173,12 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
   async setupChannel(channel: Channel, callback: (error?: Error) => void, retried?: boolean): Promise<void> {
     try {
       const noAck = this.getOptionsProp(this.options, 'noAck', RQM_DEFAULT_NOACK);
-      if (this.exchange && !this.noAssert) {
+      if (this.exchange && !this.skipExchangeAssert) {
         await channel.assertExchange(this.exchange, this.exchangeType, this.exchangeOptions);
         const q = await channel.assertQueue(this.queue, this.queueOptions);
         const registeredPatterns = [...this.messageHandlers.keys()];
         await Promise.all(registeredPatterns.map((pattern) => channel.bindQueue(q.queue, this.exchange, pattern)));
-      } else if (!this.noAssert) {
+      } else if (!this.skipQueueAssert) {
         await channel.assertQueue(this.queue, this.queueOptions);
       }
 

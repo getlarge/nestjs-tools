@@ -14,10 +14,10 @@ import { AsyncLocalStorageService } from './async-local-storage.service';
  * The Guard mode is used by default and when the ASYNC_LOCAL_STORAGE_MODE is set to Guard.
  * The Interceptor mode is used when the ASYNC_LOCAL_STORAGE_MODE is set to Interceptor.
  * When the Guard mode is used, the request context is set in the AsyncLocalStorageService in the AsyncLocalStorageGuard
- * and the AsyncStorageInterceptor is used to exit the AsyncLocalStorageService.
+ * and the AsyncLocalStorageInterceptor is used to exit the AsyncLocalStorageService.
  */
 @Injectable()
-export class AsyncStorageInterceptor implements NestInterceptor {
+export class AsyncLocalStorageInterceptor implements NestInterceptor {
   readonly mode: AsyncLocalStorageMode;
 
   constructor(
@@ -35,14 +35,12 @@ export class AsyncStorageInterceptor implements NestInterceptor {
       const response = await lastValueFrom(next.handle());
       this.asyncLocalStorage.exit();
       return of(response);
-    } else if (this.mode === AsyncLocalStorageMode.Interceptor) {
-      const response = await this.asyncLocalStorage.instance.run(new Map(), () => {
-        this.asyncLocalStorage.requestContext = this.options.requestContextFactory(context);
-        // wait for route handler to finish its job and return the response / error
-        return lastValueFrom(next.handle());
-      });
-      return of(response);
     }
-    return next.handle();
+    const response = await this.asyncLocalStorage.instance.run(new Map(), () => {
+      this.asyncLocalStorage.requestContext = this.options.requestContextFactory(context);
+      // wait for route handler to finish its job and return the response / error
+      return lastValueFrom(next.handle());
+    });
+    return of(response);
   }
 }

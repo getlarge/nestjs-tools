@@ -2,7 +2,7 @@ import { DynamicModule, Module } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 
 import { AsyncLocalStorageGuard } from './async-local-storage.guard';
-import { AsyncStorageInterceptor } from './async-local-storage.interceptor';
+import { AsyncLocalStorageInterceptor } from './async-local-storage.interceptor';
 import { AsyncLocalStorageModuleOptions } from './async-local-storage.interfaces';
 import { createAsyncLocalStorageProviders } from './async-local-storage.providers';
 
@@ -27,7 +27,7 @@ export class AsyncLocalStorageModule {
               },
               {
                 provide: APP_INTERCEPTOR,
-                useClass: AsyncStorageInterceptor,
+                useClass: AsyncLocalStorageInterceptor,
               },
             ]
           : []),
@@ -35,7 +35,7 @@ export class AsyncLocalStorageModule {
           ? [
               {
                 provide: APP_INTERCEPTOR,
-                useClass: AsyncStorageInterceptor,
+                useClass: AsyncLocalStorageInterceptor,
               },
             ]
           : []),

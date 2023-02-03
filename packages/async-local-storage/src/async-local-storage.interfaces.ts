@@ -13,10 +13,10 @@ export interface ContextStoreProperties {
 
 export type ContextStore<T extends ContextStoreProperties, K extends keyof T> = Map<K, T[K]>;
 
-export interface AsyncLocalStorageModuleOptions<T extends object = object> {
+export interface AsyncLocalStorageModuleOptions {
   isGlobal?: boolean;
   asyncLocalStorage?: AsyncLocalStorage<ContextStore<ContextStoreProperties, keyof ContextStoreProperties>>;
-  requestContextFactory?: (ctx: ExecutionContext) => T;
+  requestContextFactory?: (ctx: ExecutionContext) => RequestContext;
   useGuard?: boolean;
   useInterceptor?: boolean;
 }

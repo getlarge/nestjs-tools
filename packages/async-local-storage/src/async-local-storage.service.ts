@@ -6,8 +6,44 @@ import { ContextStoreProperties } from './async-local-storage.interfaces';
 
 type K = keyof ContextStoreProperties;
 type T = ContextStoreProperties;
+
+/**
+ * @description Define the type of the store
+ * Declared this way to share same type between the static methods and the instance methods
+ * This can be done with a generic type but it's not possible to use the generic type in the static methods
+ * It can be customized by merging ContextStoreProperties and RequestContext interface in your own delcaration file
+ */
 export type StoreMap = Map<K, T[K]>;
 
+/**
+ * @description Provide methods to manipulate the AsyncLocalStorage store
+ * static methods are used to manipulate the global store without having to inject the service
+ * instance methods are used to manipulate the store
+ * instance methods extending the Map class are available once the store is initialized with enterWith or run
+ * @example
+ * declare module '@s1seven/nestjs-tools-async-local-storage' {
+ *   interface RequestContext {
+ *     type: string;
+ *   }
+ *   interface ContextStoreProperties {
+ *     id: number;
+ *     username: string;
+ *   }
+ * }
+ * import assert from 'assert';
+ * import { AsyncLocalStorage } from 'async_hooks';
+ * import { AsyncLocalStorageService } from '@s1seven/nestjs-tools-async-local-storage';
+ *
+ * const service = new AsyncLocalStorageService(new AsyncLocalStorage());
+ * service.enterWith(new Map());
+ * service.set('id', 1);
+ * const id = service.get('id');
+ * assert(typeof id === 'number');
+ *
+ * service.requestContext = { type: 'http' };
+ * const requestContext = service.requestContext;
+ * assert(typeof requestContext.type === 'string');
+ */
 @Injectable()
 export class AsyncLocalStorageService extends Map<K, T[K]> {
   readonly instance: AsyncLocalStorage<StoreMap>;
@@ -56,8 +92,8 @@ export class AsyncLocalStorageService extends Map<K, T[K]> {
   }
 
   // AsyncLocalStorage methods and properties
-  get store(): StoreMap {
-    return this.instance.getStore();
+  run<R, TArgs extends any[]>(store: StoreMap = new Map(), callback: (...args: TArgs) => R, ...args: TArgs): R {
+    return this.instance.run(store, callback, ...args);
   }
 
   enterWith(value: StoreMap = new Map()): void {
@@ -70,6 +106,10 @@ export class AsyncLocalStorageService extends Map<K, T[K]> {
 
   exit(cb: () => void = noOp): void {
     this.instance.exit(cb);
+  }
+
+  get store(): StoreMap | undefined {
+    return this.instance.getStore();
   }
 
   // Map methods and properties

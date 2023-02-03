@@ -11,7 +11,7 @@ type T = ContextStoreProperties;
  * @description Define the type of the store
  * Declared this way to share same type between the static methods and the instance methods
  * This can be done with a generic type but it's not possible to use the generic type in the static methods
- * It can be customized by merging ContextStoreProperties and RequestContext interface in your own delcaration file
+ * It can be customized by merging ContextStoreProperties and RequestContext interface in your own declaration file
  */
 export type StoreMap = Map<K, T[K]>;
 

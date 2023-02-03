@@ -16,7 +16,6 @@ import { ExampleController } from './app.controller.mock';
 import { ExampleService } from './app.service.mock';
 
 declare module '../src/async-local-storage.interfaces' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
   interface RequestContext {
     type: string;
   }
@@ -114,13 +113,13 @@ describe('AsyncLocalStorageService', () => {
     service?.exit();
   });
 
-  it('should throw when accessing store before initialization', async () => {
+  it('should throw when accessing store before initialization', () => {
     expect(() => service.set('ctx', { type: '' })).toThrowError(
       "Store is not initialized. Call 'enterWith' or 'run' first.",
     );
   });
 
-  it('should allow to set/get/delete store properties once initialized', async () => {
+  it('should allow to set/get/delete store properties once initialized', () => {
     service.enterWith(new Map());
     //
     service.set('ctx', { type: '' });
@@ -131,7 +130,7 @@ describe('AsyncLocalStorageService', () => {
     expect(typeof service.requestContext).toBe('undefined');
   });
 
-  it('should allow to access all map properties and methods once initialized', async () => {
+  it('should allow to access all map properties and methods once initialized', () => {
     service.enterWith(new Map());
     //
     expect(service.has('ctx')).toBeFalsy();
@@ -145,7 +144,7 @@ describe('AsyncLocalStorageService', () => {
     expect(service.size).toBe(0);
   });
 
-  it('should allow to run a function with store', async () => {
+  it('should allow to run a function with store', () => {
     service.run(new Map(), () => {
       service.set('ctx', { type: '' });
       expect(service.get('ctx')).toEqual({ type: '' });
@@ -153,7 +152,7 @@ describe('AsyncLocalStorageService', () => {
     expect(service.store).toBeUndefined();
   });
 
-  it('should contain the same store in static and instance members', async () => {
+  it('should contain the same store in static and instance members', () => {
     const requestContext = { type: '' };
     service.enterWith(new Map());
     service.set('ctx', requestContext);

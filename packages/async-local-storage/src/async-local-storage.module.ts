@@ -10,13 +10,13 @@ import { createAsyncLocalStorageProviders } from './async-local-storage.provider
 export class AsyncLocalStorageModule {
   public static forRoot(options: AsyncLocalStorageModuleOptions): DynamicModule {
     const { isGlobal, useGuard, useInterceptor } = options;
-    const providers = createAsyncLocalStorageProviders(options);
     if (!options.requestContextFactory) {
       throw new Error('`requestContextFactory` is required.');
     }
     if (useGuard && useInterceptor) {
       throw new Error("Can't use both guard and interceptor.");
     }
+    const providers = createAsyncLocalStorageProviders(options);
     return {
       global: isGlobal,
       module: AsyncLocalStorageModule,

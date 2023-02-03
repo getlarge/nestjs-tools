@@ -67,7 +67,7 @@ export class AsyncLocalStorageService extends Map<K, T[K]> {
     this._instance = value;
   }
 
-  private static get store() {
+  static get store() {
     return this.instance?.getStore();
   }
 
@@ -112,54 +112,69 @@ export class AsyncLocalStorageService extends Map<K, T[K]> {
     return this.instance.getStore();
   }
 
+  private isStoreInitialized(): boolean {
+    return !!this.store;
+  }
+
+  private checkStoreInitialized(): void {
+    if (!this.isStoreInitialized()) {
+      throw new Error("Store is not initialized. Call 'enterWith' or 'run' first.");
+    }
+  }
+
+  private get safeStore(): StoreMap | undefined {
+    this.checkStoreInitialized();
+    return this.store;
+  }
+
   // Map methods and properties
   get<k extends K>(key: k): T[k] | undefined {
-    return this.store.get(key) as T[k];
+    return this.safeStore.get(key) as T[k];
   }
 
   set<k extends K>(key: k, value: T[k]): this {
-    this.store.set(key, value);
+    this.safeStore.set(key, value);
     return this;
   }
 
   delete(key: K): boolean {
-    return this.store.delete(key);
+    return this.safeStore.delete(key);
   }
 
   has(key: K): boolean {
-    return this.store.has(key);
+    return this.safeStore.has(key);
   }
 
   clear(): void {
-    return this.store.clear();
+    return this.safeStore.clear();
   }
 
   get size(): number {
-    return this.store.size;
+    return this.safeStore.size;
   }
 
   get [Symbol.toStringTag]() {
-    return this.store[Symbol.toStringTag];
+    return this.safeStore[Symbol.toStringTag];
   }
 
   keys(): IterableIterator<K> {
-    return this.store.keys();
+    return this.safeStore.keys();
   }
 
   values(): IterableIterator<T[keyof T]> {
-    return this.store.values();
+    return this.safeStore.values();
   }
 
   entries(): IterableIterator<[K, T[K]]> {
-    return this.store.entries();
+    return this.safeStore.entries();
   }
 
   forEach(callbackfn: (value: T[K], key: K, map: Map<K, T[K]>) => void, thisArg?: any): void {
-    return this.store.forEach(callbackfn, thisArg);
+    return this.safeStore.forEach(callbackfn, thisArg);
   }
 
   [Symbol.iterator](): IterableIterator<[K, T[K]]> {
-    return this.store[Symbol.iterator]();
+    return this.safeStore[Symbol.iterator]();
   }
 
   get requestContext(): T[typeof REQUEST_CONTEXT_KEY] {

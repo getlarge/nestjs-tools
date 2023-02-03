@@ -1,7 +1,12 @@
-import { ExecutionContext } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 
+import { AsyncLocalStorageService } from '../src';
+
+@Injectable()
 export class ExampleService {
-  getExample(ctx: ExecutionContext) {
-    return { type: ctx.getType() };
+  @Inject(AsyncLocalStorageService) private readonly asyncLocalStorageService: AsyncLocalStorageService;
+
+  getExample() {
+    return this.asyncLocalStorageService.requestContext;
   }
 }

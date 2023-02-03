@@ -1,13 +1,21 @@
-import { ExecutionContext } from '@nestjs/common';
+import type { ExecutionContext } from '@nestjs/common';
 import type { AsyncLocalStorage } from 'async_hooks';
 
-export type RequestContext<T extends object = object> = T;
+import { REQUEST_CONTEXT_KEY } from './async-local-storage.constants';
 
-export type ContextStore<T extends object = object> = Map<string, T>;
+export interface RequestContext {
+  [key: string]: unknown;
+}
+
+export interface ContextStoreProperties {
+  [REQUEST_CONTEXT_KEY]: RequestContext;
+}
+
+export type ContextStore<T extends ContextStoreProperties, K extends keyof T> = Map<K, T[K]>;
 
 export interface AsyncLocalStorageModuleOptions<T extends object = object> {
   isGlobal?: boolean;
-  asyncLocalStorage?: AsyncLocalStorage<ContextStore<T>>;
+  asyncLocalStorage?: AsyncLocalStorage<ContextStore<ContextStoreProperties, keyof ContextStoreProperties>>;
   requestContextFactory?: (ctx: ExecutionContext) => T;
   useGuard?: boolean;
   useInterceptor?: boolean;

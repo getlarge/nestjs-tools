@@ -3,7 +3,7 @@ import { AsyncLocalStorage } from 'async_hooks';
 
 declare module './src' {
   interface RequestContext {
-    type: string;
+    type?: string;
   }
   interface ContextStoreProperties {
     id: number;

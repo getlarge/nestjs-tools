@@ -1,4 +1,4 @@
-import type { ExecutionContext, Provider } from '@nestjs/common';
+import type { Provider } from '@nestjs/common';
 import { AsyncLocalStorage } from 'async_hooks';
 
 import { ASYNC_LOCAL_STORAGE, ASYNC_LOCAL_STORAGE_MODULE_OPTIONS } from './async-local-storage.constants';
@@ -12,14 +12,6 @@ type StoreMap = Map<K, T[K]>;
 const defaultAsyncLocalStorage = (isGlobal?: boolean): AsyncLocalStorage<StoreMap> =>
   isGlobal ? globalThis.__asyncLocalStorage || new AsyncLocalStorage<StoreMap>() : new AsyncLocalStorage<StoreMap>();
 
-const defaultRequestContextFactory = (ctx: ExecutionContext) => {
-  const type = ctx.getType();
-  return {
-    type,
-    ...(type === 'http' && { headers: ctx.switchToHttp().getRequest().headers }),
-  };
-};
-
 export function createAsyncLocalStorageProviders(
   options: AsyncLocalStorageModuleOptions,
 ): [
@@ -27,11 +19,8 @@ export function createAsyncLocalStorageProviders(
   Provider<AsyncLocalStorageModuleOptions>,
   Provider<AsyncLocalStorageService>,
 ] {
-  const {
-    asyncLocalStorage = defaultAsyncLocalStorage(options.isGlobal),
-    requestContextFactory = defaultRequestContextFactory,
-  } = options;
-  const opts = { ...options, asyncLocalStorage, requestContextFactory };
+  const { asyncLocalStorage = defaultAsyncLocalStorage(options.isGlobal) } = options;
+  const opts = { ...options, asyncLocalStorage };
   return [
     { provide: ASYNC_LOCAL_STORAGE, useValue: asyncLocalStorage },
     {

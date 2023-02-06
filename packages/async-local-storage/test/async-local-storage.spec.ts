@@ -156,9 +156,32 @@ describe('AsyncLocalStorageService', () => {
     const requestContext = { type: '' };
     service.enterWith(new Map());
     service.set('ctx', requestContext);
+    //
     expect(service.requestContext).toEqual(requestContext);
     expect(service.get('ctx')).toEqual(requestContext);
     expect(AsyncLocalStorageService.requestContext).toEqual(requestContext);
     expect(AsyncLocalStorageService.store.get('ctx')).toEqual(requestContext);
+  });
+
+  it('should always use a single AsyncLocalStorage reference when creating new instance', () => {
+    const expectedRequestContext = { type: '' };
+    const newService = new AsyncLocalStorageService(new AsyncLocalStorage());
+    newService.enterWith(new Map());
+    newService.set('ctx', expectedRequestContext);
+    //
+    expect(AsyncLocalStorageService.instance).toBeDefined();
+    expect(AsyncLocalStorageService.requestContext).toEqual(expectedRequestContext);
+    expect(service.requestContext).toEqual(expectedRequestContext);
+    expect(newService.requestContext).toEqual(expectedRequestContext);
+  });
+
+  it('should allow to access static methods without initializing the store', () => {
+    AsyncLocalStorageService.instance = undefined;
+    //
+    expect(AsyncLocalStorageService.instance).toBeUndefined();
+    expect(AsyncLocalStorageService.store).toBeUndefined();
+    expect(() => AsyncLocalStorageService.requestContext).not.toThrowError();
+    expect(AsyncLocalStorageService.requestContext).toBeUndefined();
+    expect(AsyncLocalStorageService.store?.has('ctx')).toBeFalsy();
   });
 });

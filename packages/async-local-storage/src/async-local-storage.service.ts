@@ -17,6 +17,7 @@ export type StoreMap = Map<K, T[K]>;
 
 /**
  * @description Provide methods to manipulate the AsyncLocalStorage store
+ * It holds a shared reference to the AsyncLocalStorage instance that can be accessed through the static and instance methods
  * static methods are used to manipulate the global store without having to inject the service
  * instance methods are used to manipulate the store
  * instance methods extending the Map class are available once the store is initialized with enterWith or run
@@ -51,12 +52,9 @@ export class AsyncLocalStorageService extends Map<K, T[K]> {
 
   constructor(@Inject(ASYNC_LOCAL_STORAGE) instance: AsyncLocalStorage<StoreMap>) {
     super();
-    // ensure that the instance is a singleton
-    if (!AsyncLocalStorageService.instance) {
-      AsyncLocalStorageService.instance = instance;
-      this.instance = instance;
-    }
-    this.instance = AsyncLocalStorageService.instance;
+    // ensure that AsyncLocalStorageService is a singleton
+    AsyncLocalStorageService.instance ??= instance;
+    this.instance = AsyncLocalStorageService.instance || instance;
   }
 
   static get instance(): AsyncLocalStorage<StoreMap> {
@@ -72,11 +70,11 @@ export class AsyncLocalStorageService extends Map<K, T[K]> {
   }
 
   static get requestContext(): T[typeof REQUEST_CONTEXT_KEY] {
-    return this.store.get(REQUEST_CONTEXT_KEY) as T[typeof REQUEST_CONTEXT_KEY];
+    return this.store?.get(REQUEST_CONTEXT_KEY) as T[typeof REQUEST_CONTEXT_KEY];
   }
 
   static set requestContext(value: T[typeof REQUEST_CONTEXT_KEY]) {
-    this.store.set(REQUEST_CONTEXT_KEY, value);
+    this.store?.set(REQUEST_CONTEXT_KEY, value);
   }
 
   static enterWith(value: StoreMap = new Map()): void {

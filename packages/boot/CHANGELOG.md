@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.15.2](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-boot@0.15.1...@s1seven/nestjs-tools-boot@0.15.2) (2023-02-14)
+
+**Note:** Version bump only for package @s1seven/nestjs-tools-boot
+
 ## [0.15.1](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-boot@0.15.0...@s1seven/nestjs-tools-boot@0.15.1) (2022-12-21)
 
 **Note:** Version bump only for package @s1seven/nestjs-tools-boot

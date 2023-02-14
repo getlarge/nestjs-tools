@@ -57,7 +57,7 @@
     "@nestjs/microservices": "^9.0.8",
     "@nestjs/platform-express": "^9.0.8",
     "@nestjs/swagger": "^6.0.5",
-    "nestjs-asyncapi": "^0.3.0",
+    "nestjs-asyncapi": "^1.1.0",
     "rxjs": "^7.5.4"
   },
   "devDependencies": {

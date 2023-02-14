@@ -17,7 +17,7 @@ import cookieParser from 'cookie-parser';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
-import type { AsyncAPIObject } from 'nestjs-asyncapi';
+import type { AsyncApiDocument } from 'nestjs-asyncapi';
 import { URL } from 'url';
 
 import { getMainServerUrl, setupAsyncApi, setupOpenApi } from './api-specs';
@@ -117,7 +117,7 @@ export class ApplicationBoot<Conf extends BaseConfig> extends TypedEventEmitter<
     return setupOpenApi(this.app, this.options, this.config);
   }
 
-  setupAsyncApi(): Promise<AsyncAPIObject> {
+  setupAsyncApi(): Promise<AsyncApiDocument> {
     return setupAsyncApi(this.app, this.options, this.config);
   }
 

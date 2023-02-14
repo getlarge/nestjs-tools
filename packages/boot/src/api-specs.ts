@@ -3,8 +3,8 @@ import type { NestExpressApplication } from '@nestjs/platform-express';
 import type { DocumentBuilder, OpenAPIObject, SwaggerCustomOptions } from '@nestjs/swagger';
 import { existsSync, unlink, writeFile } from 'fs';
 import type {
+  AsyncApiDocument,
   AsyncApiDocumentBuilder,
-  AsyncAPIObject,
   AsyncApiTemplateOptions,
   AsyncServerObject,
 } from 'nestjs-asyncapi';
@@ -36,7 +36,7 @@ export function sanitizeOpenApiSpecs(apiObject: OpenAPIObject): void {
   });
 }
 
-export async function saveApiObject(apiSpecs: AsyncAPIObject | OpenAPIObject, filePath: string): Promise<void> {
+export async function saveApiObject(apiSpecs: AsyncApiDocument | OpenAPIObject, filePath: string): Promise<void> {
   if (existsSync(filePath)) {
     await promisify(unlink)(filePath);
   }
@@ -73,9 +73,9 @@ function setCommonOptions(
       apiOptionsBuilder.addTag(tag.resource, tag.description, tag.externalDocs);
     });
   }
-  if (securityRequirements?.length) {
+  if (securityRequirements?.length && typeof apiOptionsBuilder['addSecurityRequirements'] === 'function') {
     securityRequirements.forEach((securityRequirement) => {
-      apiOptionsBuilder.addSecurityRequirements(securityRequirement);
+      apiOptionsBuilder['addSecurityRequirements'](securityRequirement);
     });
   }
   if (securitySchemes?.length) {
@@ -160,7 +160,7 @@ export function getAsyncApiProtocolTypeByUrl(url: string): string {
   return new URL(url).protocol.replace(':', '');
 }
 
-export function sanitizeAsyncApiSpecs(apiObject: AsyncAPIObject): void {
+export function sanitizeAsyncApiSpecs(apiObject: AsyncApiDocument): void {
   Object.keys(apiObject.channels).forEach((channelName) => {
     if (channelName === 'undefined') {
       delete apiObject.channels[channelName];
@@ -181,7 +181,7 @@ export async function setupAsyncApi<Conf extends BaseConfig>(
   app: NestExpressApplication,
   options: BootOptions<Conf>,
   config: Conf,
-): Promise<AsyncAPIObject> {
+): Promise<AsyncApiDocument> {
   const { AsyncApiDocumentBuilder, AsyncApiModule } = await import('nestjs-asyncapi');
   const { asyncApi, serviceDescription, serviceName, serviceVersion } = options;
   const { defaultContentType, enableExplorer, extraModels, filePath } = asyncApi;

@@ -1,9 +1,9 @@
 {
-  "asyncapi": "2.1.0",
+  "asyncapi": "2.5.0",
   "info": {
     "title": "S1Seven Test Async API",
     "description": "Microservice handling authentication",
-    "version": "0.14.2",
+    "version": "0.15.1",
     "contact": {}
   },
   "tags": [],
@@ -38,6 +38,15 @@
   "defaultContentType": "application/json",
   "channels": {
     "example": {
+      "subscribe": {
+        "summary": "Receive example packet response",
+        "message": {
+          "name": "example data",
+          "payload": {
+            "$ref": "#/components/schemas/ExampleDto"
+          }
+        }
+      },
       "publish": {
         "summary": "Send example packet",
         "description": "method is used for test purposes",

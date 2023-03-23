@@ -1,12 +1,13 @@
-import { S3 } from 'aws-sdk';
 import {
-  DeleteObjectRequest,
-  DeleteObjectsRequest,
-  GetObjectRequest,
-  HeadObjectRequest,
-  ListObjectsV2Request,
-  PutObjectRequest,
-} from 'aws-sdk/clients/s3';
+  DeleteObjectCommandInput,
+  DeleteObjectsCommandInput,
+  GetObjectCommandInput,
+  HeadObjectCommandInput,
+  ListObjectsV2CommandInput,
+  PutObjectCommandInput,
+  S3,
+} from '@aws-sdk/client-s3';
+import { Upload } from '@aws-sdk/lib-storage';
 import { Request } from 'express';
 import { PassThrough, Readable, Writable } from 'stream';
 
@@ -24,7 +25,7 @@ export type FileStorageS3Setup = {
   bucket: string;
   endpoint: string;
   secretAccessKey?: string;
-  s3BucketEndpoint?: boolean;
+  bucketEndpoint?: boolean;
   maxPayloadSize: number;
   [key: string]: unknown;
 };
@@ -36,12 +37,13 @@ export interface FileStorageS3Config {
 }
 
 function config(setup: FileStorageS3Setup) {
-  const { accessKeyId, bucket, endpoint, maxPayloadSize, secretAccessKey, s3BucketEndpoint } = setup;
+  const { accessKeyId, bucket, endpoint, maxPayloadSize, secretAccessKey, bucketEndpoint } = setup;
   const s3 = new S3({
     endpoint,
-    s3BucketEndpoint,
-    accessKeyId,
-    secretAccessKey,
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
   });
 
   const filePath = (options: { request?: Request; fileName: string }): string => {
@@ -58,28 +60,28 @@ function config(setup: FileStorageS3Setup) {
 }
 
 export interface FileStorageS3FileExists extends FileStorageBaseArgs {
-  options?: HeadObjectRequest;
+  options?: HeadObjectCommandInput;
 }
 
 export interface FileStorageS3UploadFile extends FileStorageBaseArgs {
   content: string | Uint8Array | Buffer;
-  options?: PutObjectRequest;
+  options?: PutObjectCommandInput;
 }
 
 export interface FileStorageS3UploadStream extends FileStorageBaseArgs {
-  options?: PutObjectRequest;
+  options?: PutObjectCommandInput;
 }
 
 export interface FileStorageS3DownloadFile extends FileStorageBaseArgs {
-  options?: GetObjectRequest;
+  options?: GetObjectCommandInput;
 }
 
 export interface FileStorageS3DownloadStream extends FileStorageBaseArgs {
-  options?: GetObjectRequest;
+  options?: GetObjectCommandInput;
 }
 
 export interface FileStorageS3DeleteFile extends FileStorageBaseArgs {
-  options?: DeleteObjectRequest;
+  options?: DeleteObjectCommandInput;
 }
 
 function removeTrailingForwardSlash(string: string) {
@@ -113,7 +115,7 @@ export class FileStorageS3 implements FileStorage {
     const { filePath, options = {}, request } = args;
     const { s3, bucket: Bucket } = this.config;
     const Key = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
-    await s3.headObject({ Key, Bucket, ...options }).promise();
+    await s3.headObject({ Key, Bucket, ...options });
     return true;
   }
 
@@ -121,7 +123,10 @@ export class FileStorageS3 implements FileStorage {
     const { filePath, content, options = {}, request } = args;
     const { s3, bucket: Bucket } = this.config;
     const Key = await this.transformFilePath(filePath, MethodTypes.WRITE, request, options);
-    await s3.upload({ Bucket, Key, Body: content, ...options }).promise();
+    await new Upload({
+      client: s3,
+      params: { Bucket, Key, Body: content, ...options },
+    }).done();
   }
 
   async uploadStream(args: FileStorageS3UploadStream): Promise<Writable> {
@@ -129,38 +134,45 @@ export class FileStorageS3 implements FileStorage {
     const Key = await this.transformFilePath(filePath, MethodTypes.WRITE, request, options);
     const { s3, bucket: Bucket } = this.config;
     const writeStream = new PassThrough();
-    s3.upload({
-      Body: writeStream,
-      Key,
-      Bucket,
-      ...options,
-    }).send((err) => writeStream.destroy(err));
-    //? or s3.upload({ Bucket, Key, Body: writeStream, ...options }, (err) => {
-    //   if (err) console.error(err);
-    // });
+    try {
+      new Upload({
+        client: s3,
+        params: {
+          Body: writeStream,
+          Key,
+          Bucket,
+          ...options,
+        },
+      }).done();
+    } catch (err) {
+      writeStream.destroy(err);
+    }
     return writeStream;
   }
 
-  async downloadFile(args: FileStorageS3DownloadFile): Promise<Buffer> {
+  // TODO: return as buffer??
+  async downloadFile(args: FileStorageS3DownloadFile): Promise<string> {
     const { filePath, options = {}, request } = args;
     const Key = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
     const { s3, bucket: Bucket } = this.config;
-    const object = await s3.getObject({ Bucket, Key, ...options }).promise();
-    return object.Body as Buffer;
+    const object = await s3.getObject({ Bucket, Key, ...options });
+    return object.Body.transformToString();
   }
 
   async downloadStream(args: FileStorageS3DownloadStream): Promise<Readable> {
     const { filePath, options = {}, request } = args;
     const Key = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
     const { s3, bucket: Bucket } = this.config;
-    return s3.getObject({ Bucket, Key, ...options }).createReadStream();
+    const object = await s3.getObject({ Bucket, Key, ...options });
+    // from https://github.com/aws/aws-sdk-js-v3/issues/1877#issuecomment-755446927
+    return object.Body as Readable;
   }
 
   async deleteFile(args: FileStorageS3DeleteFile): Promise<boolean> {
     const { filePath, options = {}, request } = args;
     const Key = await this.transformFilePath(filePath, MethodTypes.DELETE, request, options);
     const { s3, bucket: Bucket } = this.config;
-    await s3.deleteObject({ Bucket, Key, ...options }).promise();
+    await s3.deleteObject({ Bucket, Key, ...options });
     return true;
   }
 
@@ -168,17 +180,17 @@ export class FileStorageS3 implements FileStorage {
     const { dirPath, request } = args;
     const { s3, bucket: Bucket } = this.config;
     const listKey = await this.transformFilePath(dirPath, MethodTypes.DELETE, request);
-    const listParams: ListObjectsV2Request = {
+    const listParams: ListObjectsV2CommandInput = {
       Bucket,
       Prefix: listKey,
     };
     // get list of objects in a dir
-    const listedObjects = await s3.listObjectsV2(listParams).promise();
+    const listedObjects = await s3.listObjectsV2(listParams);
     if (listedObjects.Contents.length === 0) {
       return;
     }
 
-    const deleteParams: DeleteObjectsRequest = {
+    const deleteParams: DeleteObjectsCommandInput = {
       Bucket,
       Delete: {
         Objects: listedObjects.Contents.map(({ Key }) => ({
@@ -186,7 +198,7 @@ export class FileStorageS3 implements FileStorage {
         })),
       },
     };
-    await s3.deleteObjects(deleteParams).promise();
+    await s3.deleteObjects(deleteParams);
 
     if (listedObjects.IsTruncated) {
       await this.deleteDir({ dirPath });
@@ -197,7 +209,7 @@ export class FileStorageS3 implements FileStorage {
     const { dirPath, request } = args;
     const { s3, bucket: Bucket } = this.config;
     const Key = await this.transformFilePath(dirPath, MethodTypes.READ, request);
-    const listParams: ListObjectsV2Request = {
+    const listParams: ListObjectsV2CommandInput = {
       Bucket,
       Delimiter: '/',
     };
@@ -205,7 +217,7 @@ export class FileStorageS3 implements FileStorage {
     if (Key !== '/' && Key !== '') {
       listParams.Prefix = addTrailingForwardSlash(Key);
     }
-    const listedObjects = await s3.listObjectsV2(listParams).promise();
+    const listedObjects = await s3.listObjectsV2(listParams);
 
     return listedObjects.CommonPrefixes?.map((prefixObject) => {
       const prefix = removeTrailingForwardSlash(prefixObject.Prefix);

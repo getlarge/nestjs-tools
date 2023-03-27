@@ -1,6 +1,7 @@
 /* eslint-disable max-nested-callbacks */
 /* eslint-disable max-lines-per-function */
 import { Test, TestingModule } from '@nestjs/testing';
+import * as dotenv from 'dotenv';
 import { mkdir, rm } from 'fs/promises';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
@@ -9,10 +10,13 @@ import { resolve } from 'path';
 import { FileStorage, FileStorageModule, FileStorageModuleOptions, StorageType } from '../src';
 import { FILE_STORAGE_STRATEGY_TOKEN } from '../src/constants';
 
+dotenv.config({ path: resolve(__dirname, '../.env.test') });
+
 const storagePath = 'store';
 const path = resolve(storagePath);
 const testFileName = 'test.txt';
 const iterable = ['a', 'b', 'c'];
+const dirPath = '';
 
 const testMap: {
   description: string;
@@ -34,9 +38,9 @@ const testMap: {
         setup: {
           storagePath,
           maxPayloadSize: 1,
-          accessKeyId: '', // TODO: get values from .env.test
-          bucket: '',
-          endpoint: 'https://s3.eu-central-1.amazonaws.com/',
+          accessKeyId: process.env.ACCESS_KEY_ID,
+          bucket: process.env.BUCKET,
+          endpoint: process.env.ENDPOINT,
         },
       },
     },
@@ -59,13 +63,13 @@ testMap.forEach((testSuite) => {
     });
 
     it('readDir returns an empty array when no files exist', async () => {
-      const res = await fileStorage.readDir({ dirPath: '' });
+      const res = await fileStorage.readDir({ dirPath });
       expect(res.length).toBe(0);
     });
 
     it('uploadFile uploads a file', async () => {
       await fileStorage.uploadFile({ filePath: testFileName, content: 'this is a test' });
-      const result = await fileStorage.readDir({ dirPath: '' });
+      const result = await fileStorage.readDir({ dirPath });
       expect(result.length).toBe(1);
       expect(result[0]).toBe(testFileName);
     });
@@ -77,7 +81,7 @@ testMap.forEach((testSuite) => {
 
     it('deleteFile deletes a file', async () => {
       await fileStorage.deleteFile({ filePath: testFileName });
-      const result = await fileStorage.readDir({ dirPath: '' });
+      const result = await fileStorage.readDir({ dirPath });
       expect(result.length).toBe(0);
     });
 
@@ -87,7 +91,7 @@ testMap.forEach((testSuite) => {
       await pipeline(entry, upload).catch((err) => {
         console.error(err);
       });
-      const result = await fileStorage.readDir({ dirPath: '' });
+      const result = await fileStorage.readDir({ dirPath });
       expect(result.length).toBe(1);
       expect(result[0]).toBe(testFileName);
     });
@@ -110,8 +114,8 @@ testMap.forEach((testSuite) => {
     });
 
     it('deleteDir deletes a dir', async () => {
-      await fileStorage.deleteDir({ dirPath: '' });
-      await expect(fileStorage.readDir({ dirPath: '' })).rejects.toThrowError(new RegExp('ENOENT'));
+      await fileStorage.deleteDir({ dirPath });
+      expect(await fileStorage.readDir({ dirPath })).toEqual([]);
     });
 
     afterAll(async () => {

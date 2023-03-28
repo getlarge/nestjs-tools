@@ -90,15 +90,20 @@ testMap.forEach((testSuite) => {
       expect(result.length).toBe(0);
     });
 
-    // TODO: fix flaky test
     it('uploadStream uploads a file', async () => {
       const upload = await fileStorage.uploadStream({ filePath: testFileName });
       const entry = Readable.from(iterable);
       await pipeline(entry, upload).catch((err) => {
         console.error(err);
       });
-      const result = await fileStorage.readDir({ dirPath });
-      expect(result.length).toBe(1);
+      // add delay, otherwise test is flaky
+      await new Promise<void>((resolve) =>
+        setTimeout(async () => {
+          const result = await fileStorage.readDir({ dirPath });
+          expect(result.length).toBe(1);
+          resolve();
+        }, 100),
+      );
     });
 
     it('downloadFile downloads a file', async () => {

@@ -221,7 +221,7 @@ export class FileStorageS3 implements FileStorage {
     }
     // adds filenames
     if (listedObjects.Contents?.length) {
-      const files = listedObjects.Contents?.map((file) => file.Key.replace(listedObjects.Prefix, '')) || [];
+      const files = listedObjects.Contents.map((file) => file.Key.replace(listedObjects.Prefix, ''));
       filesAndFilders.push(...files);
     }
     return filesAndFilders;

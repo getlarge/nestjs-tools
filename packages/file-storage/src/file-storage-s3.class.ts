@@ -148,13 +148,17 @@ export class FileStorageS3 implements FileStorage {
     return writeStream;
   }
 
-  // TODO: return as buffer??
-  async downloadFile(args: FileStorageS3DownloadFile): Promise<string> {
+  async downloadFile(args: FileStorageS3DownloadFile): Promise<Buffer> {
     const { filePath, options = {}, request } = args;
     const Key = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
     const { s3, bucket: Bucket } = this.config;
-    const object = await s3.getObject({ Bucket, Key, ...options });
-    return object.Body.transformToString();
+    const readable = (await s3.getObject({ Bucket, Key, ...options })).Body as Readable;
+    const chunks: Buffer[] = [];
+    for await (const chunk of readable) {
+      chunks.push(chunk);
+    }
+    return Buffer.concat(chunks);
+    // in Node 18 - return readable.toArray();
   }
 
   async downloadStream(args: FileStorageS3DownloadStream): Promise<Readable> {

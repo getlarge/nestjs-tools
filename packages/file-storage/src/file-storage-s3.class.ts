@@ -22,7 +22,6 @@ import {
 
 export type FileStorageS3Setup = {
   bucket: string;
-  bucketEndpoint?: boolean;
   maxPayloadSize: number;
   region: string;
   credentials: {

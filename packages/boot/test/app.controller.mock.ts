@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 import { Controller, Get, HttpStatus } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AsyncApiOperation, AsyncApiSub } from 'nestjs-asyncapi';
@@ -35,6 +36,7 @@ export class ExampleController {
       channel: 'example',
       summary: 'Send example packet',
       description: 'method is used for test purposes',
+      tags: [{ name: 'example' }],
       message: {
         name: 'example data',
         payload: ExampleDto,
@@ -45,8 +47,8 @@ export class ExampleController {
       channel: 'example',
       summary: 'Receive example packet response',
       message: {
-        name: 'example data',
-        payload: ExampleDto,
+        name: 'example data2',
+        payload: String,
       },
     },
   )
@@ -65,5 +67,29 @@ export class ExampleController {
   })
   subcribeExample() {
     return this.subcribeExample();
+  }
+
+  @AsyncApiOperation(
+    {
+      type: 'pub',
+      channel: 'signal_example_2',
+      message: {
+        name: 'example response',
+        payload: ExampleDto,
+      },
+    },
+    {
+      type: 'sub',
+      channel: 'signal_example_2',
+      summary: 'Subscribe to example packet',
+      description: 'method is used for test purposes',
+      message: {
+        name: 'example data signal',
+        payload: ExampleDto,
+      },
+    },
+  )
+  pubSubExample() {
+    return {};
   }
 }

@@ -1,11 +1,12 @@
-# `typed-event-emitter`
+# Typed event emitter
 
-> TODO: description
+[![npm][npm-image]][npm-url]
 
-## Usage
+[npm-image]: https://img.shields.io/npm/v/@s1seven/typed-event-emitter.svg?style=flat
+[npm-url]: https://npmjs.org/package/@s1seven/typed-event-emitter
 
-```
-const typedEventEmitter = require('typed-event-emitter');
+## Installation
 
-// TODO: DEMONSTRATE API
+```bash
+$ npm install --save @s1seven/typed-event-emitter
 ```

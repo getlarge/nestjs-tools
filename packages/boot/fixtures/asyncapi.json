@@ -3,7 +3,7 @@
   "info": {
     "title": "S1Seven Test Async API",
     "description": "Microservice handling authentication",
-    "version": "0.15.1",
+    "version": "0.15.2",
     "contact": {}
   },
   "tags": [],
@@ -32,6 +32,10 @@
           "name",
           "verified"
         ]
+      },
+      "String": {
+        "type": "object",
+        "properties": {}
       }
     }
   },
@@ -41,15 +45,20 @@
       "subscribe": {
         "summary": "Receive example packet response",
         "message": {
-          "name": "example data",
+          "name": "example data2",
           "payload": {
-            "$ref": "#/components/schemas/ExampleDto"
+            "$ref": "#/components/schemas/String"
           }
         }
       },
       "publish": {
         "summary": "Send example packet",
         "description": "method is used for test purposes",
+        "tags": [
+          {
+            "name": "example"
+          }
+        ],
         "message": {
           "name": "example data",
           "payload": {
@@ -64,6 +73,26 @@
         "description": "method is used for test purposes",
         "message": {
           "name": "example data signal",
+          "payload": {
+            "$ref": "#/components/schemas/ExampleDto"
+          }
+        }
+      }
+    },
+    "signal_example_2": {
+      "subscribe": {
+        "summary": "Subscribe to example packet",
+        "description": "method is used for test purposes",
+        "message": {
+          "name": "example data signal",
+          "payload": {
+            "$ref": "#/components/schemas/ExampleDto"
+          }
+        }
+      },
+      "publish": {
+        "message": {
+          "name": "example response",
           "payload": {
             "$ref": "#/components/schemas/ExampleDto"
           }

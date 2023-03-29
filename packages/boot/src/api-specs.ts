@@ -229,7 +229,10 @@ export async function setupAsyncApi<Conf extends BaseConfig>(
   sanitizeAsyncApiSpecs(asyncApiDocument);
 
   if (enableExplorer) {
-    const templateOptions: AsyncApiTemplateOptions = {};
+    const templateOptions: AsyncApiTemplateOptions = {
+      sidebarOrganization: 'byTags',
+      singleFile: true,
+    };
     await AsyncApiModule.setup(asyncApiPath, app, asyncApiDocument, templateOptions);
   }
   if (typeof filePath === 'string') {

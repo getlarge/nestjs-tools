@@ -2,10 +2,10 @@
 /* eslint-disable max-lines-per-function */
 import { Test, TestingModule } from '@nestjs/testing';
 import * as dotenv from 'dotenv';
-import { mkdir, rm } from 'fs/promises';
+import { mkdir, rm } from 'node:fs/promises';
+import { resolve } from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { resolve } from 'path';
 
 import { FileStorage, FileStorageModule, FileStorageModuleOptions, StorageType } from '../src';
 import { FILE_STORAGE_STRATEGY_TOKEN } from '../src/constants';
@@ -41,9 +41,10 @@ const testMap: {
         setup: {
           storagePath,
           maxPayloadSize: 1,
-          accessKeyId: process.env.ACCESS_KEY_ID,
-          bucket: process.env.BUCKET,
-          endpoint: process.env.ENDPOINT,
+          accessKeyId: process.env.S3_ACCESS_KEY_ID,
+          secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+          bucket: process.env.S3_BUCKET,
+          endpoint: process.env.S3_ENDPOINT,
         },
       },
     },
@@ -64,6 +65,11 @@ testMap.forEach((testSuite) => {
       fileStorage = module.get(FILE_STORAGE_STRATEGY_TOKEN);
       if (storageType === StorageType.FS) await mkdir(path, { recursive: true });
       // ensure S3 bucket is empty
+      if (storageType === StorageType.S3) await fileStorage.deleteDir({ dirPath });
+    });
+
+    afterAll(async () => {
+      if (storageType === StorageType.FS) await rm(path, { recursive: true, force: true });
       if (storageType === StorageType.S3) await fileStorage.deleteDir({ dirPath });
     });
 
@@ -93,9 +99,7 @@ testMap.forEach((testSuite) => {
     it('uploadStream uploads a file', async () => {
       const upload = await fileStorage.uploadStream({ filePath: testFileName });
       const entry = Readable.from(iterable);
-      await pipeline(entry, upload).catch((err) => {
-        console.error(err);
-      });
+      await pipeline(entry, upload);
       // add delay, otherwise test is flaky
       await new Promise<void>((resolve) =>
         setTimeout(async () => {
@@ -114,9 +118,9 @@ testMap.forEach((testSuite) => {
     it('downloadStream downloads a file', async () => {
       const download = await fileStorage.downloadStream({ filePath: testFileName });
       expect(download).toBeInstanceOf(Readable);
-      download.on('data', (chunk) => {
+      for await (const chunk of download) {
         expect(chunk.toString()).toBe(iterable.join(''));
-      });
+      }
     });
 
     it('uploads a file to a nested folder', async () => {
@@ -141,10 +145,6 @@ testMap.forEach((testSuite) => {
     it('deleteDir deletes a dir', async () => {
       await fileStorage.deleteDir({ dirPath });
       expect(await fileStorage.readDir({ dirPath })).toEqual([]);
-    });
-
-    afterAll(async () => {
-      if (storageType === StorageType.FS) await rm(path, { recursive: true, force: true });
     });
   });
 });

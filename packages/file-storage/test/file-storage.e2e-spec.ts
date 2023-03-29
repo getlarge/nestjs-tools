@@ -42,6 +42,7 @@ const testMap: {
           storagePath,
           maxPayloadSize: 1,
           accessKeyId: process.env.ACCESS_KEY_ID,
+          secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
           bucket: process.env.BUCKET,
           endpoint: process.env.ENDPOINT,
         },

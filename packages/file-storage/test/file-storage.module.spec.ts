@@ -77,10 +77,13 @@ describe('forRoot', () => {
     const options: FileStorageModuleOptions = {
       [storageType]: {
         setup: {
-          accessKeyId: 'access key',
           bucket: 'bucket',
-          endpoint: '',
+          credentials: {
+            accessKeyId: 'access key',
+            secretAccessKey: 'secret access key',
+          },
           maxPayloadSize: 1,
+          region: 'eu-central-1',
         },
       },
     };

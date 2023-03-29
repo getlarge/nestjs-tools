@@ -21,12 +21,14 @@ import {
 } from './file-storage.class';
 
 export type FileStorageS3Setup = {
-  accessKeyId: string;
   bucket: string;
-  endpoint: string;
-  secretAccessKey?: string;
   bucketEndpoint?: boolean;
   maxPayloadSize: number;
+  region: string;
+  credentials: {
+    accessKeyId: string;
+    secretAccessKey: string;
+  };
   [key: string]: unknown;
 };
 
@@ -37,13 +39,10 @@ export interface FileStorageS3Config {
 }
 
 function config(setup: FileStorageS3Setup) {
-  const { accessKeyId, bucket, endpoint, maxPayloadSize, secretAccessKey, bucketEndpoint } = setup;
+  const { bucket, maxPayloadSize, credentials, region } = setup;
   const s3 = new S3({
-    endpoint,
-    credentials: {
-      accessKeyId,
-      secretAccessKey,
-    },
+    credentials,
+    region,
   });
 
   const filePath = (options: { request?: Request; fileName: string }): string => {
@@ -186,7 +185,7 @@ export class FileStorageS3 implements FileStorage {
     };
     // get list of objects in a dir
     const listedObjects = await s3.listObjectsV2(listParams);
-    if (listedObjects.Contents.length === 0) {
+    if (!listedObjects.Contents || listedObjects.Contents.length === 0) {
       return;
     }
 

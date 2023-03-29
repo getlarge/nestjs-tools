@@ -205,7 +205,7 @@ export class FileStorageS3 implements FileStorage {
     }
   }
 
-  async readDir(args: FileStorageDirBaseArgs) {
+  async readDir(args: FileStorageDirBaseArgs): Promise<string[]> {
     const { dirPath, request } = args;
     const { s3, bucket: Bucket } = this.config;
     const Key = await this.transformFilePath(dirPath, MethodTypes.READ, request);
@@ -218,14 +218,24 @@ export class FileStorageS3 implements FileStorage {
       listParams.Prefix = addTrailingForwardSlash(Key);
     }
     const listedObjects = await s3.listObjectsV2(listParams);
-
-    return listedObjects.CommonPrefixes?.map((prefixObject) => {
-      const prefix = removeTrailingForwardSlash(prefixObject.Prefix);
-      const key = listParams['Prefix'];
-      // If key exists, we are looking for a nested folder such as v0.1.0
-      return key
-        ? prefix.slice(key.length) // e.g. v0.1.0
-        : prefix; // e.g. en10168-schemas
-    });
+    const filesAndFilders = [];
+    //  add nested folders, CommonPrefixes contains <prefix>/<next nested dir>
+    if (listedObjects.CommonPrefixes?.length) {
+      const folders = listedObjects.CommonPrefixes.map((prefixObject) => {
+        const prefix = removeTrailingForwardSlash(prefixObject.Prefix);
+        const key = listParams['Prefix'];
+        // If key exists, we are looking for a nested folder such as v0.1.0
+        return key
+          ? prefix.slice(key.length) // e.g. v0.1.0
+          : prefix; // e.g. en10168-schemas
+      });
+      filesAndFilders.push(...folders);
+    }
+    // adds filenames
+    if (listedObjects.Contents?.length) {
+      const files = listedObjects.Contents.map((file) => file.Key.replace(listedObjects.Prefix, ''));
+      filesAndFilders.push(...files);
+    }
+    return filesAndFilders;
   }
 }

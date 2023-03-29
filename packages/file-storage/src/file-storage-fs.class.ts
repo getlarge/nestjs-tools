@@ -168,7 +168,15 @@ export class FileStorageLocal implements FileStorage {
 
   async readDir(args: FileStorageDirBaseArgs): Promise<string[]> {
     const { dirPath, request } = args;
-    const transformedDirPath = await this.transformFilePath(dirPath, MethodTypes.READ, request);
-    return readdir(transformedDirPath);
+    try {
+      const transformedDirPath = await this.transformFilePath(dirPath, MethodTypes.READ, request);
+      // we need return await to catch the error
+      return await readdir(transformedDirPath);
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        return [];
+      }
+      throw err;
+    }
   }
 }

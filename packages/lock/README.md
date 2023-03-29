@@ -1,4 +1,4 @@
-# lock
+# Lock
 
 [![npm][npm-image]][npm-url]
 
@@ -6,7 +6,13 @@
 [npm-url]: https://npmjs.org/package/@s1seven/nestjs-tools-lock
 
 The Lock Service produce distributed locks to prevent duplicated/conflicted actions to be executed in a distributed environment.
-It is based on [Warlock](https://www.npmjs.com/package/node-redis-warlock) module.
+It is based on [Redlock](https://www.npmjs.com/package/redlock) module.
+
+## Installation
+
+```bash
+$ npm install --save @s1seven/nestjs-tools-lock
+```
 
 ## Usage
 

@@ -166,6 +166,7 @@ export class FileStorageLocal implements FileStorage {
     return rm(dirName, { recursive: true, force: true });
   }
 
+  // TODO: indicate if the item is a file or a directory
   async readDir(args: FileStorageDirBaseArgs): Promise<string[]> {
     const { dirPath, request } = args;
     try {

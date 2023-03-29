@@ -7,6 +7,12 @@
 
 The ApplicationBootstrap class is provided to avoid boilerplate for bootrapping NestJS application, by simply providing a configuration object and listening to boot events.
 
+## Installation
+
+```bash
+$ npm install --save @s1seven/nestjs-tools-boot
+```
+
 ## Usage
 
 ```ts

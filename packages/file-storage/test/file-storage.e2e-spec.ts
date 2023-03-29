@@ -15,7 +15,7 @@ dotenv.config({ path: resolve(__dirname, '../.env.test') });
 const storagePath = 'store';
 const path = resolve(storagePath);
 const testFileName = 'test.txt';
-const iterable = ['a', 'b', 'c'];
+const testFileContent = 'this is a test';
 const dirPath = '';
 const nestedDir = 'nested';
 const nestedFileName = 'nested.txt';
@@ -92,6 +92,10 @@ testMap.forEach((testSuite) => {
       expect(fileExists).toBe(true);
     });
 
+    it('calling fileExists on a filepath that doesnt exist throws an error', async () => {
+      await expect(fileStorage.fileExists({ filePath: 'fileDoesntExist' })).rejects.toThrow();
+    });
+
     it('deleteFile deletes a file', async () => {
       await fileStorage.deleteFile({ filePath: testFileName });
       const result = await fileStorage.readDir({ dirPath });
@@ -100,28 +104,25 @@ testMap.forEach((testSuite) => {
 
     it('uploadStream uploads a file', async () => {
       const upload = await fileStorage.uploadStream({ filePath: testFileName });
-      const entry = Readable.from(iterable);
+      const entry = Readable.from(Buffer.from(testFileContent));
       await pipeline(entry, upload);
       // add delay, otherwise test is flaky
-      await new Promise<void>((resolve) =>
-        setTimeout(async () => {
-          const result = await fileStorage.readDir({ dirPath });
-          expect(result.length).toBe(1);
-          resolve();
-        }, 100),
-      );
+      await new Promise<void>((resolve) => setTimeout(resolve, 100));
+      const result = await fileStorage.readDir({ dirPath });
+      expect(result.length).toBe(1);
     });
 
     it('downloadFile downloads a file', async () => {
       const file = await fileStorage.downloadFile({ filePath: testFileName });
-      expect(file.toString()).toBe(iterable.join(''));
+      expect(file.toString()).toBe(testFileContent);
     });
 
     it('downloadStream downloads a file', async () => {
       const download = await fileStorage.downloadStream({ filePath: testFileName });
       expect(download).toBeInstanceOf(Readable);
+      // this makes the assumption that the stream is readable and all the data is available in one read
       for await (const chunk of download) {
-        expect(chunk.toString()).toBe(iterable.join(''));
+        expect(chunk.toString()).toBe(testFileContent);
       }
     });
 
@@ -138,10 +139,6 @@ testMap.forEach((testSuite) => {
       const result = await fileStorage.readDir({ dirPath });
       expect(result.length).toBe(2);
       expect(result).toEqual([nestedDir, testFileName]);
-    });
-
-    it('calling fileExists on a filepath that doesnt exist throws an error', async () => {
-      await expect(fileStorage.fileExists({ filePath: 'fileDoesntExist' })).rejects.toThrow();
     });
 
     it('deleteDir deletes a dir', async () => {

@@ -206,6 +206,7 @@ export class FileStorageS3 implements FileStorage {
     }
   }
 
+  // TODO: indicate if the item is a file or a directory
   async readDir(args: FileStorageDirBaseArgs): Promise<string[]> {
     const { dirPath, request } = args;
     const { s3, bucket: Bucket } = this.config;

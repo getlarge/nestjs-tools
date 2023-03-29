@@ -10,6 +10,12 @@ File storage classes for :
 - Node FileSystem
 - Amazon S3
 
+## Installation
+
+```bash
+$ npm install --save @s1seven/nestjs-tools-file-storage
+```
+
 ## Example
 
 ```ts

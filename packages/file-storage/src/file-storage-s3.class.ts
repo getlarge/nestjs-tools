@@ -158,7 +158,6 @@ export class FileStorageS3 implements FileStorage {
       chunks.push(chunk);
     }
     return Buffer.concat(chunks);
-    // in Node 18 - return readable.toArray();
   }
 
   async downloadStream(args: FileStorageS3DownloadStream): Promise<Readable> {

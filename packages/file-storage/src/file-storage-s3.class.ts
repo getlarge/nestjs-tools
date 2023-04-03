@@ -139,19 +139,19 @@ export class FileStorageS3 implements FileStorage {
     const Key = await this.transformFilePath(filePath, MethodTypes.WRITE, request, options);
     const { s3, bucket: Bucket } = this.config;
     const writeStream = new PassThrough();
-    try {
-      new Upload({
-        client: s3,
-        params: {
-          Body: writeStream,
-          Key,
-          Bucket,
-          ...options,
-        },
-      }).done();
-    } catch (err) {
-      writeStream.destroy(err);
-    }
+    new Upload({
+      client: s3,
+      params: {
+        Body: writeStream,
+        Key,
+        Bucket,
+        ...options,
+      },
+    })
+      .done()
+      .catch((err) => {
+        writeStream.destroy(err);
+      });
     return writeStream;
   }
 

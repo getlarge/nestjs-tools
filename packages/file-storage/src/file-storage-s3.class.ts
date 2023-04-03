@@ -31,7 +31,7 @@ export type FileStorageS3Setup = {
     secretAccessKey: string;
   };
   [key: string]: unknown;
-} & ({ region: string } | { endpoint: string });
+} & ({ region: string; endpoint?: never } | { endpoint: string; region?: never });
 
 export interface FileStorageS3Config {
   s3: S3;

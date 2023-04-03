@@ -20,7 +20,10 @@ import {
   FileStorageDirBaseArgs,
 } from './file-storage.class';
 
-interface BaseFileStorageS3Setup {
+/**
+ * Either region or endpoint must be provided
+ */
+export type FileStorageS3Setup = {
   bucket: string;
   maxPayloadSize: number;
   credentials: {
@@ -28,20 +31,7 @@ interface BaseFileStorageS3Setup {
     secretAccessKey: string;
   };
   [key: string]: unknown;
-}
-
-interface RegionFileStorageS3Setup extends BaseFileStorageS3Setup {
-  region: string;
-}
-
-interface EndpointFileStorageS3Setup extends BaseFileStorageS3Setup {
-  endpoint: string;
-}
-
-/**
- * Either region or endpoint must be provided
- */
-export type FileStorageS3Setup = RegionFileStorageS3Setup | EndpointFileStorageS3Setup;
+} & ({ region: string } | { endpoint: string });
 
 export interface FileStorageS3Config {
   s3: S3;

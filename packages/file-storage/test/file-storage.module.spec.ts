@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { Test, TestingModule } from '@nestjs/testing';
 
 import {
@@ -72,7 +73,7 @@ describe('forRoot', () => {
     expect(fileStorageService).toBeInstanceOf(FileStorageService);
   });
 
-  it('Can create FileStorageS3 instance from options', async () => {
+  it('Can create FileStorageS3 instance from options passing a region', async () => {
     const storageType: StorageType = StorageType.S3;
     const options: FileStorageModuleOptions = {
       [storageType]: {
@@ -84,6 +85,33 @@ describe('forRoot', () => {
           },
           maxPayloadSize: 1,
           region: 'eu-central-1',
+        },
+      },
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [FileStorageModule.forRoot(storageType, options)],
+    }).compile();
+
+    const fileStorage = module.get(FILE_STORAGE_STRATEGY_TOKEN);
+    const fileStorageService = module.get(FileStorageService);
+
+    expect(fileStorage).toBeInstanceOf(FileStorageS3);
+    expect(fileStorageService).toBeInstanceOf(FileStorageService);
+  });
+
+  it('Can create FileStorageS3 instance from options passing an endpoint', async () => {
+    const storageType: StorageType = StorageType.S3;
+    const options: FileStorageModuleOptions = {
+      [storageType]: {
+        setup: {
+          bucket: 'bucket',
+          credentials: {
+            accessKeyId: 'access key',
+            secretAccessKey: 'secret access key',
+          },
+          maxPayloadSize: 1,
+          endpoint: 'https://s3.eu-central-1.amazonaws.com/',
         },
       },
     };

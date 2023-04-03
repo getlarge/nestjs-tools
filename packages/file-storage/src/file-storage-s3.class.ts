@@ -54,7 +54,7 @@ function config(setup: FileStorageS3Setup) {
   const { bucket, maxPayloadSize, credentials, region, endpoint } = setup;
   const s3 = new S3({
     credentials,
-    region: region ? (region as string) : extractRegionFromEndpoint(endpoint as string),
+    region: region ? region : extractRegionFromEndpoint(endpoint),
   });
 
   const filePath = (options: { request?: Request; fileName: string }): string => {

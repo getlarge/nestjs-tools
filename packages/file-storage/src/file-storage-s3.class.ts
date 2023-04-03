@@ -200,7 +200,7 @@ export class FileStorageS3 implements FileStorage {
     };
     // get list of objects in a dir
     const listedObjects = await s3.listObjectsV2(listParams);
-    if (!listedObjects.Contents || listedObjects.Contents.length === 0) {
+    if (!listedObjects.Contents?.length) {
       return;
     }
 

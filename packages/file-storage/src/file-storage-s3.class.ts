@@ -20,16 +20,28 @@ import {
   FileStorageDirBaseArgs,
 } from './file-storage.class';
 
-export type FileStorageS3Setup = {
+interface BaseFileStorageS3Setup {
   bucket: string;
   maxPayloadSize: number;
-  region: string;
   credentials: {
     accessKeyId: string;
     secretAccessKey: string;
   };
   [key: string]: unknown;
-};
+}
+
+interface RegionFileStorageS3Setup extends BaseFileStorageS3Setup {
+  region: string;
+}
+
+interface EndpointFileStorageS3Setup extends BaseFileStorageS3Setup {
+  endpoint: string;
+}
+
+/**
+ * Either region or endpoint must be provided
+ */
+export type FileStorageS3Setup = RegionFileStorageS3Setup | EndpointFileStorageS3Setup;
 
 export interface FileStorageS3Config {
   s3: S3;
@@ -37,11 +49,22 @@ export interface FileStorageS3Config {
   [key: string]: any;
 }
 
+export function extractRegionFromEndpoint(endpoint: string): string {
+  const error = new Error('Please add a valid region or endpoint');
+  if (!endpoint) throw error;
+
+  const match = endpoint.match(/(?<=\.)[^.]+(?=\.amazonaws\.com)/);
+  if (match) {
+    return match[0];
+  }
+  throw error;
+}
+
 function config(setup: FileStorageS3Setup) {
-  const { bucket, maxPayloadSize, credentials, region } = setup;
+  const { bucket, maxPayloadSize, credentials, region, endpoint } = setup;
   const s3 = new S3({
     credentials,
-    region,
+    region: region ? (region as string) : extractRegionFromEndpoint(endpoint as string),
   });
 
   const filePath = (options: { request?: Request; fileName: string }): string => {

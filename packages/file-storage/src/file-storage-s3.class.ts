@@ -40,14 +40,8 @@ export interface FileStorageS3Config {
 }
 
 export function extractRegionFromEndpoint(endpoint: string): string {
-  const error = new Error('Please add a valid region or endpoint');
-  if (!endpoint) throw error;
-
-  const match = endpoint.match(/(?<=\.)[^.]+(?=\.amazonaws\.com)/);
-  if (match) {
-    return match[0];
-  }
-  throw error;
+  const match = endpoint?.match(/(?<=\.)[^.]+(?=\.amazonaws\.com)/);
+  return match?.length ? match[0] : null;
 }
 
 function config(setup: FileStorageS3Setup) {

@@ -23,13 +23,7 @@ describe('extractRegionFromEndpoint correctly returns the region or throws an er
     });
   });
 
-  it('extractRegionFromEndpoint("s3.amazonaws.com") throws an error', () => {
-    const expectedError = new Error('Please add a valid region or endpoint');
-    expect(() => extractRegionFromEndpoint('s3.amazonaws.com')).toThrow(expectedError);
-  });
-
-  it('extractRegionFromEndpoint(undefined) throws an error', () => {
-    const expectedError = new Error('Please add a valid region or endpoint');
-    expect(() => extractRegionFromEndpoint(undefined)).toThrow(expectedError);
+  it('extractRegionFromEndpoint("s3.amazonaws.com") returns null', () => {
+    expect(extractRegionFromEndpoint('s3.amazonaws.com')).toBe(null);
   });
 });

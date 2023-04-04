@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.6.2](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-file-storage@0.6.1...@s1seven/nestjs-tools-file-storage@0.6.2) (2023-04-04)
+
+### Bug Fixes
+
+- return folders and filenames from readDir S3 ([d6437fa](https://github.com/s1seven/nestjs-tools/commit/d6437fa5155177baf7ed13dfafaa527e82731256))
+
 ## [0.6.1](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-file-storage@0.6.0...@s1seven/nestjs-tools-file-storage@0.6.1) (2022-11-30)
 
 ### Bug Fixes

@@ -1,4 +1,4 @@
-import { extractRegionFromEndpoint } from '../src/file-storage-s3.class';
+import { FileStorageS3 } from '../src/file-storage-s3.class';
 
 describe('extractRegionFromEndpoint correctly returns the region or throws an error', () => {
   const testStrings = [
@@ -19,11 +19,11 @@ describe('extractRegionFromEndpoint correctly returns the region or throws an er
 
   testStrings.forEach(([input, expected]) => {
     it(`extractRegionFromEndpoint("${input}") returns "${expected}"`, () => {
-      expect(extractRegionFromEndpoint(input)).toBe(expected);
+      expect(FileStorageS3.extractRegionFromEndpoint(input)).toBe(expected);
     });
   });
 
   it('extractRegionFromEndpoint("s3.amazonaws.com") returns null', () => {
-    expect(extractRegionFromEndpoint('s3.amazonaws.com')).toBe(null);
+    expect(FileStorageS3.extractRegionFromEndpoint('s3.amazonaws.com')).toBe(null);
   });
 });

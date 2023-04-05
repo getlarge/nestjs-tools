@@ -38,7 +38,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [16.x, 18.x]
 
     services:
       rabbitmq:
@@ -109,7 +109,7 @@ jobs:
       - name: Upload coverage
         uses: actions/upload-artifact@v3
         with:
-          name: coverage
+          name: coverage-${{ matrix.node-version }}
           path: ./coverage
           retention-days: 2
 
@@ -140,7 +140,7 @@ jobs:
       - name: Retrieve coverage
         uses: actions/download-artifact@v3
         with:
-          name: coverage
+          name: coverage-${{ matrix.node-version }}
           path: ./coverage
 
       - name: SonarCloud Scan

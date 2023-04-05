@@ -20,4 +20,7 @@ const worker = (_opts, disconnect) => {
   }
 };
 
-clusterService.clusterize(worker);
+clusterService.clusterize(worker).catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

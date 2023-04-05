@@ -5,4 +5,7 @@ const worker = () => {
   console.log('worker');
   process.exit();
 };
-clusterService.clusterize(worker);
+clusterService.clusterize(worker).catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

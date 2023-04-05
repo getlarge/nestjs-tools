@@ -28,10 +28,7 @@
             "description": "Example has been verified"
           }
         },
-        "required": [
-          "name",
-          "verified"
-        ]
+        "required": ["name", "verified"]
       },
       "String": {
         "type": "object",

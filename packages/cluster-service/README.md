@@ -1,6 +1,22 @@
-/* eslint-disable no-console */
-/* run with npx ts-node packages/boot/cluster-example.ts  */
-import { ClusterService, ClusterServiceConfig, WorkerFn } from './src';
+# ClusterService
+
+[![npm][npm-image]][npm-url]
+
+[npm-image]: https://img.shields.io/npm/v/@s1seven/cluster-service.svg?style=flat
+[npm-url]: https://npmjs.org/package/@s1seven/cluster-service
+
+The ClusterService class allows you to easily create a cluster of NestJS (or other Node based) applications.
+
+## Installation
+
+```bash
+$ npm install --save @s1seven/cluster-service
+```
+
+## Usage
+
+```ts
+import { ClusterService, ClusterServiceConfig, WorkerFn } from '@s1seven/cluster-service';
 
 const clusterConfig: ClusterServiceConfig = {
   workers: 3,
@@ -34,3 +50,4 @@ clusterService
     clusterService.logger.error(e);
     process.exit(1);
   });
+```

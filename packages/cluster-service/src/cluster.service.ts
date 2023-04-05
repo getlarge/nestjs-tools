@@ -1,8 +1,9 @@
 // inspired by https://github.com/hunterloftis/throng/blob/master/lib/throng.js
-import { Logger } from '@nestjs/common';
 import { EventHandlers, TypedEventEmitter } from '@s1seven/typed-event-emitter';
-import cluster, { Worker } from 'cluster';
-import os from 'os';
+import cluster, { Worker } from 'node:cluster';
+import os from 'node:os';
+
+type Logger = Pick<Console, 'log' | 'info' | 'warn' | 'error'>;
 
 export type ClusterServiceConfig = {
   workers?: number;
@@ -12,6 +13,7 @@ export type ClusterServiceConfig = {
   lifetime?: number;
   grace?: number;
   signals?: NodeJS.Signals[];
+  logger?: Logger;
 };
 
 export interface ClusterServiceEmissions extends EventHandlers {
@@ -35,7 +37,7 @@ export type PrimaryFn = () => void | Promise<void>;
 const noOp: PrimaryFn = () => {};
 
 export class ClusterService extends TypedEventEmitter<ClusterServiceEmissions> {
-  readonly logger = new Logger(ClusterService.name);
+  readonly logger: Logger;
   private showLogs: boolean;
   private restartOnExit: boolean;
   private delay: number;
@@ -48,6 +50,7 @@ export class ClusterService extends TypedEventEmitter<ClusterServiceEmissions> {
 
   constructor(private config: ClusterServiceConfig = {}) {
     super({ captureRejections: true });
+    this.logger = this.config.logger || console;
     this.restartOnExit = this.config.restartOnExit || false;
     this.showLogs = this.config.showLogs || false;
     this.workers = typeof this.config.workers === 'number' ? this.config.workers : os.cpus().length;
@@ -77,9 +80,7 @@ export class ClusterService extends TypedEventEmitter<ClusterServiceEmissions> {
   }
 
   log(message: any): void {
-    if (this.showLogs) {
-      this.logger.log(message);
-    }
+    this.showLogs && this.logger.log(message);
   }
 
   async fork(): Promise<void> {

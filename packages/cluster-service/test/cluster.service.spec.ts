@@ -154,7 +154,7 @@ describe('ClusterService', function () {
   }, 9000);
 
   describe('with a worker function and 3 workers', () => {
-    if (process.env.CI) return; // those tests are kind of flaky in Github CI runner...
+    // if (process.env.CI) return; // those tests are kind of flaky in Github CI runner...
 
     it('should start 3 workers that immediately exit, with lifetime of 0', async () => {
       const { done } = run(getFixture(Fixtures.exit));
@@ -207,7 +207,7 @@ describe('ClusterService', function () {
 
   describe('signal handling', () => {
     if (process.platform === 'win32') return; // windows does not support signal-based process shutdown
-    if (process.env.CI) return; // those tests are kind of flaky in Github CI runner...
+    // if (process.env.CI) return; // those tests are kind of flaky in Github CI runner...
 
     it('should start 2 workers and allow them to shut down, when SIGTERM with 2 workers that exit gracefully', async () => {
       const { child, done } = run(getFixture(Fixtures.graceful));

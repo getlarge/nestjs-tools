@@ -39,16 +39,11 @@ export interface FileStorageS3Config {
   [key: string]: any;
 }
 
-export function extractRegionFromEndpoint(endpoint: string): string {
-  const match = endpoint?.match(/(?<=\.)[^.]+(?=\.amazonaws\.com)/);
-  return match?.length ? match[0] : null;
-}
-
 function config(setup: FileStorageS3Setup) {
   const { bucket, maxPayloadSize, credentials, region, endpoint } = setup;
   const s3 = new S3({
     credentials,
-    region: region ? region : extractRegionFromEndpoint(endpoint),
+    region: region ? region : FileStorageS3.extractRegionFromEndpoint(endpoint),
   });
 
   const filePath = (options: { request?: Request; fileName: string }): string => {
@@ -103,6 +98,11 @@ export class FileStorageS3 implements FileStorage {
 
   constructor(setup: FileStorageS3Setup, factory?: FileStorageConfigFactory<FileStorageS3Config>) {
     this.config = typeof factory === 'function' ? factory(setup) : config(setup);
+  }
+
+  static extractRegionFromEndpoint(endpoint: string): string {
+    const match = endpoint?.match(/(?<=\.)[^.]+(?=\.amazonaws\.com)/);
+    return match?.length ? match[0] : null;
   }
 
   transformFilePath(

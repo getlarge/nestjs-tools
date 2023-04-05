@@ -1,6 +1,6 @@
 {
   "name": "@s1seven/cluster-service",
-  "version": "0.15.3",
+  "version": "0.15.4",
   "description": "Cluster and workers manager",
   "keywords": [
     "cluster",

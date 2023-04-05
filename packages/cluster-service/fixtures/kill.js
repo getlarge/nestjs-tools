@@ -9,7 +9,7 @@ const clusterService = new ClusterService({
 const worker = () => {
   console.log('ah ha ha ha');
 
-  process.on('SIGTERM', function () {
+  process.once('SIGTERM', function () {
     console.log('stayin alive');
   });
 
@@ -17,4 +17,7 @@ const worker = () => {
   // process.exit();
 };
 
-clusterService.clusterize(worker);
+clusterService.clusterize(worker).catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

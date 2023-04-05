@@ -5,12 +5,15 @@ const clusterService = new ClusterService({
   workers: 1,
 });
 
-async function master() {
+async function primary() {
   await new Promise((r) => setTimeout(r, 500));
-  console.log('master');
+  console.log('primary');
 }
 async function worker(_opts, disconnect) {
   console.log('worker');
   disconnect();
 }
-clusterService.clusterize(worker, master);
+clusterService.clusterize(worker, primary).catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

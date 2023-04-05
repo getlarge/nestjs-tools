@@ -10,8 +10,11 @@ const worker = () => {
   process.exit();
 };
 
-const master = () => {
-  console.log('master');
+const primary = () => {
+  console.log('primary');
 };
 
-clusterService.clusterize(worker, master);
+clusterService.clusterize(worker, primary).catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

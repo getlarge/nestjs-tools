@@ -1,0 +1,53 @@
+{
+  "name": "@s1seven/cluster-service",
+  "version": "0.15.4",
+  "description": "Cluster and workers manager",
+  "keywords": [
+    "cluster",
+    "worker",
+    "node",
+    "scale"
+  ],
+  "author": "Edouard <ed@getlarge.eu>",
+  "homepage": "https://github.com/s1seven/nestjs-tools/tree/main/packages/cluster-service#readme",
+  "license": "ISC",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "publicConfig": {
+    "access": "public"
+  },
+  "private": false,
+  "main": "dist/index",
+  "types": "dist/index",
+  "directories": {
+    "dist": "dist",
+    "src": "src",
+    "test": "tests"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/s1seven/nestjs-tools.git"
+  },
+  "bugs": {
+    "url": "https://github.com/s1seven/nestjs-tools/issues"
+  },
+  "scripts": {
+    "build": "npm run clean && npm run compile",
+    "clean": "rimraf -rf ./dist",
+    "cleanup": "rimraf -rf dist coverage",
+    "compile": "tsc -p tsconfig.build.json",
+    "lint": "eslint -c ../../.eslintrc.js \"**/*.ts\"",
+    "lint:fix": "eslint -c ../../.eslintrc.js \"**/*.ts\" --fix",
+    "test": "jest --runInBand",
+    "test:cov": "rimraf -rf ./coverage && jest --ci --runInBand --coverage",
+    "scan:deps": "audit-ci --config ../../audit-ci.json",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@s1seven/typed-event-emitter": "^0.1.0"
+  }
+}

@@ -1,8 +1,9 @@
 // inspired by https://github.com/hunterloftis/throng/blob/master/lib/throng.js
-import { Logger } from '@nestjs/common';
 import { EventHandlers, TypedEventEmitter } from '@s1seven/typed-event-emitter';
-import cluster, { Worker } from 'cluster';
-import os from 'os';
+import cluster, { Worker } from 'node:cluster';
+import os from 'node:os';
+
+type Logger = Pick<Console, 'log' | 'info' | 'warn' | 'error'>;
 
 export type ClusterServiceConfig = {
   workers?: number;
@@ -12,6 +13,7 @@ export type ClusterServiceConfig = {
   lifetime?: number;
   grace?: number;
   signals?: NodeJS.Signals[];
+  logger?: Logger;
 };
 
 export interface ClusterServiceEmissions extends EventHandlers {
@@ -29,13 +31,14 @@ export type WorkerFn = (
   send?: (message: any, workerId?: number) => void,
 ) => void | Promise<void>;
 
+// export type PrimaryFn = (this: ClusterService) => void | Promise<void>;
 export type PrimaryFn = () => void | Promise<void>;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noOp: PrimaryFn = () => {};
 
 export class ClusterService extends TypedEventEmitter<ClusterServiceEmissions> {
-  readonly logger = new Logger(ClusterService.name);
+  readonly logger: Logger;
   private showLogs: boolean;
   private restartOnExit: boolean;
   private delay: number;
@@ -43,14 +46,15 @@ export class ClusterService extends TypedEventEmitter<ClusterServiceEmissions> {
   private grace: number;
   private reviveUntil: number;
   private signals: NodeJS.Signals[];
-  private workers: number;
+  private workersCount: number;
   private running = false;
 
   constructor(private config: ClusterServiceConfig = {}) {
     super({ captureRejections: true });
+    this.logger = this.config.logger || console;
     this.restartOnExit = this.config.restartOnExit || false;
     this.showLogs = this.config.showLogs || false;
-    this.workers = typeof this.config.workers === 'number' ? this.config.workers : os.cpus().length;
+    this.workersCount = typeof this.config.workers === 'number' ? this.config.workers : os.cpus().length;
     this.delay = this.config.delay || 0;
     this.lifetime = typeof this.config.lifetime === 'number' ? this.config.lifetime : Infinity;
     this.grace = typeof this.config.grace === 'number' ? this.config.lifetime : 5000;
@@ -76,14 +80,16 @@ export class ClusterService extends TypedEventEmitter<ClusterServiceEmissions> {
     return cluster.worker?.id;
   }
 
+  get workers() {
+    return cluster.workers;
+  }
+
   log(message: any): void {
-    if (this.showLogs) {
-      this.logger.log(message);
-    }
+    this.showLogs && this.logger.log(message);
   }
 
   async fork(): Promise<void> {
-    for (let i = 0; i < this.workers; i++) {
+    for (let i = 0; i < this.workersCount; i++) {
       await new Promise<void>((resolve) => setTimeout(resolve, this.delay));
       cluster.fork();
     }

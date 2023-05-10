@@ -1,8 +1,9 @@
 const { ClusterService } = require('../dist');
 
 const clusterService = new ClusterService({
-  workers: 2,
-  lifetime: 0,
+  workers: 3,
+  lifetime: 500,
+  restartOnExit: true,
 });
 
 const worker = () => {
@@ -10,8 +11,7 @@ const worker = () => {
   process.exit();
 };
 
-const master = () => {
-  console.log('master');
-};
-
-clusterService.clusterize(worker, master);
+clusterService.clusterize(worker).catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

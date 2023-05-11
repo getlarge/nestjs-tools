@@ -56,6 +56,7 @@ const testMap: {
 
 testMap.forEach((testSuite) => {
   const { description, storageType, options } = testSuite;
+  console.log(options);
 
   describe(description, () => {
     let fileStorage: FileStorage;
@@ -84,6 +85,7 @@ testMap.forEach((testSuite) => {
     it('uploadFile uploads a file', async () => {
       await fileStorage.uploadFile({ filePath: testFileName, content: 'this is a test' });
       const result = await fileStorage.readDir({ dirPath });
+      console.log('readDir - result', result);
       expect(result.length).toBe(1);
       expect(result[0]).toBe(testFileName);
     });

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Readable, Writable } from 'stream';
+import type { Readable, Writable } from 'node:stream';
 
 import { InjectFileStorageStrategy } from './decorators';
 import { FileStorage, FileStorageBaseArgs, FileStorageDirBaseArgs } from './file-storage.class';

@@ -8,8 +8,8 @@ import {
   S3,
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
-import { Request } from 'express';
-import { PassThrough, Readable, Writable } from 'stream';
+import type { Request } from 'express';
+import { PassThrough, Readable, Writable } from 'node:stream';
 
 import { MethodTypes } from './constants';
 import {
@@ -26,7 +26,7 @@ import {
 export type FileStorageS3Setup = {
   bucket: string;
   maxPayloadSize: number;
-  credentials: {
+  credentials?: {
     accessKeyId: string;
     secretAccessKey: string;
   };
@@ -42,7 +42,7 @@ export interface FileStorageS3Config {
 function config(setup: FileStorageS3Setup) {
   const { bucket, maxPayloadSize, credentials, region, endpoint } = setup;
   const s3 = new S3({
-    credentials,
+    ...(credentials || {}),
     region: region ? region : FileStorageS3.extractRegionFromEndpoint(endpoint),
   });
 

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Request } from 'express';
-import { Readable, Writable } from 'stream';
+import type { Request } from 'express';
+import type { Readable, Writable } from 'node:stream';
 
 import { MethodTypes } from './constants';
 

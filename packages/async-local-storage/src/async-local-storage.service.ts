@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { AsyncLocalStorage } from 'async_hooks';
+import type { AsyncLocalStorage } from 'node:async_hooks';
 
 import { ASYNC_LOCAL_STORAGE, noOp, REQUEST_CONTEXT_KEY } from './async-local-storage.constants';
 import { ContextStoreProperties } from './async-local-storage.interfaces';

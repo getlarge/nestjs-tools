@@ -1,5 +1,5 @@
 import type { ExecutionContext } from '@nestjs/common';
-import type { AsyncLocalStorage } from 'async_hooks';
+import type { AsyncLocalStorage } from 'node:async_hooks';
 
 import { REQUEST_CONTEXT_KEY } from './async-local-storage.constants';
 

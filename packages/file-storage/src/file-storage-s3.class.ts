@@ -41,6 +41,10 @@ export interface FileStorageS3Config {
 
 function config(setup: FileStorageS3Setup) {
   const { bucket, maxPayloadSize, credentials, region, endpoint } = setup;
+  /**
+   * We cannot really make calls without credentials unless we use a workaround
+   * @see https://github.com/aws/aws-sdk-js-v3/issues/2321
+   */
   const s3 = new S3({
     ...(credentials ? { credentials } : {}),
     region: region ?? FileStorageS3.extractRegionFromEndpoint(endpoint),

@@ -42,8 +42,8 @@ export interface FileStorageS3Config {
 function config(setup: FileStorageS3Setup) {
   const { bucket, maxPayloadSize, credentials, region, endpoint } = setup;
   const s3 = new S3({
-    ...(credentials || {}),
-    region: region ? region : FileStorageS3.extractRegionFromEndpoint(endpoint),
+    ...(credentials ? { credentials } : {}),
+    region: region ?? FileStorageS3.extractRegionFromEndpoint(endpoint),
   });
 
   const filePath = (options: { request?: Request; fileName: string }): string => {

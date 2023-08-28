@@ -30,6 +30,7 @@ export type FileStorageS3Setup = {
     accessKeyId: string;
     secretAccessKey: string;
   };
+  logger?: S3['config']['logger'];
   [key: string]: unknown;
 } & ({ region: string; endpoint?: never } | { endpoint: string; region?: never });
 
@@ -40,14 +41,15 @@ export interface FileStorageS3Config {
 }
 
 function config(setup: FileStorageS3Setup) {
-  const { bucket, maxPayloadSize, credentials, region, endpoint } = setup;
-  /**
-   * We cannot really make calls without credentials unless we use a workaround
-   * @see https://github.com/aws/aws-sdk-js-v3/issues/2321
-   */
+  const { bucket, maxPayloadSize, credentials, region, endpoint, logger } = setup;
   const s3 = new S3({
+    /**
+     * We cannot really make calls without credentials unless we use a workaround
+     * @see https://github.com/aws/aws-sdk-js-v3/issues/2321
+     */
     ...(credentials ? { credentials } : {}),
-    region: region ?? FileStorageS3.extractRegionFromEndpoint(endpoint),
+    region: region ? region : FileStorageS3.extractRegionFromEndpoint(endpoint),
+    ...(logger ? { logger } : {}),
   });
 
   const filePath = (options: { request?: Request; fileName: string }): string => {
@@ -98,7 +100,7 @@ function addTrailingForwardSlash(string: string) {
 
 // TODO: control filesize limit
 export class FileStorageS3 implements FileStorage {
-  config: FileStorageConfig & FileStorageS3Config;
+  readonly config: FileStorageConfig & FileStorageS3Config;
 
   constructor(setup: FileStorageS3Setup, factory?: FileStorageConfigFactory<FileStorageS3Config>) {
     this.config = typeof factory === 'function' ? factory(setup) : config(setup);

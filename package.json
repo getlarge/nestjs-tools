@@ -1,6 +1,6 @@
 {
   "name": "@s1seven/nestjs-tools",
-  "version": "0.0.8",
+  "version": "0.1.0",
   "description": "Common resources shared by microservices",
   "main": "dist/index.js",
   "bin": "dist/index.js",
@@ -24,8 +24,11 @@
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
+  "workspaces": [
+    "packages/**"
+  ],
   "scripts": {
-    "bootstrap": "lerna bootstrap && npm install",
+    "bootstrap": "npm install",
     "format": "nx format",
     "format:all": "prettier --write \"packages/**/*.{ts,json}\"",
     "cleanup": "nx run-many --target=cleanup --all",
@@ -46,7 +49,7 @@
     "test:inspect": "node --inspect-brk --expose-gc -r tsconfig-paths/register -r ts-node/register ./node_modules/.bin/jest --runInBand --logHeapUsage",
     "test:coverage": "jest --ci --coverage --logHeapUsage --forceExit && node coverage-transform.js",
     "test:boot": "nx test @s1seven/nestjs-tools-boot",
-    "scan:deps": "nx run-many --target=scan:deps --all",
+    "scan:deps": "audit-ci --config audit-ci.json",
     "scan:code": "sonarqube-verify",
     "prepare": "npm run format && npm run lint",
     "prepublishOnly": "npm run build",
@@ -58,9 +61,8 @@
   "devDependencies": {
     "@commitlint/cli": "^17.1.2",
     "@commitlint/config-conventional": "^17.1.0",
-    "@lerna/publish": "^6.0.1",
-    "@lerna/run": "^6.0.1",
-    "@nrwl/nx-cloud": "15.0.0",
+    "@lerna/publish": "^6.6.2",
+    "@lerna/run": "^6.6.2",
     "@types/jest": "^27.4.0",
     "@types/node": "^16.11.6",
     "@typescript-eslint/eslint-plugin": "^5.36.0",
@@ -80,9 +82,10 @@
     "istanbul-lib-report": "^3.0.0",
     "istanbul-reports": "^3.1.4",
     "jest": "^28.1.3",
-    "lerna": "^6.0.1",
+    "lerna": "^7.1.5",
     "lint-staged": "^13.0.3",
-    "nx": "15.0.3",
+    "nx": "16.7.4",
+    "nx-cloud": "16.3.0",
     "prettier": "2.7.1",
     "rimraf": "^3.0.2",
     "ts-jest": "^28.0.7",

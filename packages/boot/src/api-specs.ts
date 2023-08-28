@@ -114,10 +114,8 @@ export async function setupOpenApi<Conf extends BaseConfig>(
   setCommonOptions(openApiOptions, openApi);
   const openApiDocument = SwaggerModule.createDocument(app, openApiOptions.build(), { extraModels });
   const mainServerUrl = getMainServerUrl(config);
-  const customfavIcon =
-    typeof customFavIcon === 'function'
-      ? customFavIcon(app)
-      : `${mainServerUrl}/${customFavIcon}` || `${mainServerUrl}/favicon.ico`;
+  const customFavIconPath =
+    typeof customFavIcon === 'function' ? customFavIcon(app) : `${mainServerUrl}/${customFavIcon || 'favicon.ico'}`;
 
   const customOptions: SwaggerCustomOptions = {
     swaggerOptions: {
@@ -125,7 +123,7 @@ export async function setupOpenApi<Conf extends BaseConfig>(
     },
     customSiteTitle:
       typeof customSiteTitle === 'function' ? customSiteTitle(app) : customSiteTitle || `${serviceName} API`,
-    customfavIcon,
+    customfavIcon: customFavIconPath,
     explorer: typeof enableExplorer === 'function' ? enableExplorer(app) : enableExplorer,
   };
 

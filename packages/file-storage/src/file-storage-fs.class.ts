@@ -85,7 +85,7 @@ export interface FileStorageLocalDownloadStream extends FileStorageBaseArgs {
 
 // TODO: control filesize limit
 export class FileStorageLocal implements FileStorage {
-  config: FileStorageConfig & Record<string, any>;
+  readonly config: FileStorageConfig & Record<string, any>;
   setup: { storagePath: string; maxPayloadSize: number };
 
   constructor(setup: FileStorageLocalSetup, factory?: FileStorageConfigFactory) {

@@ -12,6 +12,10 @@ import { FILE_STORAGE_STRATEGY_TOKEN } from '../src/constants';
 
 dotenv.config({ path: resolve(__dirname, '../.env.test') });
 
+// TODO: test S3 without loading credentials explicitly but implicitly from env variables
+// process.env.AWS_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID;
+// process.env.AWS_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY;
+
 const storagePath = 'store';
 const path = resolve(storagePath);
 const testFileName = 'test.txt';
@@ -42,8 +46,8 @@ const testMap: {
           storagePath,
           maxPayloadSize: 1,
           bucket: process.env.S3_BUCKET,
-          // region: process.env.S3_REGION,
-          endpoint: process.env.S3_ENDPOINT,
+          region: process.env.S3_REGION,
+          // endpoint: process.env.S3_ENDPOINT,
           credentials: {
             accessKeyId: process.env.S3_ACCESS_KEY_ID,
             secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,

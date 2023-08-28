@@ -1,4 +1,4 @@
-import { Request } from 'express';
+import type { Request } from 'express';
 import {
   BigIntOptions,
   createReadStream,
@@ -6,17 +6,14 @@ import {
   existsSync,
   mkdirSync,
   ObjectEncodingOptions,
-  readFile,
   stat,
   StatOptions,
   unlink,
-  writeFile,
   WriteFileOptions,
 } from 'fs';
-import { readdir, rm } from 'fs/promises';
-import { resolve as resolvePath } from 'path';
-import { Readable, Writable } from 'stream';
-import { promisify } from 'util';
+import { readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { resolve as resolvePath } from 'node:path';
+import { Readable, Writable } from 'node:stream';
 
 import { MethodTypes } from './constants';
 import {
@@ -39,7 +36,11 @@ export type StreamOptions = {
   highWaterMark?: number;
 };
 
-export type FileStorageLocalSetup = { storagePath: string; maxPayloadSize: number; [key: string]: unknown };
+export type FileStorageLocalSetup = {
+  storagePath: string;
+  maxPayloadSize: number;
+  [key: string]: unknown;
+};
 
 function config(setup: FileStorageLocalSetup) {
   const { maxPayloadSize, storagePath } = setup;
@@ -111,7 +112,7 @@ export class FileStorageLocal implements FileStorage {
   async uploadFile(args: FileStorageLocalUploadFile): Promise<void> {
     const { filePath, content, options, request } = args;
     const fileName = await this.transformFilePath(filePath, MethodTypes.WRITE, request, options);
-    return promisify(writeFile)(fileName, content, options);
+    return writeFile(fileName, content, options);
   }
 
   async uploadStream(args: FileStorageLocalUploadStream): Promise<Writable> {
@@ -143,7 +144,7 @@ export class FileStorageLocal implements FileStorage {
   async downloadFile(args: FileStorageLocalDownloadFile) {
     const { filePath, options, request } = args;
     const fileName = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
-    return promisify(readFile)(fileName, options);
+    return readFile(fileName, options);
   }
 
   async downloadStream(args: FileStorageLocalDownloadStream): Promise<Readable> {

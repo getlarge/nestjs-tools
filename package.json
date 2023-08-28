@@ -1,6 +1,6 @@
 {
   "name": "@s1seven/nestjs-tools",
-  "version": "0.0.8",
+  "version": "0.1.0",
   "description": "Common resources shared by microservices",
   "main": "dist/index.js",
   "bin": "dist/index.js",

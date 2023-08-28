@@ -18,16 +18,22 @@ import { AsyncLocalStorageService } from './async-local-storage.service';
  */
 @Injectable()
 export class AsyncLocalStorageInterceptor implements NestInterceptor {
-  readonly mode: AsyncLocalStorageMode;
-
   constructor(
     @Inject(AsyncLocalStorageService)
     private readonly asyncLocalStorage: AsyncLocalStorageService,
     @Inject(ASYNC_LOCAL_STORAGE_MODULE_OPTIONS)
     private readonly options: AsyncLocalStorageModuleOptions,
-  ) {
+  ) {}
+
+  get mode(): AsyncLocalStorageMode {
     const { useGuard, useInterceptor } = this.options;
-    this.mode = useGuard ? AsyncLocalStorageMode.Guard : useInterceptor ? AsyncLocalStorageMode.Interceptor : null;
+    if (useGuard) {
+      return AsyncLocalStorageMode.Guard;
+    }
+    if (useInterceptor) {
+      return AsyncLocalStorageMode.Interceptor;
+    }
+    return null;
   }
 
   async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<unknown>> {

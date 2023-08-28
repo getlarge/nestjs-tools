@@ -47,7 +47,7 @@ export class LockService implements OnModuleInit, OnModuleDestroy {
   createConnection(): void {
     this.redis = new IORedis(this.options.redis);
     this.redlock = new Redlock([this.redis], { ...this.defaultLockOptions, ...(this.options.lock || {}) });
-    // this.redlock.on('error', this.errorHandler);
+    // TODO: this.redlock.on('error', this.errorHandler);
   }
 
   isInitialized(): void {

@@ -39,7 +39,7 @@ export type FileStorageTransformPath = (
 ) => string | Promise<string>;
 
 export abstract class FileStorage {
-  config?: FileStorageConfig & Record<string, any>;
+  readonly config?: FileStorageConfig & Record<string, any>;
 
   constructor(setup: Record<string, any>, factory?: (setup?: Record<string, any>) => any) {
     //

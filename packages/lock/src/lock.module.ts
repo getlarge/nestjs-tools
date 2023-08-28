@@ -14,7 +14,7 @@ export interface LockModuleModuleAsyncOptions extends Pick<ModuleMetadata, 'impo
 
 @Module({})
 export class LockModule {
-  public static forRoot(options?: LockServiceOptions): DynamicModule {
+  public static forRoot(options?: LockServiceOptions, isGlobal = false): DynamicModule {
     const providers = [
       {
         provide: LOCK_SERVICE_OPTIONS,
@@ -23,13 +23,14 @@ export class LockModule {
       LockService,
     ];
     return {
+      global: isGlobal,
       module: LockModule,
       providers,
       exports: providers,
     };
   }
 
-  public static forRootAsync(options: LockModuleModuleAsyncOptions): DynamicModule {
+  public static forRootAsync(options: LockModuleModuleAsyncOptions, isGlobal = false): DynamicModule {
     const { inject = [], imports = [], useFactory, useClass } = options;
     let provider: Provider = {
       provide: LOCK_SERVICE_OPTIONS,
@@ -42,6 +43,7 @@ export class LockModule {
     }
     const providers = [provider, LockService];
     return {
+      global: isGlobal,
       module: LockModule,
       imports,
       providers,

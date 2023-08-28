@@ -24,6 +24,9 @@
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
+  "workspaces": [
+    "packages/**"
+  ],
   "scripts": {
     "bootstrap": "npm install",
     "format": "nx format",
@@ -46,7 +49,7 @@
     "test:inspect": "node --inspect-brk --expose-gc -r tsconfig-paths/register -r ts-node/register ./node_modules/.bin/jest --runInBand --logHeapUsage",
     "test:coverage": "jest --ci --coverage --logHeapUsage --forceExit && node coverage-transform.js",
     "test:boot": "nx test @s1seven/nestjs-tools-boot",
-    "scan:deps": "nx run-many --target=scan:deps --all",
+    "scan:deps": "audit-ci --config audit-ci.json",
     "scan:code": "sonarqube-verify",
     "prepare": "npm run format && npm run lint",
     "prepublishOnly": "npm run build",

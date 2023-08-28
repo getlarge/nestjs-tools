@@ -41,7 +41,6 @@
     "lint:fix": "eslint -c ../../.eslintrc.js \"**/*.ts\" --fix",
     "test": "jest",
     "test:cov": "rimraf -rf ./coverage && jest --ci --coverage --logHeapUsage",
-    "scan:deps": "audit-ci --config ../../audit-ci.json",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {

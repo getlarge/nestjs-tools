@@ -1,5 +1,5 @@
 import type { Provider } from '@nestjs/common';
-import { AsyncLocalStorage } from 'async_hooks';
+import { AsyncLocalStorage } from 'node:async_hooks';
 
 import { ASYNC_LOCAL_STORAGE, ASYNC_LOCAL_STORAGE_MODULE_OPTIONS } from './async-local-storage.constants';
 import { AsyncLocalStorageModuleOptions, ContextStoreProperties } from './async-local-storage.interfaces';

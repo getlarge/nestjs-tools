@@ -35,11 +35,11 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.331.0",
-    "@aws-sdk/lib-storage": "3.331.0",
     "reflect-metadata": "^0.1.13"
   },
   "peerDependencies": {
+    "@aws-sdk/client-s3": "^3.310.0",
+    "@aws-sdk/lib-storage": "^3.310.0",
     "@nestjs/common": "^9.0.8",
     "@nestjs/config": "^2.2.0",
     "@nestjs/core": "^9.0.8",

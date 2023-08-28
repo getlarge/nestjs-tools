@@ -88,8 +88,8 @@ export class AmqpClient extends ClientProxy {
   }
 
   close(): void {
-    this.channel && this.channel.close();
-    this.client && this.client.close();
+    this.channel?.close();
+    this.client?.close();
     this.channel = null;
     this.client = null;
   }

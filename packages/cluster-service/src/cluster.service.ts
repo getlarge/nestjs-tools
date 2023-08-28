@@ -31,7 +31,6 @@ export type WorkerFn = (
   send?: (message: any, workerId?: number) => void,
 ) => void | Promise<void>;
 
-// export type PrimaryFn = (this: ClusterService) => void | Promise<void>;
 export type PrimaryFn = () => void | Promise<void>;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function

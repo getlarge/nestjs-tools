@@ -90,7 +90,7 @@ export class AsyncLocalStorageService extends Map<K, T[K]> {
   }
 
   // AsyncLocalStorage methods and properties
-  run<R, TArgs extends any[]>(store: StoreMap = new Map(), callback: (...args: TArgs) => R, ...args: TArgs): R {
+  run<R, TArgs extends any[]>(store: StoreMap, callback: (...args: TArgs) => R, ...args: TArgs): R {
     return this.instance.run(store, callback, ...args);
   }
 

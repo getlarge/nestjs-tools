@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.2](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-async-local-storage@0.2.1...@s1seven/nestjs-tools-async-local-storage@0.2.2) (2023-09-04)
+
+**Note:** Version bump only for package @s1seven/nestjs-tools-async-local-storage
+
 ## [0.2.1](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-async-local-storage@0.2.0...@s1seven/nestjs-tools-async-local-storage@0.2.1) (2023-02-06)
 
 ### Bug Fixes

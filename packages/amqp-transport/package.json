@@ -1,6 +1,6 @@
 {
   "name": "@s1seven/nestjs-tools-amqp-transport",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Custom Nest Transport classes for AMQP",
   "license": "Apache-2.0",
   "author": "getlarge <ed@getlarge.eu>",
@@ -34,7 +34,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@s1seven/typed-event-emitter": "^0.1.0"
+    "@s1seven/typed-event-emitter": "^0.1.1"
   },
   "peerDependencies": {
     "@nestjs/common": "9 - 10",

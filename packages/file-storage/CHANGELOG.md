@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.7.0](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-file-storage@0.6.3...@s1seven/nestjs-tools-file-storage@0.7.0) (2023-09-04)
+
+### Bug Fixes
+
+- **file-storage:** correctly spread credentials propetry ([f26ed81](https://github.com/s1seven/nestjs-tools/commit/f26ed8130cf14eb25fc5dcc57b92b6e7391c0857))
+- **file-storage:** update types and imports ([fe68063](https://github.com/s1seven/nestjs-tools/commit/fe680630c9392f85d6920f243ceb6eec65ba5596))
+
+### Features
+
+- **file-storage:** allow custom S3 logger and make config readonly ([2a09f02](https://github.com/s1seven/nestjs-tools/commit/2a09f0238ea26bf057e6df1c5b301cf22a6ea07f))
+
 ## [0.6.3](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-file-storage@0.6.2...@s1seven/nestjs-tools-file-storage@0.6.3) (2023-04-05)
 
 **Note:** Version bump only for package @s1seven/nestjs-tools-file-storage

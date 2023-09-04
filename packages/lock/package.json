@@ -1,6 +1,6 @@
 {
   "name": "@s1seven/nestjs-tools-lock",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Lock service",
   "author": "getlarge <ed@getlarge.eu>",
   "homepage": "https://github.com/s1seven/nestjs-tools/tree/main/packages/lock#readme",

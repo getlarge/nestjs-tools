@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.7.0](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-lock@0.6.1...@s1seven/nestjs-tools-lock@0.7.0) (2023-09-04)
+
+### Features
+
+- **lock:** allow module to be global ([f956e25](https://github.com/s1seven/nestjs-tools/commit/f956e25f1b871a9c1a71e986118b01e1e8c88bd6))
+
 ## [0.6.1](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-lock@0.6.0...@s1seven/nestjs-tools-lock@0.6.1) (2022-12-21)
 
 **Note:** Version bump only for package @s1seven/nestjs-tools-lock

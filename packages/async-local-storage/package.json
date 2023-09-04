@@ -1,6 +1,6 @@
 {
   "name": "@s1seven/nestjs-tools-async-local-storage",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "wrap node async local storage to store request context",
   "author": "Edouard <ed@getlarge.eu>",
   "homepage": "https://github.com/s1seven/nestjs-tools/tree/main/packages/async-local-storage#readme",

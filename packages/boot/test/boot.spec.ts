@@ -1,5 +1,5 @@
 /* eslint-disable max-lines-per-function */
-import aedes, { Aedes } from 'aedes';
+import Aedes from 'aedes';
 import { AddressInfo, createServer, Server } from 'net';
 
 import { ApplicationBoot } from '../src';
@@ -11,7 +11,7 @@ describe('ApplicationBoot', () => {
   let tcpServer: Server;
 
   beforeAll(async () => {
-    broker = aedes();
+    broker = new Aedes();
     tcpServer = createServer(broker.handle);
     await new Promise((resolve) => {
       tcpServer.listen(7883, () => {

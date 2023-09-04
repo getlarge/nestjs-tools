@@ -47,14 +47,15 @@
     "reflect-metadata": "^0.1.13"
   },
   "peerDependencies": {
-    "@nestjs/common": "^9.0.8",
-    "@nestjs/core": "^9.0.8",
+    "@nestjs/common": "9 - 10",
+    "@nestjs/core": "9 - 10",
     "ioredis": "^5.2.2",
     "rxjs": "^7.5.4"
   },
   "devDependencies": {
-    "@nestjs/config": "^2.2.0",
-    "@nestjs/testing": "^9.0.8",
-    "@types/node": "^16.11.6"
+    "@nestjs/config": "^3.0.1",
+    "@nestjs/testing": "^10.2.4",
+    "@types/node": "^16.11.6",
+    "ioredis-mock": "^8.8.3"
   }
 }

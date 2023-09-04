@@ -34,10 +34,10 @@
     "url": "https://github.com/s1seven/nestjs-tools/issues"
   },
   "dependencies": {
-    "pino-abstract-transport": "^1.0.0"
+    "pino-abstract-transport": "^1.1.0"
   },
   "devDependencies": {
     "@types/node": "^16.11.6",
-    "pino": "^8.7.0"
+    "pino": "^8.15.0"
   }
 }

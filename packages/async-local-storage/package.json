@@ -41,15 +41,15 @@
     "url": "https://github.com/s1seven/nestjs-tools/issues"
   },
   "peerDependencies": {
-    "@nestjs/common": "^9.0.8",
-    "@nestjs/core": "^9.0.8",
+    "@nestjs/common": "9 - 10",
+    "@nestjs/core": "9 - 10",
     "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
-    "@nestjs/platform-express": "^9.0.8",
-    "@nestjs/testing": "^9.0.8",
+    "@nestjs/platform-express": "^10.2.4",
+    "@nestjs/testing": "^10.2.4",
     "@types/node": "^16.11.6",
     "@types/supertest": "^2.0.12",
-    "supertest": "6.2.2"
+    "supertest": "6.3.3"
   }
 }

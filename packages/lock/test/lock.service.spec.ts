@@ -4,13 +4,14 @@ import { ExecutionError } from 'redlock';
 
 import { LockService } from '../src';
 import { getRedisClientConfig, mockConfigService } from './config.service.mock';
+import { PatchedLockService } from './patched-lock.service';
 
 describe('Lock Service', () => {
   let lockService: LockService;
 
   beforeAll(() => {
     const redis = getRedisClientConfig(mockConfigService as any);
-    lockService = new LockService({ redis, lock: { retryCount: 0 } });
+    lockService = new PatchedLockService({ redis, lock: { retryCount: 0 } });
     lockService.onModuleInit();
   });
 
@@ -54,7 +55,7 @@ describe('Lock Service - unlocking with id', () => {
 
   beforeAll(() => {
     const redis = getRedisClientConfig(mockConfigService as any);
-    lockService = new LockService({ redis, lock: { retryCount: 0 } });
+    lockService = new PatchedLockService({ redis, lock: { retryCount: 0 } });
     lockService.onModuleInit();
   });
 

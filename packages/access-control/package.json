@@ -47,8 +47,8 @@
     "role-acl": "^4.5.4"
   },
   "peerDependencies": {
-    "@nestjs/common": "^9.0.8",
-    "@nestjs/core": "^9.0.8",
+    "@nestjs/common": "9 - 10",
+    "@nestjs/core": "9 - 10",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.5.4"
   },

@@ -37,18 +37,18 @@
     "reflect-metadata": "^0.1.13"
   },
   "peerDependencies": {
-    "@aws-sdk/client-s3": "^3.310.0",
-    "@aws-sdk/lib-storage": "^3.310.0",
-    "@nestjs/common": "^9.0.8",
-    "@nestjs/config": "^2.2.0",
-    "@nestjs/core": "^9.0.8",
+    "@aws-sdk/client-s3": "^3.405.0",
+    "@aws-sdk/lib-storage": "^3.405.0",
+    "@nestjs/common": "9 - 10",
+    "@nestjs/config": "2 - 3",
+    "@nestjs/core": "9 - 10",
     "rxjs": "^7.5.4"
   },
   "devDependencies": {
-    "@nestjs/testing": "^9.1.6",
+    "@nestjs/testing": "^10.2.4",
     "@types/express": "^4.17.13",
     "@types/node": "^16.11.6",
-    "dotenv": "^16.0.3"
+    "dotenv": "^16.3.1"
   },
   "gitHead": "990d1604164e9bc5b61c93eca1a2d51416a0dfa6"
 }

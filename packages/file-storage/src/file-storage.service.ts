@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { Readable, Writable } from 'node:stream';
+import type { Readable } from 'node:stream';
 
 import { InjectFileStorageStrategy } from './decorators';
 import { FileStorage, FileStorageBaseArgs, FileStorageDirBaseArgs } from './file-storage.class';
@@ -18,6 +18,7 @@ import {
   FileStorageS3UploadFile,
   FileStorageS3UploadStream,
 } from './file-storage-s3.class';
+import type { FileStorageWritable } from './types';
 
 @Injectable()
 export class FileStorageService implements Omit<FileStorage, 'transformFilePath'> {
@@ -31,7 +32,7 @@ export class FileStorageService implements Omit<FileStorage, 'transformFilePath'
     return this.fileStorage.uploadFile(args);
   }
 
-  uploadStream(args: FileStorageLocalUploadStream | FileStorageS3UploadStream): Promise<Writable> {
+  uploadStream(args: FileStorageLocalUploadStream | FileStorageS3UploadStream): Promise<FileStorageWritable> {
     return this.fileStorage.uploadStream(args);
   }
 

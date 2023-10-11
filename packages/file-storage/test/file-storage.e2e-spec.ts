@@ -110,10 +110,11 @@ testMap.forEach((testSuite) => {
     it('uploadStream uploads a file', async () => {
       const upload = await fileStorage.uploadStream({ filePath: testFileName });
       const entry = Readable.from(Buffer.from(testFileContent));
-      await pipeline(entry, upload);
       const ac = new AbortController();
-      const t = setTimeout(() => ac.abort(), 200);
-      await once(upload, 'done', { signal: ac.signal }).finally(() => clearTimeout(t));
+      const t = setTimeout(() => ac.abort(), 300);
+      const listener = once(upload, 'done', { signal: ac.signal });
+      await pipeline(entry, upload);
+      await listener.finally(() => clearTimeout(t));
       const result = await fileStorage.readDir({ dirPath });
       expect(result.length).toBe(1);
     });

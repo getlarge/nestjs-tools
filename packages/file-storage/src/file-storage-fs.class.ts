@@ -13,7 +13,7 @@ import {
 } from 'fs';
 import { readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve as resolvePath } from 'node:path';
-import { Readable } from 'node:stream';
+import { finished, Readable } from 'node:stream';
 
 import { MethodTypes } from './constants';
 import {
@@ -120,8 +120,7 @@ export class FileStorageLocal implements FileStorage {
     const { filePath, options, request } = args;
     const fileName = await this.transformFilePath(filePath, MethodTypes.WRITE, request, options);
     const writeStream = createWriteStream(fileName, options);
-    writeStream.prependOnceListener('finish', () => writeStream.emit('done'));
-    writeStream.prependOnceListener('error', (err) => writeStream.emit('done', err));
+    finished(writeStream, (err) => writeStream.emit('done', err));
     return writeStream;
   }
 

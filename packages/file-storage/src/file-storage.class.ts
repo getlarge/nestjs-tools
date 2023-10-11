@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Request } from 'express';
-import type { Readable, Writable } from 'node:stream';
+import type { Readable } from 'node:stream';
 
 import { MethodTypes } from './constants';
+import { FileStorageWritable } from './types';
 
 // TODO: extend configuration
 export interface FileStorageConfig {
@@ -71,7 +72,7 @@ export abstract class FileStorage {
     args: FileStorageBaseArgs & {
       options?: string | any;
     },
-  ): Promise<Writable> {
+  ): Promise<FileStorageWritable> {
     throw new Error(defaultErrorMessage);
   }
 

@@ -1,4 +1,5 @@
 import { InjectionToken, ModuleMetadata } from '@nestjs/common';
+import { Writable } from 'node:stream';
 
 import { FileStorage, FileStorageConfigFactory } from './file-storage.class';
 import { FileStorageLocalSetup } from './file-storage-fs.class';
@@ -30,3 +31,15 @@ export interface FileStorageModuleAsyncOptions extends Pick<ModuleMetadata, 'imp
   // useExisting?: FileStorage;
   inject?: InjectionToken[];
 }
+
+interface WritableWithDoneEvent {
+  emit(event: 'done', error?: Error): boolean;
+  addListener(event: 'done', listener: (error?: Error) => void): this;
+  on(event: 'done', listener: (error?: Error) => void): this;
+  once(event: 'done', listener: (error?: Error) => void): this;
+  prependOnceListener(event: 'done', listener: (error?: Error) => void): this;
+  prependListener(event: 'done', listener: (error?: Error) => void): this;
+  removeListener(event: 'done', listener: () => void): this;
+}
+
+export type FileStorageWritable = Writable & WritableWithDoneEvent;

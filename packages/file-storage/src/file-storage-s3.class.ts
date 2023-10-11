@@ -9,7 +9,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import type { Request } from 'express';
-import { PassThrough, Readable, Writable } from 'node:stream';
+import { PassThrough, Readable } from 'node:stream';
 
 import { MethodTypes } from './constants';
 import {
@@ -19,6 +19,7 @@ import {
   FileStorageConfigFactory,
   FileStorageDirBaseArgs,
 } from './file-storage.class';
+import { FileStorageWritable } from './types';
 
 /**
  * Either region or endpoint must be provided
@@ -140,7 +141,7 @@ export class FileStorageS3 implements FileStorage {
     }).done();
   }
 
-  async uploadStream(args: FileStorageS3UploadStream): Promise<Writable> {
+  async uploadStream(args: FileStorageS3UploadStream): Promise<FileStorageWritable> {
     const { filePath, options = {}, request } = args;
     const Key = await this.transformFilePath(filePath, MethodTypes.WRITE, request, options);
     const { s3, bucket: Bucket } = this.config;
@@ -155,8 +156,11 @@ export class FileStorageS3 implements FileStorage {
       },
     })
       .done()
+      .then(() => {
+        writeStream.emit('done');
+      })
       .catch((err) => {
-        writeStream.destroy(err);
+        writeStream.emit('done', err);
       });
     return writeStream;
   }

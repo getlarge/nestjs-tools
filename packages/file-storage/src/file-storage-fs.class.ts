@@ -13,7 +13,7 @@ import {
 } from 'fs';
 import { readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve as resolvePath } from 'node:path';
-import { Readable, Writable } from 'node:stream';
+import { finished, Readable } from 'node:stream';
 
 import { MethodTypes } from './constants';
 import {
@@ -23,6 +23,7 @@ import {
   FileStorageConfigFactory,
   FileStorageDirBaseArgs,
 } from './file-storage.class';
+import { FileStorageWritable } from './types';
 
 export type StreamOptions = {
   flags?: string;
@@ -115,10 +116,12 @@ export class FileStorageLocal implements FileStorage {
     return writeFile(fileName, content, options);
   }
 
-  async uploadStream(args: FileStorageLocalUploadStream): Promise<Writable> {
+  async uploadStream(args: FileStorageLocalUploadStream): Promise<FileStorageWritable> {
     const { filePath, options, request } = args;
     const fileName = await this.transformFilePath(filePath, MethodTypes.WRITE, request, options);
-    return createWriteStream(fileName, options);
+    const writeStream = createWriteStream(fileName, options);
+    finished(writeStream, (err) => writeStream.emit('done', err));
+    return writeStream;
   }
 
   downloadFile(args: {

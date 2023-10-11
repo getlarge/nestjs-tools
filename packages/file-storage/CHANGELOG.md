@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.8.0](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-file-storage@0.7.0...@s1seven/nestjs-tools-file-storage@0.8.0) (2023-10-11)
+
+### Features
+
+- **file-storage:** create FileStorageWritable type with `done` event ([6eed261](https://github.com/s1seven/nestjs-tools/commit/6eed261c06f147f5bddd2b9e643da2c52fcd32af))
+- **file-storage:** emit 'done' event once file is fully written ([f8b1a02](https://github.com/s1seven/nestjs-tools/commit/f8b1a02eef9924f51da3105315cb476d643865d7))
+
 # [0.7.0](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-file-storage@0.6.3...@s1seven/nestjs-tools-file-storage@0.7.0) (2023-09-04)
 
 ### Bug Fixes

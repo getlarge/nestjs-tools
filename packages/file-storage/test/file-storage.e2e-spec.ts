@@ -4,7 +4,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import * as dotenv from 'dotenv';
 import { mkdir, rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { Readable } from 'node:stream';
+import { once, Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 
 import { FileStorage, FileStorageModule, FileStorageModuleOptions, StorageType } from '../src';
@@ -111,8 +111,9 @@ testMap.forEach((testSuite) => {
       const upload = await fileStorage.uploadStream({ filePath: testFileName });
       const entry = Readable.from(Buffer.from(testFileContent));
       await pipeline(entry, upload);
-      // add delay, otherwise test is flaky
-      await new Promise<void>((resolve) => setTimeout(resolve, 100));
+      const ac = new AbortController();
+      const t = setTimeout(() => ac.abort(), 200);
+      await once(upload, 'done', { signal: ac.signal }).finally(() => clearTimeout(t));
       const result = await fileStorage.readDir({ dirPath });
       expect(result.length).toBe(1);
     });

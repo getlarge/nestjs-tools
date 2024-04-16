@@ -10,11 +10,11 @@ import {
   FileStorageService,
   StorageType,
 } from '../src';
-import { FILE_STORAGE_STRATEGY_TOKEN } from '../src/constants';
+import { FILE_STORAGE_STRATEGY_TOKEN } from '../src/lib/constants';
 
 class FileStorageTest extends FileStorage {
   constructor() {
-    super({});
+    super();
   }
 }
 
@@ -58,7 +58,7 @@ describe('forRootAsync', () => {
 describe('forRoot', () => {
   it('Can create FileStorageLocal instance from options', async () => {
     const storageType: StorageType = StorageType.FS;
-    const options: FileStorageModuleOptions = {
+    const options: Partial<FileStorageModuleOptions> = {
       [storageType]: { setup: { storagePath: '', maxPayloadSize: 1 } },
     };
 
@@ -75,7 +75,7 @@ describe('forRoot', () => {
 
   it('Can create FileStorageS3 instance from options passing a region', async () => {
     const storageType: StorageType = StorageType.S3;
-    const options: FileStorageModuleOptions = {
+    const options: Partial<FileStorageModuleOptions> = {
       [storageType]: {
         setup: {
           bucket: 'bucket',
@@ -102,7 +102,7 @@ describe('forRoot', () => {
 
   it('Can create FileStorageS3 instance from options passing an endpoint', async () => {
     const storageType: StorageType = StorageType.S3;
-    const options: FileStorageModuleOptions = {
+    const options: Partial<FileStorageModuleOptions> = {
       [storageType]: {
         setup: {
           bucket: 'bucket',

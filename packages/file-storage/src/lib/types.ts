@@ -10,6 +10,12 @@ export enum StorageType {
   S3 = 'S3',
 }
 
+export enum MethodTypes {
+  READ = 'read',
+  WRITE = 'write',
+  DELETE = 'delete',
+}
+
 export interface FileStorageLocalOptions<ExtraConfig extends Record<string, unknown>> {
   setup: FileStorageLocalSetup;
   factory?: FileStorageConfigFactory<ExtraConfig, FileStorageLocalSetup>;
@@ -20,13 +26,14 @@ export interface FileStorageS3Options<ExtraConfig extends Record<string, unknown
   factory?: FileStorageConfigFactory<FileStorageS3Config & ExtraConfig, FileStorageS3Setup>;
 }
 
-export interface FileStorageModuleOptions<ExtraConfig extends Record<string, unknown> = Record<string, unknown>> {
-  [StorageType.FS]?: FileStorageLocalOptions<ExtraConfig>;
-  [StorageType.S3]?: FileStorageS3Options<ExtraConfig>;
-}
+export type FileStorageModuleOptions<ExtraConfig extends Record<string, unknown> = Record<string, unknown>> = {
+  [StorageType.FS]: FileStorageLocalOptions<ExtraConfig>;
+  [StorageType.S3]: FileStorageS3Options<ExtraConfig>;
+};
 
 export interface FileStorageModuleAsyncOptions extends Pick<ModuleMetadata, 'imports'> {
-  useFactory?: (...args: any[]) => Promise<FileStorage> | FileStorage;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  useFactory: (...args: any[]) => Promise<FileStorage> | FileStorage;
   // useClass?: FileStorage;
   // useExisting?: FileStorage;
   inject?: InjectionToken[];

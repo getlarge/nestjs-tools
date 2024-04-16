@@ -1,4 +1,3 @@
-import type { Request } from 'express';
 import {
   BigIntOptions,
   createReadStream,
@@ -15,7 +14,6 @@ import { readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve as resolvePath } from 'node:path';
 import { finished, Readable } from 'node:stream';
 
-import { MethodTypes } from './constants';
 import {
   FileStorage,
   FileStorageBaseArgs,
@@ -23,7 +21,7 @@ import {
   FileStorageConfigFactory,
   FileStorageDirBaseArgs,
 } from './file-storage.class';
-import { FileStorageWritable } from './types';
+import { FileStorageWritable, MethodTypes } from './types';
 
 export type StreamOptions = {
   flags?: string;
@@ -84,12 +82,18 @@ export interface FileStorageLocalDownloadStream extends FileStorageBaseArgs {
   options?: BufferEncoding | StreamOptions;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Request = any;
+
 // TODO: control filesize limit
 export class FileStorageLocal implements FileStorage {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   readonly config: FileStorageConfig & Record<string, any>;
-  setup: { storagePath: string; maxPayloadSize: number };
 
-  constructor(setup: FileStorageLocalSetup, factory?: FileStorageConfigFactory) {
+  constructor(
+    setup: FileStorageLocalSetup,
+    factory?: FileStorageConfigFactory<FileStorageConfig, FileStorageLocalSetup>,
+  ) {
     this.config = typeof factory === 'function' ? factory(setup) : config(setup);
   }
 
@@ -97,6 +101,7 @@ export class FileStorageLocal implements FileStorage {
     fileName: string,
     methodType: MethodTypes,
     request?: Request,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     options: any = {},
   ): string | Promise<string> {
     return typeof this.config.filePath === 'function'
@@ -127,23 +132,19 @@ export class FileStorageLocal implements FileStorage {
   downloadFile(args: {
     filePath: string;
     options: { encoding?: null; flag?: string };
-    request?: Request | any;
+    request?: Request;
   }): Promise<Buffer>;
-
   downloadFile(args: {
     filePath: string;
     options: { encoding: BufferEncoding; flag?: string } | BufferEncoding;
-    request?: Request | any;
+    request?: Request;
   }): Promise<string>;
-
   downloadFile(args: {
     filePath: string;
     options: (ObjectEncodingOptions & { flag?: string }) | BufferEncoding | undefined | null;
-    request?: Request | any;
+    request?: Request;
   }): Promise<string | Buffer>;
-
-  downloadFile(args: { filePath: string; request?: Request | any }): Promise<Buffer>;
-
+  downloadFile(args: { filePath: string; request?: Request }): Promise<Buffer>;
   async downloadFile(args: FileStorageLocalDownloadFile) {
     const { filePath, options, request } = args;
     const fileName = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
@@ -178,7 +179,7 @@ export class FileStorageLocal implements FileStorage {
       // we need return await to catch the error
       return await readdir(transformedDirPath);
     } catch (err) {
-      if (err.code === 'ENOENT') {
+      if (err instanceof Error && 'code' in err && err['code'] === 'ENOENT') {
         return [];
       }
       throw err;

@@ -1,4 +1,4 @@
-import { FileStorageS3 } from '../src/file-storage-s3.class';
+import { FileStorageS3 } from '../src/lib/file-storage-s3.class';
 
 describe('extractRegionFromEndpoint correctly returns the region or throws an error', () => {
   const testStrings = [

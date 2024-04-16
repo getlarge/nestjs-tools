@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { Readable } from 'node:stream';
 
-import { InjectFileStorageStrategy } from './decorators';
 import { FileStorage, FileStorageBaseArgs, FileStorageDirBaseArgs } from './file-storage.class';
 import {
   FileStorageLocalDownloadFile,
@@ -18,6 +17,7 @@ import {
   FileStorageS3UploadFile,
   FileStorageS3UploadStream,
 } from './file-storage-s3.class';
+import { InjectFileStorageStrategy } from './inject-file-storage.decorator';
 import type { FileStorageWritable } from './types';
 
 @Injectable()

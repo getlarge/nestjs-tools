@@ -1,50 +1,46 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import type { Request } from 'express';
 import type { Readable } from 'node:stream';
 
-import { MethodTypes } from './constants';
-import { FileStorageWritable } from './types';
+import { FileStorageWritable, MethodTypes } from './types';
 
-// TODO: extend configuration
 export interface FileStorageConfig {
   filePath?: (options: {
     request?: Request;
-    fileName?: string;
-    methodType?: MethodTypes;
-    [key: string]: any;
+    fileName: string;
+    methodType: MethodTypes;
+    [key: string]: unknown;
   }) => string | Promise<string>;
   limits?: { fileSize: number };
 }
 
-export type FileStorageConfigFactory<T = Record<string, any>, S = Record<string, any>> = (
+export type FileStorageConfigFactory<T extends Record<string, any>, S extends Record<string, any>> = (
   setup: S,
 ) => T & FileStorageConfig;
 
 const defaultErrorMessage = 'Funtion must be implemented';
 
+type Request = any;
+
 export interface FileStorageBaseArgs {
   filePath: string;
-  request?: Request | any;
+  request?: Request;
 }
 
 export interface FileStorageDirBaseArgs {
   dirPath: string;
-  request?: Request | any;
+  request?: Request;
 }
 
 export type FileStorageTransformPath = (
   fileName: string,
   methodType: MethodTypes,
-  request?: Request | any,
+  request?: Request,
   options?: any,
 ) => string | Promise<string>;
 
 export abstract class FileStorage {
   readonly config?: FileStorageConfig & Record<string, any>;
-
-  constructor(setup: Record<string, any>, factory?: (setup?: Record<string, any>) => any) {
-    //
-  }
 
   transformFilePath: FileStorageTransformPath = (
     fileName,

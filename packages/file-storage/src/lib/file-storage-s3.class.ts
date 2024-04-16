@@ -11,7 +11,6 @@ import { Upload } from '@aws-sdk/lib-storage';
 import type { Request } from 'express';
 import { PassThrough, Readable } from 'node:stream';
 
-import { MethodTypes } from './constants';
 import {
   FileStorage,
   FileStorageBaseArgs,
@@ -19,7 +18,7 @@ import {
   FileStorageConfigFactory,
   FileStorageDirBaseArgs,
 } from './file-storage.class';
-import { FileStorageWritable } from './types';
+import { FileStorageWritable, MethodTypes } from './types';
 
 /**
  * Either region or endpoint must be provided
@@ -38,18 +37,23 @@ export type FileStorageS3Setup = {
 export interface FileStorageS3Config {
   s3: S3;
   bucket: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 
 function config(setup: FileStorageS3Setup) {
-  const { bucket, maxPayloadSize, credentials, region, endpoint, logger } = setup;
+  const { bucket, maxPayloadSize, credentials, endpoint, logger } = setup;
+  const region = setup.region ?? FileStorageS3.extractRegionFromEndpoint(endpoint ?? '');
+  if (!region) {
+    throw new Error('AWS region is missing');
+  }
   const s3 = new S3({
     /**
      * We cannot really make calls without credentials unless we use a workaround
      * @see https://github.com/aws/aws-sdk-js-v3/issues/2321
      */
     ...(credentials ? { credentials } : {}),
-    region: region ? region : FileStorageS3.extractRegionFromEndpoint(endpoint),
+    region,
     ...(logger ? { logger } : {}),
   });
 
@@ -91,23 +95,23 @@ export interface FileStorageS3DeleteFile extends FileStorageBaseArgs {
   options?: DeleteObjectCommandInput;
 }
 
-function removeTrailingForwardSlash(string: string) {
-  return string.endsWith('/') ? string.slice(0, -1) : string;
+function removeTrailingForwardSlash(x?: string) {
+  return x?.endsWith('/') ? x?.slice(0, -1) : x;
 }
 
-function addTrailingForwardSlash(string: string) {
-  return string.endsWith('/') ? string : `${string}/`;
+function addTrailingForwardSlash(x: string) {
+  return x.endsWith('/') ? x : `${x}/`;
 }
 
 // TODO: control filesize limit
 export class FileStorageS3 implements FileStorage {
   readonly config: FileStorageConfig & FileStorageS3Config;
 
-  constructor(setup: FileStorageS3Setup, factory?: FileStorageConfigFactory<FileStorageS3Config>) {
+  constructor(setup: FileStorageS3Setup, factory?: FileStorageConfigFactory<FileStorageS3Config, FileStorageS3Setup>) {
     this.config = typeof factory === 'function' ? factory(setup) : config(setup);
   }
 
-  static extractRegionFromEndpoint(endpoint: string): string {
+  static extractRegionFromEndpoint(endpoint: string): string | null {
     const match = endpoint?.match(/(?<=\.)[^.]+(?=\.amazonaws\.com)/);
     return match?.length ? match[0] : null;
   }
@@ -116,6 +120,7 @@ export class FileStorageS3 implements FileStorage {
     fileName: string,
     methodType: MethodTypes,
     request?: Request,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     options: any = {},
   ): string | Promise<string> {
     return typeof this.config.filePath === 'function'
@@ -241,18 +246,18 @@ export class FileStorageS3 implements FileStorage {
     //  add nested folders, CommonPrefixes contains <prefix>/<next nested dir>
     if (listedObjects.CommonPrefixes?.length) {
       const folders = listedObjects.CommonPrefixes.map((prefixObject) => {
-        const prefix = removeTrailingForwardSlash(prefixObject.Prefix);
+        const prefix = removeTrailingForwardSlash(prefixObject.Prefix) ?? '';
         const key = listParams['Prefix'];
-        // If key exists, we are looking for a nested folder such as v0.1.0
-        return key
-          ? prefix.slice(key.length) // e.g. v0.1.0
-          : prefix; // e.g. en10168-schemas
+        // If key exists, we are looking for a nested folder
+        return key ? prefix.slice(key.length) : prefix;
       });
       filesAndFilders.push(...folders);
     }
     // adds filenames
-    if (listedObjects.Contents?.length) {
-      const files = listedObjects.Contents.map((file) => file.Key.replace(listedObjects.Prefix, ''));
+    if (listedObjects.Contents?.length && listedObjects.Prefix) {
+      const files = listedObjects.Contents.filter((file) => !!file.Key).map((file) =>
+        file.Key?.replace(listedObjects.Prefix as string, ''),
+      ) as string[];
       filesAndFilders.push(...files);
     }
     return filesAndFilders;

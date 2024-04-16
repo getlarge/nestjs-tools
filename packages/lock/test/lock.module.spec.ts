@@ -4,6 +4,7 @@ import { LOCK_SERVICE_OPTIONS, LockModule, LockService } from '../src';
 import { getRedisClientConfig, mockConfigService } from './config.service.mock';
 
 describe('forRootAsync', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const redis = getRedisClientConfig(mockConfigService as any);
 
   it('Can create instance with provider method', async () => {
@@ -25,6 +26,7 @@ describe('forRootAsync', () => {
 });
 
 describe('forRoot', () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const options = getRedisClientConfig(mockConfigService as any);
 
   it('Can create instance ', async () => {

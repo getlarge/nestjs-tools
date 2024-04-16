@@ -18,13 +18,14 @@ export interface LockServiceOptions {
 
 @Injectable()
 export class LockService implements OnModuleInit, OnModuleDestroy {
-  private redis: Redis;
-  redlock: Redlock;
   private readonly defaultLockOptions: LockOptions = {
     retryCount: 1,
     retryDelay: 200,
     // automaticExtensionThreshold: 500,
   };
+  private redis!: Redis;
+  redlock!: Redlock;
+
   constructor(@Inject(LOCK_SERVICE_OPTIONS) readonly options: LockServiceOptions) {}
 
   onModuleInit(): void {
@@ -35,7 +36,7 @@ export class LockService implements OnModuleInit, OnModuleDestroy {
     await this.close();
   }
 
-  errorHandler(error: any) {
+  errorHandler(error: unknown) {
     // Ignore cases where a resource is explicitly marked as locked on a client.
     if (error instanceof ResourceLockedError) {
       return;
@@ -47,7 +48,7 @@ export class LockService implements OnModuleInit, OnModuleDestroy {
   createConnection(): void {
     this.redis = new IORedis(this.options.redis);
     this.redlock = new Redlock([this.redis], { ...this.defaultLockOptions, ...(this.options.lock || {}) });
-    // TODO: this.redlock.on('error', this.errorHandler);
+    // this.redlock.on('error', this.errorHandler);
   }
 
   isInitialized(): void {
@@ -56,7 +57,7 @@ export class LockService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  optimistic<T = any>(key: string, ttl: number, cb: (signal: RedlockAbortSignal) => Promise<T>): Promise<T> {
+  optimistic<T = unknown>(key: string, ttl: number, cb: (signal: RedlockAbortSignal) => Promise<T>): Promise<T> {
     this.isInitialized();
     return this.redlock.using<T>([key], ttl, cb);
   }
@@ -66,7 +67,7 @@ export class LockService implements OnModuleInit, OnModuleDestroy {
     return this.redlock.acquire([key], ttl);
   }
 
-  async get(key: string, lockId: string): Promise<Lock> {
+  async get(key: string, lockId: string): Promise<Lock | null> {
     this.isInitialized();
     const value = await this.redis.get(key);
     // provide fake data for attempts and expiration as this lock would be used for release only

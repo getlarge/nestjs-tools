@@ -4,9 +4,9 @@
 
 # NestJS Tools
 
-[![License: ISC](https://img.shields.io/badge/License-ISC-yellow.svg)](https://opensource.org/licenses/ISC)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache-yellow.svg)](https://opensource.org/license/apache-2-0)
 [![CI](https://github.com/getlarge/nestjs-tools/actions/workflows/node.yml/badge.svg)](https://github.com/getlarge/nestjs-tools/actions/workflows/node.yml)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=getlarge_nestjs-tools&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=s1seven_nestjs-tools)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=getlarge_nestjs-tools&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=getlarge_nestjs-tools)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
 This repository contains several helpful packages for NestJS that I have developed for NestJS applications running in production.

@@ -2,7 +2,7 @@
   "name": "nestjs-tools",
   "description": "Tools for NestJS applications",
   "version": "0.0.0",
-  "license": "ISC",
+  "license": "Apache 2.0",
   "homepage": "https://github.com/getlarge/nestjs-tools#readme",
   "repository": {
     "type": "git",
@@ -35,8 +35,7 @@
     "test:inspect": "node --inspect-brk --expose-gc -r tsconfig-paths/register -r ts-node/register ./node_modules/.bin/jest --runInBand --logHeapUsage",
     "test:coverage": "jest --ci --coverage --logHeapUsage --forceExit && node coverage-transform.js",
     "scan:deps": "audit-ci --config audit-ci.json",
-    "scan:code": "sonarqube-verify",
-    "prepare": "npm run format && npm run lint"
+    "scan:code": "sonarqube-verify"
   },
   "private": true,
   "devDependencies": {

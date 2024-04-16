@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Readable } from 'node:stream';
 
-import { FileStorageWritable, MethodTypes } from './types';
+import { FileStorageWritable, MethodTypes, Request } from './types';
 
 export interface FileStorageConfig {
   filePath?: (options: {
@@ -19,8 +19,6 @@ export type FileStorageConfigFactory<T extends Record<string, any>, S extends Re
 ) => T & FileStorageConfig;
 
 const defaultErrorMessage = 'Funtion must be implemented';
-
-type Request = any;
 
 export interface FileStorageBaseArgs {
   filePath: string;

@@ -21,7 +21,7 @@ import {
   FileStorageConfigFactory,
   FileStorageDirBaseArgs,
 } from './file-storage.class';
-import { FileStorageWritable, MethodTypes } from './types';
+import { FileStorageWritable, MethodTypes, Request } from './types';
 
 export type StreamOptions = {
   flags?: string;
@@ -81,9 +81,6 @@ export interface FileStorageLocalDownloadFile extends FileStorageBaseArgs {
 export interface FileStorageLocalDownloadStream extends FileStorageBaseArgs {
   options?: BufferEncoding | StreamOptions;
 }
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Request = any;
 
 // TODO: control filesize limit
 export class FileStorageLocal implements FileStorage {

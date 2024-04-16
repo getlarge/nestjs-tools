@@ -16,6 +16,9 @@ export enum MethodTypes {
   DELETE = 'delete',
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type Request = any;
+
 export interface FileStorageLocalOptions<ExtraConfig extends Record<string, unknown>> {
   setup: FileStorageLocalSetup;
   factory?: FileStorageConfigFactory<ExtraConfig, FileStorageLocalSetup>;

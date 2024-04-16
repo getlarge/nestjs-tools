@@ -8,7 +8,6 @@ import {
   S3,
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
-import type { Request } from 'express';
 import { PassThrough, Readable } from 'node:stream';
 
 import {
@@ -18,7 +17,7 @@ import {
   FileStorageConfigFactory,
   FileStorageDirBaseArgs,
 } from './file-storage.class';
-import { FileStorageWritable, MethodTypes } from './types';
+import { FileStorageWritable, MethodTypes, Request } from './types';
 
 /**
  * Either region or endpoint must be provided

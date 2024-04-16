@@ -41,15 +41,16 @@
       "dependsOn": ["^build"],
       "inputs": ["production", "^production"]
     },
-    "@nx/jest:jest": {
+    "test": {
       "cache": true,
       "options": {
-        "passWithNoTests": true
+        "passWithNoTests": true,
+        "collectCoverage": true
       },
       "configurations": {
         "ci": {
           "ci": true,
-          "codeCoverage": true
+          "collectCoverage": true
         }
       }
     },

@@ -1,3 +1,15 @@
+## 0.5.2 (2024-04-16)
+
+
+### 🩹 Fixes
+
+- **amqp-transport:** solve type issues and improve reconnection handling ([faf027c](https://github.com/getlarge/nestjs-tools/commit/faf027c))
+
+
+### ❤️  Thank You
+
+- getlarge @getlarge
+
 # Change Log
 
 All notable changes to this project will be documented in this file.

@@ -1,3 +1,25 @@
+## 0.3.0 (2024-04-16)
+
+
+### 🚀 Features
+
+- add module implementation ([715e29d](https://github.com/getlarge/nestjs-tools/commit/715e29d))
+
+
+### 🩹 Fixes
+
+- remove default requestContext factory due to type issues ([f16b6a4](https://github.com/getlarge/nestjs-tools/commit/f16b6a4))
+
+- throw errors before creating providers ([046fd4e](https://github.com/getlarge/nestjs-tools/commit/046fd4e))
+
+- **nestjs-tools-async-local-storage:** use stricter typing ([e588371](https://github.com/getlarge/nestjs-tools/commit/e588371))
+
+
+### ❤️  Thank You
+
+- Edouard @getlarge
+- getlarge @getlarge
+
 # Change Log
 
 All notable changes to this project will be documented in this file.

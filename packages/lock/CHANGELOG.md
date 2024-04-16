@@ -1,3 +1,21 @@
+# 1.0.0 (2024-04-16)
+
+
+### 🚀 Features
+
+- ⚠️  **lock:** update dependencies ([17d414e](https://github.com/getlarge/nestjs-tools/commit/17d414e))
+
+- **lock:** export LockService ([192ee1a](https://github.com/getlarge/nestjs-tools/commit/192ee1a))
+
+
+#### ⚠️  Breaking Changes
+
+- **lock:** replace redis and warlock
+
+### ❤️  Thank You
+
+- getlarge @getlarge
+
 # Change Log
 
 All notable changes to this project will be documented in this file.

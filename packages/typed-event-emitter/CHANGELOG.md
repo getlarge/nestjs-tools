@@ -1,3 +1,22 @@
+## 0.2.0 (2024-04-16)
+
+
+### 🚀 Features
+
+- **typed-event-emitter:** create type safe event emitter ([67fa49c](https://github.com/getlarge/nestjs-tools/commit/67fa49c))
+
+- **typed-event-emitter:** create new methods to wait events ([f9a3a12](https://github.com/getlarge/nestjs-tools/commit/f9a3a12))
+
+
+### 🩹 Fixes
+
+- **amqp-transport:** solve type issues and improve reconnection handling ([faf027c](https://github.com/getlarge/nestjs-tools/commit/faf027c))
+
+
+### ❤️  Thank You
+
+- getlarge @getlarge
+
 # Change Log
 
 All notable changes to this project will be documented in this file.

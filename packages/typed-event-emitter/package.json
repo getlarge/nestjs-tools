@@ -1,6 +1,6 @@
 {
   "name": "@getlarge/typed-event-emitter",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Event emitter with generic event types",
   "keywords": [
     "eventemitter",

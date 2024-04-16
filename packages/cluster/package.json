@@ -1,6 +1,6 @@
 {
   "name": "@getlarge/nestjs-tools-cluster",
-  "version": "0.15.5",
+  "version": "0.15.6",
   "description": "Cluster and workers manager",
   "keywords": [
     "cluster",
@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "tslib": "^2.3.0",
-    "@getlarge/typed-event-emitter": "0.1.1"
+    "@getlarge/typed-event-emitter": "0.2.0"
   },
   "type": "commonjs",
   "main": "./src/index.js",

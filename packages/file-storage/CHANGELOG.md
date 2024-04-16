@@ -1,3 +1,24 @@
+# 1.0.0 (2024-04-16)
+
+
+### 🚀 Features
+
+- **file-storage:** create `FileStorageModule` ([07237e1](https://github.com/getlarge/nestjs-tools/commit/07237e1))
+
+- **file-storage:** emit 'done' event once file is fully written ([f8b1a02](https://github.com/getlarge/nestjs-tools/commit/f8b1a02))
+
+
+### 🩹 Fixes
+
+- **file-storage:** correctly spread credentials propetry ([f26ed81](https://github.com/getlarge/nestjs-tools/commit/f26ed81))
+
+
+### ❤️  Thank You
+
+- Eamon
+- Edouard @getlarge
+- getlarge @getlarge
+
 # Change Log
 
 All notable changes to this project will be documented in this file.

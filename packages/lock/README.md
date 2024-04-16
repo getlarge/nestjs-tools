@@ -2,8 +2,8 @@
 
 [![npm][npm-image]][npm-url]
 
-[npm-image]: https://img.shields.io/npm/v/@s1seven/nestjs-tools-lock.svg?style=flat
-[npm-url]: https://npmjs.org/package/@s1seven/nestjs-tools-lock
+[npm-image]: https://img.shields.io/npm/v/@getlarge/nestjs-tools-lock.svg?style=flat
+[npm-url]: https://npmjs.org/package/@getlarge/nestjs-tools-lock
 
 The Lock Service produce distributed locks to prevent duplicated/conflicted actions to be executed in a distributed environment.
 It is based on [Redlock](https://www.npmjs.com/package/redlock) module.
@@ -11,7 +11,7 @@ It is based on [Redlock](https://www.npmjs.com/package/redlock) module.
 ## Installation
 
 ```bash
-$ npm install --save @s1seven/nestjs-tools-lock
+$ npm install --save @getlarge/nestjs-tools-lock
 ```
 
 ## Usage
@@ -19,7 +19,7 @@ $ npm install --save @s1seven/nestjs-tools-lock
 ### Inside a CronJob service
 
 ```ts
-import { LockService } from '@s1seven/nestjs-tools-lock';
+import { LockService } from '@getlarge/nestjs-tools-lock';
 import { Inject, Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 

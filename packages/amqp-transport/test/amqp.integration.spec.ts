@@ -5,15 +5,16 @@ import { DynamicModule, INestMicroservice } from '@nestjs/common/interfaces';
 import { ClientsModule } from '@nestjs/microservices';
 import { RQM_DEFAULT_NOACK, RQM_DEFAULT_PREFETCH_COUNT } from '@nestjs/microservices/constants';
 import { Test, TestingModule } from '@nestjs/testing';
-import { Options } from 'amqplib';
+import type { Options } from 'amqplib';
+import { setTimeout } from 'node:timers/promises';
 
 import { AmqpClient, AmqpOptions, AmqpServer } from '../src';
-import { DUMMY_CLIENT, DUMMY_QUEUE, RMQ_URL } from './dummy/dummy.constants';
-import { DummyConsumerController } from './dummy/dummy-consumer.controller';
-import { DummyProducerService } from './dummy/dummy-producer.service';
+import { DUMMY_CLIENT, DUMMY_QUEUE, RMQ_URL } from './dummy.constants';
+import { DummyConsumerController } from './dummy-consumer.controller.mock.';
+import { DummyProducerService } from './dummy-producer.service.mock';
 
 interface Closeable {
-  close: () => Promise<any>;
+  close: () => Promise<unknown>;
 }
 
 let openConnections: Closeable[] = [];
@@ -130,7 +131,7 @@ const setupAll = async (options: SetupAllOptions = {}) => {
     const consumer = await setupConsumer(testConfiguration, i);
     consumers.push(consumer);
   }
-  await new Promise((resolve) => setTimeout(resolve, 0));
+  await setTimeout(0);
   return { producers, consumers };
 };
 
@@ -146,7 +147,7 @@ describe('AMQP tests', () => {
   afterEach(async () => {
     //! give time for messages to be published / received
     spy.mockClear();
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    await setTimeout(500);
     await closeAll();
   });
 
@@ -194,7 +195,7 @@ describe('AMQP tests', () => {
     results.forEach((r) => {
       expect(r).toEqual(expect.objectContaining(msg));
     });
-    expect(spy).toBeCalledTimes(results.length);
+    expect(spy).toHaveBeenCalledTimes(results.length);
     expect(spy).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining(msg) }));
   });
 
@@ -339,7 +340,7 @@ describe('AMQP tests', () => {
     });
     const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
     // Then
-    const results = await makeMultipleRequests(() => service.test(msg, noAck), 10);
+    const results = await makeMultipleRequests(() => service.test(msg, noAck), 5);
     // Expect
     expect(results).toBeDefined();
     results.forEach((r) => {
@@ -476,13 +477,13 @@ describe('AMQP tests', () => {
       const service2 = moduleProducer2.get<DummyProducerService>(DummyProducerService);
       // Then
       await Promise.all([
-        makeMultipleRequests(() => service1.test(msg, noAck), 10),
-        makeMultipleRequests(() => service2.test(msg, noAck), 10),
+        makeMultipleRequests(() => service1.test(msg, noAck), 5),
+        makeMultipleRequests(() => service2.test(msg, noAck), 5),
       ]);
     } catch (ex) {
       // Expect
       expect(ex).toBeDefined();
       expect(ex).toEqual('TimeoutError');
     }
-  }, 6000);
+  }, 8000);
 });

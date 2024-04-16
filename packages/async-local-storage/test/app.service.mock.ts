@@ -4,7 +4,7 @@ import { AsyncLocalStorageService } from '../src';
 
 @Injectable()
 export class ExampleService {
-  @Inject(AsyncLocalStorageService) private readonly asyncLocalStorageService: AsyncLocalStorageService;
+  @Inject(AsyncLocalStorageService) private readonly asyncLocalStorageService!: AsyncLocalStorageService;
 
   getExample() {
     return this.asyncLocalStorageService.requestContext;

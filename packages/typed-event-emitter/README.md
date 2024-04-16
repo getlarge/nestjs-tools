@@ -2,11 +2,11 @@
 
 [![npm][npm-image]][npm-url]
 
-[npm-image]: https://img.shields.io/npm/v/@s1seven/typed-event-emitter.svg?style=flat
-[npm-url]: https://npmjs.org/package/@s1seven/typed-event-emitter
+[npm-image]: https://img.shields.io/npm/v/@getlarge/typed-event-emitter.svg?style=flat
+[npm-url]: https://npmjs.org/package/@getlarge/typed-event-emitter
 
 ## Installation
 
 ```bash
-$ npm install --save @s1seven/typed-event-emitter
+npm install --save @getlarge/typed-event-emitter
 ```

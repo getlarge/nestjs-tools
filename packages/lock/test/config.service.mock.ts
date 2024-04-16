@@ -13,9 +13,9 @@ export const mockConfigService = {
       case 'REDIS_DB':
         return 0;
       case 'REDIS_PASSWORD':
-        return process.env.REDIS_PASSWORD || '';
+        return process.env['REDIS_PASSWORD'] || '';
       case 'REDIS_USERNAME':
-        return process.env.REDIS_USERNAME || '';
+        return process.env['REDIS_USERNAME'] || '';
       default:
         return undefined;
     }
@@ -34,7 +34,7 @@ export function parseRedisUrl(url: string) {
 }
 
 export function getRedisClientConfig(configService: ConfigService): RedisOptions {
-  const url = configService.get<string>('REDIS_URL');
+  const url = configService.get('REDIS_URL') || '';
   const { port, host, username, password, protocol } = parseRedisUrl(url);
   const baseOptions: RedisOptions = {
     port: configService.get<number>('REDIS_PORT') || port,

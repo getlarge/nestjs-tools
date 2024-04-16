@@ -1,0 +1,20 @@
+{
+  "name": "nestjs-tools-amqp-transport",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/amqp-transport/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/amqp-transport",
+        "tsConfig": "packages/amqp-transport/tsconfig.lib.json",
+        "packageJson": "packages/amqp-transport/package.json",
+        "main": "packages/amqp-transport/src/index.ts",
+        "assets": ["packages/amqp-transport/*.md"]
+      }
+    }
+  }
+}

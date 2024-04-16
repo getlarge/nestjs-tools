@@ -8,13 +8,22 @@ import { once, Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 
 import { FileStorage, FileStorageModule, FileStorageModuleOptions, StorageType } from '../src';
-import { FILE_STORAGE_STRATEGY_TOKEN } from '../src/constants';
+import { FILE_STORAGE_STRATEGY_TOKEN } from '../src/lib/constants';
 
 dotenv.config({ path: resolve(__dirname, '../.env.test') });
 
-// TODO: test S3 without loading credentials explicitly but implicitly from env variables
-// process.env.AWS_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID;
-// process.env.AWS_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY;
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace NodeJS {
+    interface ProcessEnv {
+      S3_BUCKET: string;
+      S3_REGION: string;
+      S3_ACCESS_KEY_ID: string;
+      S3_SECRET_ACCESS_KEY: string;
+      S3_ENDPOINT: string;
+    }
+  }
+}
 
 const storagePath = 'store';
 const path = resolve(storagePath);
@@ -28,7 +37,7 @@ const nestedFilePath = `${path}/${nestedDir}`;
 const testMap: {
   description: string;
   storageType: StorageType;
-  options: FileStorageModuleOptions;
+  options: Partial<FileStorageModuleOptions>;
 }[] = [
   {
     description: 'file-storage-fs',
@@ -47,7 +56,6 @@ const testMap: {
           maxPayloadSize: 1,
           bucket: process.env.S3_BUCKET,
           region: process.env.S3_REGION,
-          // endpoint: process.env.S3_ENDPOINT,
           credentials: {
             accessKeyId: process.env.S3_ACCESS_KEY_ID,
             secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,

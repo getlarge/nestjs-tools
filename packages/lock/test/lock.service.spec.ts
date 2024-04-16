@@ -1,15 +1,15 @@
 /* eslint-disable max-lines-per-function */
-/* eslint-disable sonarjs/no-identical-functions */
 import { ExecutionError } from 'redlock';
 
 import { LockService } from '../src';
 import { getRedisClientConfig, mockConfigService } from './config.service.mock';
-import { PatchedLockService } from './patched-lock.service';
+import { PatchedLockService } from './patched-lock.service.mock';
 
 describe('Lock Service', () => {
   let lockService: LockService;
 
   beforeAll(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const redis = getRedisClientConfig(mockConfigService as any);
     lockService = new PatchedLockService({ redis, lock: { retryCount: 0 } });
     lockService.onModuleInit();
@@ -30,7 +30,7 @@ describe('Lock Service', () => {
       [],
     );
     //
-    await expect(lockService.lock('testLock', 1000)).rejects.toThrowError(expectedError);
+    await expect(lockService.lock('testLock', 1000)).rejects.toThrow(expectedError);
   });
 
   it('lock() - unlocks', async () => {
@@ -44,7 +44,7 @@ describe('Lock Service', () => {
     const spy = jest.spyOn(lockService, 'close').mockImplementation(() => Promise.resolve());
     //
     await lockService.onModuleDestroy();
-    expect(spy).toBeCalled();
+    expect(spy).toHaveBeenCalled();
     spy.mockRestore();
   });
 });
@@ -54,6 +54,7 @@ describe('Lock Service - unlocking with id', () => {
   let lockId: string;
 
   beforeAll(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const redis = getRedisClientConfig(mockConfigService as any);
     lockService = new PatchedLockService({ redis, lock: { retryCount: 0 } });
     lockService.onModuleInit();
@@ -71,8 +72,8 @@ describe('Lock Service - unlocking with id', () => {
 
   it('get() - find existing lock', async () => {
     const lock = await lockService.get('customlock', lockId);
-    expect(typeof lock.value).toBe('string');
-    expect(lock.value).toBe(lockId);
+    expect(typeof lock?.value).toBe('string');
+    expect(lock?.value).toBe(lockId);
   }, 5000);
 
   it('unlock() - does not unlock with wrong id', async () => {

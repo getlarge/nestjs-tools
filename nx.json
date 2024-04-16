@@ -1,35 +1,79 @@
 {
-  "tasksRunnerOptions": {
-    "default": {
-      "runner": "nx-cloud",
-      "options": {
-        "cacheableOperations": [
-          "build",
-          "clean",
-          "cleanup",
-          "compile",
-          "lint",
-          "lint:fix",
-          "test",
-          "test:cov",
-          "scan:deps"
-        ],
-        "accessToken": "NDI5ZWY5ZWQtNmZkYy00MGQ1LTk3N2QtZjE5ZWQzOTlhNzgxfHJlYWQtd3JpdGU="
-      }
+  "pluginsConfig": {
+    "@nx/js": {
+      "analyzeSourceFiles": true
     }
   },
-  "targetDefaults": {
-    "build": {
-      "dependsOn": ["^build"]
-    }
-  },
-  "affected": {
-    "defaultBase": "main"
-  },
+  "extends": "nx/presets/npm.json",
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "sharedGlobals": [],
-    "production": ["default"]
-  }
+    "production": [
+      "default",
+      "!{projectRoot}/test/**",
+      "!{projectRoot}/**/*.{spec,test}.ts",
+      "!{projectRoot}/node_modules/**"
+    ]
+  },
+  "release": {
+    "projects": ["packages/*"],
+    "projectsRelationship": "independent",
+    "changelog": {
+      "projectChangelogs": {
+        "createRelease": "github"
+      }
+    },
+    "version": {
+      "conventionalCommits": true,
+      "generatorOptions": {
+        "skipLockFileUpdate": true
+      }
+    },
+    "git": {
+      "commit": true,
+      "tag": true
+    }
+  },
+  "targetDefaults": {
+    "@nx/js:tsc": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"]
+    },
+    "test": {
+      "cache": true,
+      "options": {
+        "passWithNoTests": true,
+        "collectCoverage": true
+      },
+      "configurations": {
+        "ci": {
+          "ci": true,
+          "collectCoverage": true
+        }
+      }
+    },
+    "nx-release-publish": {
+      "options": {
+        "packageRoot": "dist/{projectRoot}",
+        "registry": "https://registry.npmjs.org/"
+      },
+      "dependsOn": ["build"]
+    }
+  },
+  "plugins": [
+    {
+      "plugin": "@nx/eslint/plugin",
+      "options": {
+        "targetName": "lint"
+      }
+    },
+    {
+      "plugin": "@nx/jest/plugin",
+      "options": {
+        "targetName": "test"
+      }
+    }
+  ]
 }

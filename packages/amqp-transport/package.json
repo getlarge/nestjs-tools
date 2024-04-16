@@ -1,56 +1,36 @@
 {
-  "name": "@s1seven/nestjs-tools-amqp-transport",
+  "name": "@getlarge/nestjs-tools-amqp-transport",
   "version": "0.5.1",
   "description": "Custom Nest Transport classes for AMQP",
+  "keywords": [
+    "amqp",
+    "rabbitmq",
+    "microservices",
+    "nestjs"
+  ],
   "license": "Apache-2.0",
-  "author": "getlarge <ed@getlarge.eu>",
-  "homepage": "https://github.com/s1seven/nestjs-tools#readme",
+  "author": "Edouard Maleix <ed@getlarge.eu>",
+  "homepage": "https://github.com/getlarge/nestjs-tools/tree/main/packages/amqp-transport",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
   "publicConfig": {
     "access": "public"
   },
-  "private": false,
-  "types": "dist/index",
-  "main": "dist/index",
-  "directories": {
-    "src": "src",
-    "lib": "dist",
-    "test": "test"
-  },
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "build": "npm run clean && npm run compile",
-    "clean": "rimraf -rf ./dist",
-    "cleanup": "rimraf -rf dist coverage",
-    "compile": "tsc -p tsconfig.build.json",
-    "lint": "eslint -c ../../.eslintrc.js \"**/*.ts\"",
-    "lint:fix": "eslint -c ../../.eslintrc.js \"**/*.ts\" --fix",
-    "test": "jest",
-    "test:cov": "rimraf -rf ./coverage && jest --ci --coverage --logHeapUsage",
-    "prepublishOnly": "npm run build"
-  },
+  "type": "commonjs",
+  "main": "./src/index.js",
+  "typings": "./src/index.d.ts",
   "dependencies": {
-    "@s1seven/typed-event-emitter": "^0.1.1"
+    "@getlarge/typed-event-emitter": "0.1.1",
+    "uuid": "^9.0.1",
+    "tslib": "^2.3.0"
   },
   "peerDependencies": {
-    "@nestjs/common": "9 - 10",
-    "@nestjs/config": "2 - 3",
-    "@nestjs/core": "9 - 10",
-    "@nestjs/microservices": "9 - 10",
-    "amqp-connection-manager": "^4.1.3",
-    "amqplib": "^0.10.1",
-    "reflect-metadata": "^0.1.13",
-    "uuid": "9.0.0"
-  },
-  "devDependencies": {
-    "@nestjs/testing": "^10.2.4",
-    "@types/amqplib": "^0.10.1",
-    "@types/node": "^16.11.6",
-    "@types/uuid": "^9.0.0",
-    "mqtt": "^5.0.4"
+    "@nestjs/common": "10",
+    "@nestjs/microservices": "10",
+    "amqp-connection-manager": "4",
+    "amqplib": "0.10",
+    "promise-breaker": "6.0.0",
+    "rxjs": "7"
   }
 }

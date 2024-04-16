@@ -1,19 +1,10 @@
 {
   "root": true,
-  "ignorePatterns": [
-    "**/*"
-  ],
-  "plugins": [
-    "@nx"
-  ],
+  "ignorePatterns": ["**/*"],
+  "plugins": ["@nx"],
   "overrides": [
     {
-      "files": [
-        "*.ts",
-        "*.tsx",
-        "*.js",
-        "*.jsx"
-      ],
+      "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
       "rules": {
         "@nx/enforce-module-boundaries": [
           "error",
@@ -23,9 +14,7 @@
             "depConstraints": [
               {
                 "sourceTag": "*",
-                "onlyDependOnLibsWithTags": [
-                  "*"
-                ]
+                "onlyDependOnLibsWithTags": ["*"]
               }
             ]
           }
@@ -33,15 +22,8 @@
       }
     },
     {
-      "files": [
-        "*.ts",
-        "*.tsx"
-      ],
-      "extends": [
-        "plugin:@nx/typescript",
-        "eslint:recommended",
-        "plugin:@typescript-eslint/recommended"
-      ],
+      "files": ["*.ts", "*.tsx"],
+      "extends": ["plugin:@nx/typescript", "eslint:recommended", "plugin:@typescript-eslint/recommended"],
       "plugins": [
         "@typescript-eslint/eslint-plugin",
         "unused-imports",
@@ -72,24 +54,13 @@
             "max": 3
           }
         ],
-        "max-params": [
-          "error",
-          10
-        ],
-        "max-params-no-constructor/max-params-no-constructor": [
-          "error",
-          4
-        ],
+        "max-params": ["error", 10],
+        "max-params-no-constructor/max-params-no-constructor": ["error", 4],
         "member-access": "off",
         "no-console": [
           "error",
           {
-            "allow": [
-              "error",
-              "warn",
-              "info",
-              "table"
-            ]
+            "allow": ["error", "warn", "info", "table"]
           }
         ],
         "no-duplicate-imports": "error",
@@ -113,21 +84,13 @@
           {
             "groups": [
               // Side effects.
-              [
-                "^\\u0000"
-              ],
+              ["^\\u0000"],
               // 3rd party.
-              [
-                "^@?\\w"
-              ],
+              ["^@?\\w"],
               // Anything not fitting group above.
-              [
-                "^"
-              ],
+              ["^"],
               // Relative imports.
-              [
-                "^\\."
-              ]
+              ["^\\."]
             ]
           }
         ],
@@ -135,22 +98,12 @@
       }
     },
     {
-      "files": [
-        "*.js",
-        "*.jsx"
-      ],
-      "extends": [
-        "plugin:@nx/javascript"
-      ],
+      "files": ["*.js", "*.jsx"],
+      "extends": ["plugin:@nx/javascript"],
       "rules": {}
     },
     {
-      "files": [
-        "*.spec.ts",
-        "*.spec.tsx",
-        "*.spec.js",
-        "*.spec.jsx"
-      ],
+      "files": ["*.spec.ts", "*.spec.tsx", "*.spec.js", "*.spec.jsx"],
       "env": {
         "jest": true
       },

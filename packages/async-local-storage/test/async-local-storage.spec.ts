@@ -90,7 +90,7 @@ describe('AsyncLocalStorageModule', () => {
 
   it('should throw when not providing `requestContextFactory`', async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await expect(moduleFactory({} as any) ).rejects.toThrow('`requestContextFactory` is required.');
+    await expect(moduleFactory({} as any)).rejects.toThrow('`requestContextFactory` is required.');
   });
 
   it('should throw when providing both useGuard and useInterceptor', async () => {

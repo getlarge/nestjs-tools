@@ -1,9 +1,30 @@
 {
+  "name": "@getlarge/nestjs-tools-lock",
+  "version": "0.7.0",
+  "description": "A distributed lock manager for NestJS",
+  "keywords": [
+    "lock",
+    "distributed",
+    "redis",
+    "mutex",
+    "distributed lock",
+    "nestjs"
+  ],
+  "license": "Apache-2.0",
+  "author": "Edouard Maleix <ed@getlarge.eu>",
+  "homepage": "https://github.com/getlarge/nestjs-tools/tree/main/packages/lock",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "publicConfig": {
+    "access": "public"
+  },
   "dependencies": {
-    "@nestjs/common": "^10.0.2",
-    "@nestjs/config": "^3.2.2",
-    "ioredis": "^5.3.2",
-    "ioredis-mock": "^8.9.0",
-    "redlock": "^5.0.0-beta.2"
+    "redlock": "^5.0.0-beta.2",
+    "tslib": "^2.3.0"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "10",
+    "ioredis": "^5.3.2"
   }
 }

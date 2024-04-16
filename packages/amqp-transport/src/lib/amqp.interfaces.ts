@@ -28,6 +28,7 @@ export interface AmqpOptions {
     timeout?: number;
     keepAlive?: boolean;
     keepAliveDelay?: number;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     clientProperties?: any;
     credentials?: {
       mechanism: string;

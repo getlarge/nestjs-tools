@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { isObject } from '@nestjs/common/utils/shared.utils';
 import { ReadPacket, RmqRecord, Serializer } from '@nestjs/microservices';
 

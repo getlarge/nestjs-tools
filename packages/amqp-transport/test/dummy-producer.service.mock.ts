@@ -14,13 +14,13 @@ import {
 
 @Injectable()
 export class DummyProducerService {
-  private timeToTimeout = 1000; // ms
+  private timeToTimeout = 1500; // ms
   constructor(
     @Inject(DUMMY_CLIENT) private readonly client: ClientProxy,
-    @Inject('WORKER_ID') private readonly workerId: number = 0,
+    @Inject('WORKER_ID') private readonly workerId = 0,
   ) {}
 
-  test(msg: Record<string, any>, noAck = RQM_DEFAULT_NOACK) {
+  test(msg: Record<string, unknown>, noAck = RQM_DEFAULT_NOACK) {
     const topic = noAck ? DUMMY_TOPIC_NOACK : DUMMY_TOPIC_ACK;
     const response$ = this.client.send(topic, { ...msg, producerId: this.workerId }).pipe(
       catchError((err) => {
@@ -48,7 +48,7 @@ export class DummyProducerService {
     return lastValueFrom(response$);
   }
 
-  testAck(msg: Record<string, any>) {
+  testAck(msg: Record<string, unknown>) {
     const response$ = this.client.send(DUMMY_TOPIC_ACK, msg).pipe(
       catchError((err) => {
         console.error(err);
@@ -59,7 +59,7 @@ export class DummyProducerService {
     return lastValueFrom(response$);
   }
 
-  testNoAck(msg: Record<string, any>) {
+  testNoAck(msg: Record<string, unknown>) {
     const response$ = this.client.send(DUMMY_TOPIC_NOACK, msg).pipe(
       catchError((err) => {
         console.error(err);

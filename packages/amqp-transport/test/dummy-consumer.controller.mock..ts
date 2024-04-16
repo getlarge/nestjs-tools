@@ -13,7 +13,7 @@ import {
 
 @Controller(Resources.DUMMY)
 export class DummyConsumerController {
-  constructor(@Inject('WORKER_ID') private readonly workerId: number = 0) {}
+  constructor(@Inject('WORKER_ID') private readonly workerId = 0) {}
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   emptySpy(args: { data: unknown; workerId?: number }) {

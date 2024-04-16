@@ -110,3 +110,7 @@ dist
 .scannerwork
 
 junit.xml
+
+#Nx
+.tmp/
+.nx/cache

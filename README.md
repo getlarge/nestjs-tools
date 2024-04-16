@@ -1,20 +1,31 @@
-# nestjs-tools
+<p align="center">
+  <a href="https://github.com/getlarge/nestjs-tools/" target="blank"><img src="https://ipfs.io/ipfs/QmQ6CMaraTMrv8byJfY64mDM6o7citx1pgEobMKWEJaSCB?filename=ory-nestjs-min.png" width="120" alt="NestOry Logo" /></a>
+</p>
 
-[![lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)](https://lerna.js.org/)
+# NestJS Tools
+
+[![License: ISC](https://img.shields.io/badge/License-ISC-yellow.svg)](https://opensource.org/licenses/ISC)
+[![CI](https://github.com/getlarge/nestjs-tools/actions/workflows/node.yml/badge.svg)](https://github.com/getlarge/nestjs-tools/actions/workflows/node.yml)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=getlarge_nestjs-tools&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=s1seven_nestjs-tools)
 [![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
-[![NestJS tools CI](https://github.com/s1seven/nestjs-tools/actions/workflows/node.yml/badge.svg)](https://github.com/s1seven/nestjs-tools/actions/workflows/node.yml)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=s1seven_nestjs-tools&metric=coverage)](https://sonarcloud.io/summary/new_code?id=s1seven_nestjs-tools)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=s1seven_nestjs-tools&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=s1seven_nestjs-tools)
 
-This repository contains resources shared between S1Seven microservices.
+This repository contains several helpful packages for NestJS that I have developed for NestJS applications running in production.
 
 ## List of packages
 
-- [Access-Control](https://github.com/s1seven/nestjs-tools/tree/master/packages/access-control#readme)
-- [AMQP-Transport](https://github.com/s1seven/nestjs-tools/tree/master/packages/amqp-transport#readme)
-- [Async-Local-Storage](https://github.com/s1seven/nestjs-tools/tree/master/packages/async-local-storage#readme)
-- [Boot](https://github.com/s1seven/nestjs-tools/tree/master/packages/boot#readme)
-- [File-Storage](https://github.com/s1seven/nestjs-tools/tree/master/packages/file-storage#readme)
-- [Lock](https://github.com/s1seven/nestjs-tools/tree/master/packages/lock#readme)
-- [Pino-Heroku-Pipeline](https://github.com/s1seven/nestjs-tools/tree/master/packages/pino-heroku-pipeline#readme)
-- [Typed-Event-Emitter](https://github.com/s1seven/nestjs-tools/tree/master/packages/typed-event-emitter#readme)
+| Package                                                         | Description                                                                                               | Version                                                                                                                                                            |
+| --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [AMQP-Transport](./packages/amqp-transport/README.md)           | A NestJS microservice adapter around [AMQPlib](https://amqp-node.github.io/amqplib/) supporting exchanges | [![npm](https://img.shields.io/npm/v/@getlarge/nestjs-tools-amqp-transport.svg?style=flat)](https://npmjs.org/package/@getlarge/nestjs-tools-amqp-transport)       |
+| [Async-Local-Storage](./packages/async-local-storage/README.md) | A NestJS module to provide async local storage for your application                                       | [![npm](https://img.shields.io/npm/v/@getlarge/nestjs-tools-async-local-storage?style=flat)](https://npmjs.org/package/@getlarge/nestjs-tools-async-local-storage) |
+| [File-Storage](./packages/file-storage/README.md)               | A NestJS module supporting FS and S3 strategies                                                           | [![npm](https://img.shields.io/npm/v/@getlarge/nestjs-tools-file-storage?style=flat)](https://npmjs.org/package/@getlarge/nestjs-tools-file-storage)               |
+| [Lock](./packages/lock/README.md)                               | A NestJS module to provide a distributed lock for your application                                        | [![npm](https://img.shields.io/npm/v/@getlarge/nestjs-tools-lock?style=flat)](https://npmjs.org/package/@getlarge/nestjs-tools-lock)                               |
+
+## Installation and usage
+
+Check the README of each package for more details.
+
+## Examples
+
+Check out the following projects for examples of using these packages:
+
+- the [ticketing repository](https://github.com/getlarge/ticketing) is a real-world example of AMQP-Transport, File-Storage, Lock,

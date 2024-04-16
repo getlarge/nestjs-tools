@@ -13,7 +13,17 @@
         "tsConfig": "packages/cluster/tsconfig.lib.json",
         "packageJson": "packages/cluster/package.json",
         "main": "packages/cluster/src/index.ts",
-        "assets": ["packages/cluster/*.md"]
+        "assets": ["packages/cluster/*.md"],
+        "external": "none"
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "dependsOn": ["build"],
+      "options": {
+        "jestConfig": "packages/cluster/jest.config.ts",
+        "codeCoverage": true
       }
     }
   }

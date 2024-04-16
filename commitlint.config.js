@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-const fs = require('fs');
-const glob = require('glob');
+const { getProjects } = require('@nx/devkit');
+const { FsTree } = require('nx/src/generators/tree');
 
 /*
  * Type-Enums and their documentation as reusable const.
@@ -76,12 +75,9 @@ const typeEnumDescription = {
 const baseScopes = ['release'];
 
 const scopeEnum = () => {
-  const lernaConfig = JSON.parse(fs.readFileSync('./lerna.json'));
-  const projects = lernaConfig.packages.flatMap((package) => {
-    const folders = glob.sync(package);
-    return folders.length ? folders.map((el) => el.split('/').pop()) : [];
-  });
-  return [...baseScopes, ...projects];
+  const tree = new FsTree('.');
+  const projects = getProjects(tree);
+  return [...baseScopes, ...projects.keys()];
 };
 
 const Configuration = {

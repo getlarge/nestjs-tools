@@ -25,7 +25,7 @@ export class AsyncLocalStorageInterceptor implements NestInterceptor {
     private readonly options: AsyncLocalStorageModuleOptions,
   ) {}
 
-  get mode(): AsyncLocalStorageMode {
+  get mode(): AsyncLocalStorageMode | null {
     const { useGuard, useInterceptor } = this.options;
     if (useGuard) {
       return AsyncLocalStorageMode.Guard;

@@ -3,7 +3,7 @@ import { INestApplication, Provider } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AsyncLocalStorage } from 'async_hooks';
-import request from 'supertest';
+import * as request from 'supertest';
 
 import {
   AsyncLocalStorageGuard,
@@ -15,7 +15,7 @@ import {
 import { ExampleController } from './app.controller.mock';
 import { ExampleService } from './app.service.mock';
 
-declare module '../src/async-local-storage.interfaces' {
+declare module '../src/lib/async-local-storage.interfaces' {
   interface RequestContext {
     type: string;
   }
@@ -89,7 +89,8 @@ describe('AsyncLocalStorageModule', () => {
   });
 
   it('should throw when not providing `requestContextFactory`', async () => {
-    await expect(moduleFactory({})).rejects.toThrowError('`requestContextFactory` is required.');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await expect(moduleFactory({} as any) ).rejects.toThrow('`requestContextFactory` is required.');
   });
 
   it('should throw when providing both useGuard and useInterceptor', async () => {
@@ -99,7 +100,7 @@ describe('AsyncLocalStorageModule', () => {
         useGuard: true,
         useInterceptor: true,
       }),
-    ).rejects.toThrowError("Can't use both guard and interceptor.");
+    ).rejects.toThrow("Can't use both guard and interceptor.");
   });
 });
 
@@ -114,7 +115,7 @@ describe('AsyncLocalStorageService', () => {
   });
 
   it('should throw when accessing store before initialization', () => {
-    expect(() => service.set('ctx', { type: '' })).toThrowError(
+    expect(() => service.set('ctx', { type: '' })).toThrow(
       "Store is not initialized. Call 'enterWith' or 'run' first.",
     );
   });
@@ -124,8 +125,8 @@ describe('AsyncLocalStorageService', () => {
     //
     service.set('ctx', { type: '' });
     const ctx = service.get('ctx');
-    expect(typeof ctx.type).toBe('string');
-    expect(typeof service.requestContext.type).toBe('string');
+    expect(typeof ctx?.type).toBe('string');
+    expect(typeof service.requestContext?.type).toBe('string');
     service.delete('ctx');
     expect(typeof service.requestContext).toBe('undefined');
   });
@@ -160,7 +161,7 @@ describe('AsyncLocalStorageService', () => {
     expect(service.requestContext).toEqual(requestContext);
     expect(service.get('ctx')).toEqual(requestContext);
     expect(AsyncLocalStorageService.requestContext).toEqual(requestContext);
-    expect(AsyncLocalStorageService.store.get('ctx')).toEqual(requestContext);
+    expect(AsyncLocalStorageService.store?.get('ctx')).toEqual(requestContext);
   });
 
   it('should always use a single AsyncLocalStorage reference when creating new instance', () => {
@@ -176,11 +177,12 @@ describe('AsyncLocalStorageService', () => {
   });
 
   it('should allow to access static methods without initializing the store', () => {
-    AsyncLocalStorageService.instance = undefined;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    AsyncLocalStorageService.instance = undefined as any;
     //
     expect(AsyncLocalStorageService.instance).toBeUndefined();
     expect(AsyncLocalStorageService.store).toBeUndefined();
-    expect(() => AsyncLocalStorageService.requestContext).not.toThrowError();
+    expect(() => AsyncLocalStorageService.requestContext).not.toThrow();
     expect(AsyncLocalStorageService.requestContext).toBeUndefined();
     expect(AsyncLocalStorageService.store?.has('ctx')).toBeFalsy();
   });

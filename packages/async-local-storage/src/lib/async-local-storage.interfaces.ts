@@ -16,7 +16,7 @@ export type ContextStore<T extends ContextStoreProperties, K extends keyof T> = 
 export interface AsyncLocalStorageModuleOptions {
   isGlobal?: boolean;
   asyncLocalStorage?: AsyncLocalStorage<ContextStore<ContextStoreProperties, keyof ContextStoreProperties>>;
-  requestContextFactory?: (ctx: ExecutionContext) => RequestContext;
+  requestContextFactory: (ctx: ExecutionContext) => RequestContext;
   useGuard?: boolean;
   useInterceptor?: boolean;
 }

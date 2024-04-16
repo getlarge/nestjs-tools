@@ -22,7 +22,7 @@ export type StoreMap = Map<K, T[K]>;
  * instance methods are used to manipulate the store
  * instance methods extending the Map class are available once the store is initialized with enterWith or run
  * @example
- * declare module '@s1seven/nestjs-tools-async-local-storage' {
+ * declare module '@getlarge/nestjs-tools-async-local-storage' {
  *   interface RequestContext {
  *     type: string;
  *   }
@@ -33,7 +33,7 @@ export type StoreMap = Map<K, T[K]>;
  * }
  * import assert from 'assert';
  * import { AsyncLocalStorage } from 'async_hooks';
- * import { AsyncLocalStorageService } from '@s1seven/nestjs-tools-async-local-storage';
+ * import { AsyncLocalStorageService } from '@getlarge/nestjs-tools-async-local-storage';
  *
  * const service = new AsyncLocalStorageService(new AsyncLocalStorage());
  * service.enterWith(new Map());
@@ -58,10 +58,10 @@ export class AsyncLocalStorageService extends Map<K, T[K]> {
   }
 
   static get instance(): AsyncLocalStorage<StoreMap> {
-    return this._instance || globalThis.__asyncstorage;
+    return this._instance;
   }
 
-  static set instance(value: AsyncLocalStorage<StoreMap> | undefined) {
+  static set instance(value: AsyncLocalStorage<StoreMap>) {
     this._instance = value;
   }
 
@@ -90,7 +90,7 @@ export class AsyncLocalStorageService extends Map<K, T[K]> {
   }
 
   // AsyncLocalStorage methods and properties
-  run<R, TArgs extends any[]>(store: StoreMap, callback: (...args: TArgs) => R, ...args: TArgs): R {
+  run<R, TArgs extends unknown[]>(store: StoreMap, callback: (...args: TArgs) => R, ...args: TArgs): R {
     return this.instance.run(store, callback, ...args);
   }
 
@@ -110,44 +110,41 @@ export class AsyncLocalStorageService extends Map<K, T[K]> {
     return this.instance.getStore();
   }
 
-  private isStoreInitialized(): boolean {
-    return !!this.store;
+  private isStoreInitialized(x: unknown): x is StoreMap {
+    return !!x && typeof x === 'object' && x instanceof Map;
   }
 
-  private checkStoreInitialized(): void {
-    if (!this.isStoreInitialized()) {
-      throw new Error("Store is not initialized. Call 'enterWith' or 'run' first.");
+  private get safeStore(): StoreMap {
+    const store = this.store;
+    if (this.isStoreInitialized(store)) {
+      return store;
     }
-  }
-
-  private get safeStore(): StoreMap | undefined {
-    this.checkStoreInitialized();
-    return this.store;
+    throw new Error("Store is not initialized. Call 'enterWith' or 'run' first.");
   }
 
   // Map methods and properties
-  get<k extends K>(key: k): T[k] | undefined {
+  override get<k extends K>(key: k): T[k] | undefined {
     return this.safeStore.get(key) as T[k];
   }
 
-  set<k extends K>(key: k, value: T[k]): this {
+  override set<k extends K>(key: k, value: T[k]): this {
     this.safeStore.set(key, value);
     return this;
   }
 
-  delete(key: K): boolean {
+  override delete(key: K): boolean {
     return this.safeStore.delete(key);
   }
 
-  has(key: K): boolean {
+  override has(key: K): boolean {
     return this.safeStore.has(key);
   }
 
-  clear(): void {
+  override clear(): void {
     return this.safeStore.clear();
   }
 
-  get size(): number {
+  override get size(): number {
     return this.safeStore.size;
   }
 
@@ -155,19 +152,19 @@ export class AsyncLocalStorageService extends Map<K, T[K]> {
     return this.safeStore[Symbol.toStringTag];
   }
 
-  keys(): IterableIterator<K> {
+  override keys(): IterableIterator<K> {
     return this.safeStore.keys();
   }
 
-  values(): IterableIterator<T[keyof T]> {
+  override values(): IterableIterator<T[keyof T]> {
     return this.safeStore.values();
   }
 
-  entries(): IterableIterator<[K, T[K]]> {
+  override entries(): IterableIterator<[K, T[K]]> {
     return this.safeStore.entries();
   }
 
-  forEach(callbackfn: (value: T[K], key: K, map: Map<K, T[K]>) => void, thisArg?: any): void {
+  override forEach(callbackfn: (value: T[K], key: K, map: Map<K, T[K]>) => void, thisArg?: this): void {
     return this.safeStore.forEach(callbackfn, thisArg);
   }
 
@@ -175,7 +172,7 @@ export class AsyncLocalStorageService extends Map<K, T[K]> {
     return this.safeStore[Symbol.iterator]();
   }
 
-  get requestContext(): T[typeof REQUEST_CONTEXT_KEY] {
+  get requestContext(): T[typeof REQUEST_CONTEXT_KEY] | undefined {
     return this.get(REQUEST_CONTEXT_KEY);
   }
 

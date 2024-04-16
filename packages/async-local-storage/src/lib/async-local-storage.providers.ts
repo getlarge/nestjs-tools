@@ -9,8 +9,7 @@ type K = keyof ContextStoreProperties;
 type T = ContextStoreProperties;
 type StoreMap = Map<K, T[K]>;
 
-const defaultAsyncLocalStorage = (isGlobal?: boolean): AsyncLocalStorage<StoreMap> =>
-  isGlobal ? globalThis.__asyncLocalStorage || new AsyncLocalStorage<StoreMap>() : new AsyncLocalStorage<StoreMap>();
+const defaultAsyncLocalStorage = (): AsyncLocalStorage<StoreMap> => new AsyncLocalStorage<StoreMap>();
 
 export function createAsyncLocalStorageProviders(
   options: AsyncLocalStorageModuleOptions,
@@ -19,7 +18,7 @@ export function createAsyncLocalStorageProviders(
   Provider<AsyncLocalStorageModuleOptions>,
   Provider<AsyncLocalStorageService>,
 ] {
-  const { asyncLocalStorage = defaultAsyncLocalStorage(options.isGlobal) } = options;
+  const { asyncLocalStorage = defaultAsyncLocalStorage() } = options;
   const opts = { ...options, asyncLocalStorage };
   return [
     { provide: ASYNC_LOCAL_STORAGE, useValue: asyncLocalStorage },

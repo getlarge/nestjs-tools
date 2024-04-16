@@ -1,39 +1,5 @@
 {
-  "name": "@s1seven/typed-event-emitter",
-  "version": "0.1.1",
-  "description": "Event emitter with generic event types",
-  "keywords": [
-    "evenemitter"
-  ],
-  "author": "getlarge <ed@getlarge.eu>",
-  "homepage": "https://github.com/s1seven/nestjs-tools/tree/main/packages/typed-event-emitter#readme",
-  "license": "ISC",
-  "types": "dist/index",
-  "main": "dist/index",
-  "directories": {
-    "src": "src",
-    "lib": "dist",
-    "test": "test"
-  },
-  "files": [
-    "dist"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/s1seven/nestjs-tools.git"
-  },
-  "scripts": {
-    "build": "npm run clean && npm run compile",
-    "clean": "rimraf -rf ./dist",
-    "cleanup": "rimraf -rf dist coverage",
-    "compile": "tsc -p tsconfig.build.json",
-    "lint": "eslint -c ../../.eslintrc.js \"**/*.ts\"",
-    "lint:fix": "eslint -c ../../.eslintrc.js \"**/*.ts\" --fix",
-    "test": "jest --passWithNoTests",
-    "test:cov": "rimraf -rf ./coverage && jest --ci --coverage --passWithNoTests",
-    "prepublishOnly": "npm run build"
-  },
-  "bugs": {
-    "url": "https://github.com/s1seven/nestjs-tools/issues"
+  "dependencies": {
+    "events": "3.3.0"
   }
 }

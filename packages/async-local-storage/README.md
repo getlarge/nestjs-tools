@@ -2,13 +2,13 @@
 
 [![npm][npm-image]][npm-url]
 
-[npm-image]: https://img.shields.io/npm/v/@s1seven/nestjs-tools-async-local-storage.svg?style=flat
-[npm-url]: https://npmjs.org/package/@s1seven/nestjs-tools-async-local-storage
+[npm-image]: https://img.shields.io/npm/v/@getlarge/nestjs-tools-async-local-storage.svg?style=flat
+[npm-url]: https://npmjs.org/package/@getlarge/nestjs-tools-async-local-storage
 
 ## Installation
 
 ```bash
-$ npm install --save @s1seven/nestjs-tools-async-local-storage
+$ npm install --save @getlarge/nestjs-tools-async-local-storage
 ```
 
 ## Usage
@@ -18,7 +18,7 @@ import assert from 'assert';
 import { AsyncLocalStorage } from 'async_hooks';
 
 // to provide type safety for the store map
-declare module '@s1seven/nestjs-tools-async-local-storage' {
+declare module '@getlarge/nestjs-tools-async-local-storage' {
   interface RequestContext {
     type?: string;
   }
@@ -30,7 +30,7 @@ declare module '@s1seven/nestjs-tools-async-local-storage' {
   }
 }
 
-import { AsyncLocalStorageService } from '@s1seven/nestjs-tools-async-local-storage';
+import { AsyncLocalStorageService } from '@getlarge/nestjs-tools-async-local-storage';
 
 const service = new AsyncLocalStorageService(new AsyncLocalStorage());
 

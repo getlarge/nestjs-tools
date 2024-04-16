@@ -2,7 +2,7 @@
   "name": "nestjs-tools",
   "description": "Tools for NestJS applications",
   "version": "0.0.0",
-  "license": "Apache 2.0",
+  "license": "Apache-2.0",
   "homepage": "https://github.com/getlarge/nestjs-tools#readme",
   "repository": {
     "type": "git",

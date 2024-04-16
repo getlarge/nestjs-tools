@@ -1,0 +1,20 @@
+{
+  "name": "nestjs-tools-file-storage",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/file-storage/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/file-storage",
+        "tsConfig": "packages/file-storage/tsconfig.lib.json",
+        "packageJson": "packages/file-storage/package.json",
+        "main": "packages/file-storage/src/index.ts",
+        "assets": ["packages/file-storage/*.md"]
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "nestjs-tools-lock",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/lock/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/lock",
+        "tsConfig": "packages/lock/tsconfig.lib.json",
+        "packageJson": "packages/lock/package.json",
+        "main": "packages/lock/src/index.ts",
+        "assets": ["packages/lock/*.md"]
+      }
+    }
+  }
+}

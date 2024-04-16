@@ -2,15 +2,15 @@
 
 [![npm][npm-image]][npm-url]
 
-[npm-image]: https://img.shields.io/npm/v/@s1seven/nestjs-tools-file-storage.svg?style=flat
-[npm-url]: https://npmjs.org/package/@s1seven/nestjs-tools-file-storage
+[npm-image]: https://img.shields.io/npm/v/@getlarge/nestjs-tools-file-storage.svg?style=flat
+[npm-url]: https://npmjs.org/package/@getlarge/nestjs-tools-file-storage
 
 File storage classes for :
 
 - Node FileSystem
 - Amazon S3
 
-NOTE: release `@s1seven/nestjs-tools-file-storage@0.6.2` has some breaking changes as we now use AWS SDK v3:
+NOTE: release `@getlarge/nestjs-tools-file-storage@0.6.2` has some breaking changes as we now use AWS SDK v3:
 
 - `accessKeyId` and `secretAccessKey` should be passed to `FileStorageS3Setup` as properties of a `credentials` object.
 - The `s3BucketEndpoint` property has been removed.
@@ -19,7 +19,7 @@ NOTE: release `@s1seven/nestjs-tools-file-storage@0.6.2` has some breaking chang
 ## Installation
 
 ```bash
-$ npm install --save @s1seven/nestjs-tools-file-storage
+$ npm install --save @getlarge/nestjs-tools-file-storage
 ```
 
 ## Example
@@ -37,7 +37,7 @@ import {
   FileStorageS3,
   FileStorageS3Config,
   FileStorageS3Setup,
-} from '@s1seven/nestjs-tools-file-storage';
+} from '@getlarge/nestjs-tools-file-storage';
 import { S3 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { Request } from 'express';

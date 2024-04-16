@@ -1,54 +1,30 @@
 {
-  "name": "@s1seven/nestjs-tools-file-storage",
+  "name": "@getlarge/nestjs-tools-file-storage",
   "version": "0.8.0",
-  "description": "File storage modules",
+  "description": "File Storage Juggler",
+  "keywords": [
+    "file",
+    "storage",
+    "s3",
+    "aws",
+    "FileStorage",
+    "nestjs"
+  ],
   "license": "Apache-2.0",
-  "author": "getlarge <ed@getlarge.eu>",
-  "homepage": "https://github.com/s1seven/nestjs-tools#readme",
+  "author": "Edouard Maleix <ed@getlarge.eu>",
+  "homepage": "https://github.com/getlarge/nestjs-tools/tree/main/packages/file-storage",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
   "publicConfig": {
     "access": "public"
   },
-  "private": false,
-  "types": "dist/index",
-  "main": "dist/index",
-  "directories": {
-    "src": "src",
-    "lib": "dist",
-    "test": "test"
-  },
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "build": "npm run clean && npm run compile",
-    "clean": "rimraf -rf ./dist",
-    "cleanup": "rimraf -rf dist coverage",
-    "compile": "tsc -p tsconfig.build.json",
-    "lint": "eslint -c ../../.eslintrc.js \"**/*.ts\"",
-    "lint:fix": "eslint -c ../../.eslintrc.js \"**/*.ts\" --fix",
-    "test": "jest",
-    "test:cov": "rimraf -rf ./coverage && jest --ci --coverage --logHeapUsage",
-    "prepublishOnly": "npm run build"
-  },
   "dependencies": {
-    "reflect-metadata": "^0.1.13"
-  },
-  "peerDependencies": {
-    "@aws-sdk/client-s3": "^3.405.0",
-    "@aws-sdk/lib-storage": "^3.405.0",
-    "@nestjs/common": "9 - 10",
-    "@nestjs/config": "2 - 3",
-    "@nestjs/core": "9 - 10",
-    "rxjs": "^7.5.4"
-  },
-  "devDependencies": {
-    "@nestjs/testing": "^10.2.4",
-    "@types/express": "^4.17.13",
-    "@types/node": "^16.11.6",
-    "dotenv": "^16.3.1"
-  },
-  "gitHead": "990d1604164e9bc5b61c93eca1a2d51416a0dfa6"
+    "@aws-sdk/client-s3": "^3.554.0",
+    "@aws-sdk/lib-storage": "^3.554.0",
+    "@nestjs/common": "^10.0.2",
+    "@nestjs/testing": "^10.0.2",
+    "dotenv": "^16.4.5",
+    "express": "4.19.2"
+  }
 }

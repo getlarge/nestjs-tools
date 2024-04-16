@@ -1,0 +1,30 @@
+{
+  "name": "nestjs-tools-cluster",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/cluster/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/cluster",
+        "tsConfig": "packages/cluster/tsconfig.lib.json",
+        "packageJson": "packages/cluster/package.json",
+        "main": "packages/cluster/src/index.ts",
+        "assets": ["packages/cluster/*.md"],
+        "external": "none"
+      }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "dependsOn": ["build"],
+      "options": {
+        "jestConfig": "packages/cluster/jest.config.ts",
+        "codeCoverage": true
+      }
+    }
+  }
+}

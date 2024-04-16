@@ -1,0 +1,139 @@
+name: NestJS Tools CI
+
+on:
+  push:
+    paths-ignore:
+      - 'README.md'
+      - '**/package-lock.json'
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+    paths-ignore:
+      - 'README.md'
+      - '**/package-lock.json'
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NX_CLOUD_DISTRIBUTED_EXECUTION: false
+  NX_DISTRIBUTED_TASK_EXECUTION: false
+  CI: true
+
+jobs:
+  setup-and-test:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+
+    services:
+      rabbitmq:
+        image: rabbitmq:3.9-management-alpine
+        options: >-
+          --health-cmd "rabbitmq-diagnostics status"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5672:5672
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Derive appropriate SHAs for base and head for `nx affected` commands
+        id: set-sha
+        uses: nrwl/nx-set-shas@v4
+
+      - name: Install dependencies
+        run: npm ci
+
+      - uses: 8BitJonny/gh-get-current-pr@3.0.0
+        id: current-pr
+
+      - if: steps.current-pr.outputs.number != 'null' && github.ref_name != 'main'
+        # This line is needed for nx affected to work when CI is running on a PR
+        run: git branch --track main origin/main
+
+      # Boot package has issues with @asyncapi monorepo
+      # - name: Scan dependencies with Audit CI
+      #   run: npm run scan:deps
+
+      - run: npx nx format:check
+
+      - name: Run checks
+        env:
+          CI: true
+          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+          S3_BUCKET: ${{ secrets.S3_BUCKET }}
+          S3_REGION: ${{ secrets.S3_REGION }}
+          S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
+          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+        run: npx nx affected -t lint,test,build --parallel=3
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.node-version }}
+          path: ./coverage
+          retention-days: 2
+
+  scan:
+    needs: setup-and-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Get current version
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@main
+
+      - name: Retrieve coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-${{ matrix.node-version }}
+          path: ./coverage
+
+      - name: SonarCloud Scan
+        uses: sonarsource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectVersion=${{ steps.package-version.outputs.current-version }}

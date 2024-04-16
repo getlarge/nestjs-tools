@@ -1,0 +1,30 @@
+{
+  "name": "@getlarge/nestjs-tools-file-storage",
+  "version": "0.8.0",
+  "description": "File Storage Juggler",
+  "keywords": [
+    "file",
+    "storage",
+    "s3",
+    "aws",
+    "FileStorage",
+    "nestjs"
+  ],
+  "license": "Apache-2.0",
+  "author": "Edouard Maleix <ed@getlarge.eu>",
+  "homepage": "https://github.com/getlarge/nestjs-tools/tree/main/packages/file-storage",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "publicConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "peerDependencies": {
+    "@aws-sdk/client-s3": "3",
+    "@aws-sdk/lib-storage": "3",
+    "@nestjs/common": "10"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "@getlarge/nestjs-tools-amqp-transport",
+  "version": "0.5.1",
+  "description": "Custom Nest Transport classes for AMQP",
+  "keywords": [
+    "amqp",
+    "rabbitmq",
+    "microservices",
+    "nestjs"
+  ],
+  "license": "Apache-2.0",
+  "author": "Edouard Maleix <ed@getlarge.eu>",
+  "homepage": "https://github.com/getlarge/nestjs-tools/tree/main/packages/amqp-transport",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
+  "publicConfig": {
+    "access": "public"
+  },
+  "type": "commonjs",
+  "main": "./src/index.js",
+  "typings": "./src/index.d.ts",
+  "dependencies": {
+    "@getlarge/typed-event-emitter": "0.1.1",
+    "uuid": "^9.0.1",
+    "tslib": "^2.3.0"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "10",
+    "@nestjs/microservices": "10",
+    "amqp-connection-manager": "4",
+    "amqplib": "0.10",
+    "promise-breaker": "6.0.0",
+    "rxjs": "7"
+  }
+}

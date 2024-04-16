@@ -1,0 +1,20 @@
+{
+  "name": "typed-event-emitter",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/typed-event-emitter/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/typed-event-emitter",
+        "tsConfig": "packages/typed-event-emitter/tsconfig.lib.json",
+        "packageJson": "packages/typed-event-emitter/package.json",
+        "main": "packages/typed-event-emitter/src/index.ts",
+        "assets": ["packages/typed-event-emitter/*.md"]
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "nestjs-tools-async-local-storage",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/async-local-storage/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/async-local-storage",
+        "tsConfig": "packages/async-local-storage/tsconfig.lib.json",
+        "packageJson": "packages/async-local-storage/package.json",
+        "main": "packages/async-local-storage/src/index.ts",
+        "assets": ["packages/async-local-storage/*.md"]
+      }
+    }
+  }
+}

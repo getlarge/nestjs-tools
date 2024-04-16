@@ -14,9 +14,6 @@
   "author": "Edouard Maleix <ed@getlarge.eu>",
   "homepage": "https://github.com/getlarge/nestjs-tools/tree/main/packages/file-storage",
   "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
-  },
-  "publicConfig": {
     "access": "public"
   },
   "dependencies": {

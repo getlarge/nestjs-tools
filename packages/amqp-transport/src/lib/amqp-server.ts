@@ -20,9 +20,9 @@ import {
   RQM_DEFAULT_QUEUE_OPTIONS,
   RQM_DEFAULT_URL,
 } from '@nestjs/microservices/constants';
-import { RmqUrl } from '@nestjs/microservices/external/rmq-url.interface';
+import type { RmqUrl } from '@nestjs/microservices/external/rmq-url.interface';
 import { AmqpConnectionManager, ChannelWrapper, connect } from 'amqp-connection-manager';
-import { Channel, ConsumeMessage, Options } from 'amqplib';
+import type { Channel, ConsumeMessage, Options } from 'amqplib';
 
 import {
   AMQP_DEFAULT_EXCHANGE_OPTIONS,
@@ -32,7 +32,7 @@ import {
   CONNECT_FAILED_EVENT_MSG,
 } from './amqp.constants';
 import { AmqpOptions } from './amqp.interfaces';
-import { AmqpRecordSerializer } from './amqp-record.serializer';
+import { AmqpRecordConsumerDeserializer, AmqpRecordSerializer } from './amqp-record.serializer';
 
 export enum AmqpWildcard {
   SINGLE_LEVEL = '*',
@@ -249,9 +249,8 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
     if (isNil(message)) {
       return;
     }
-    const { content, properties } = message;
-    const rawMessage = JSON.parse(content.toString());
-    const packet = await this.deserializer.deserialize(rawMessage, properties);
+    const { properties } = message;
+    const packet = await this.deserializer.deserialize(message, properties);
     const pattern = isString(packet.pattern) ? packet.pattern : JSON.stringify(packet.pattern);
     const rmqContext = new RmqContext([message, channel, pattern]);
     if (isUndefined((packet as IncomingRequest).id)) {
@@ -283,5 +282,9 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
 
   protected override initializeSerializer(options: AmqpOptions) {
     this.serializer = options?.serializer ?? new AmqpRecordSerializer();
+  }
+
+  protected override initializeDeserializer(options: AmqpOptions) {
+    this.deserializer = options?.deserializer ?? new AmqpRecordConsumerDeserializer();
   }
 }

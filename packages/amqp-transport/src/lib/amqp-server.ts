@@ -1,6 +1,7 @@
 import { isNil, isString, isUndefined } from '@nestjs/common/utils/shared.utils';
 import {
   CustomTransportStrategy,
+  IncomingEvent,
   IncomingRequest,
   MessageHandler,
   OutgoingResponse,
@@ -19,10 +20,11 @@ import {
   RQM_DEFAULT_PREFETCH_COUNT,
   RQM_DEFAULT_QUEUE_OPTIONS,
   RQM_DEFAULT_URL,
+  RQM_NO_EVENT_HANDLER,
 } from '@nestjs/microservices/constants';
 import type { RmqUrl } from '@nestjs/microservices/external/rmq-url.interface';
 import { AmqpConnectionManager, ChannelWrapper, connect } from 'amqp-connection-manager';
-import type { Channel, ConsumeMessage, Options } from 'amqplib';
+import type { Channel, ConsumeMessage, Message, Options } from 'amqplib';
 
 import {
   AMQP_DEFAULT_EXCHANGE_OPTIONS,
@@ -55,6 +57,7 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
   private exchangeOptions?: Options.AssertExchange;
   private prefetchCount: number;
   private isGlobalPrefetchCount: boolean;
+  private noAck: boolean;
   private noAssert: boolean;
   private noQueueAssert: boolean;
   private noExchangeAssert: boolean;
@@ -65,6 +68,7 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
     this.transportId = transportId;
     this.server = null;
     this.channel = null;
+    this.noAck = this.getOptionsProp(this.options, 'noAck') || RQM_DEFAULT_NOACK;
     this.urls = this.getOptionsProp(this.options, 'urls') || [RQM_DEFAULT_URL];
     this.queue = this.getOptionsProp(this.options, 'queue') || '';
     this.queueOptions = this.getOptionsProp(this.options, 'queueOptions') || RQM_DEFAULT_QUEUE_OPTIONS;
@@ -174,7 +178,6 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
 
   async setupChannel(channel: Channel, callback?: (error?: unknown) => void, retried?: boolean): Promise<void> {
     try {
-      const noAck = this.getOptionsProp(this.options, 'noAck', RQM_DEFAULT_NOACK);
       const { queue, exchange } = this;
       if (exchange && !this.skipExchangeAssert) {
         await channel.assertExchange(exchange, this.exchangeType, this.exchangeOptions);
@@ -187,7 +190,7 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
 
       await channel.prefetch(this.prefetchCount, this.isGlobalPrefetchCount);
       channel.consume(queue, (msg) => this.handleMessage(msg, channel), {
-        noAck,
+        noAck: this.noAck,
       });
       callback?.();
     } catch (e) {
@@ -243,6 +246,15 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
       }
     }
     return null;
+  }
+
+  override async handleEvent(pattern: string, packet: IncomingRequest | IncomingEvent, context: RmqContext) {
+    const handler = this.getHandlerByPattern(pattern);
+    if (!handler && !this.noAck) {
+      this.channel?.nack(context.getMessage() as Message, false, false);
+      return this.logger.warn(RQM_NO_EVENT_HANDLER`${pattern}`);
+    }
+    return super.handleEvent(pattern, packet, context);
   }
 
   async handleMessage(message: ConsumeMessage | null, channel: Channel): Promise<void> {

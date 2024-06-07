@@ -1,6 +1,6 @@
 {
   "name": "@getlarge/nestjs-tools-amqp-transport",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "description": "Custom Nest Transport classes for AMQP",
   "keywords": [
     "amqp",

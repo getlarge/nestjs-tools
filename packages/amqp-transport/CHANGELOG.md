@@ -1,3 +1,22 @@
+## 0.6.0 (2024-06-07)
+
+
+### 🚀 Features
+
+- **nestjs-tools-amqp-transport:** add custom event handler ([ea215d5](https://github.com/getlarge/nestjs-tools/commit/ea215d5))
+
+
+### 🩹 Fixes
+
+- **nestjs-tools-amqp-transport:** create custom default deserializer to handle empty pattern ([8a4eaed](https://github.com/getlarge/nestjs-tools/commit/8a4eaed))
+
+- **nestjs-tools-amqp-transport:** evaluate default options correctly ([077a2d2](https://github.com/getlarge/nestjs-tools/commit/077a2d2))
+
+
+### ❤️  Thank You
+
+- getlarge @getlarge
+
 ## 0.5.2 (2024-04-16)
 
 

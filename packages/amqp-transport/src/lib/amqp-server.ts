@@ -1,6 +1,7 @@
 import { isNil, isString, isUndefined } from '@nestjs/common/utils/shared.utils';
 import {
   CustomTransportStrategy,
+  IncomingEvent,
   IncomingRequest,
   MessageHandler,
   OutgoingResponse,
@@ -19,10 +20,11 @@ import {
   RQM_DEFAULT_PREFETCH_COUNT,
   RQM_DEFAULT_QUEUE_OPTIONS,
   RQM_DEFAULT_URL,
+  RQM_NO_EVENT_HANDLER,
 } from '@nestjs/microservices/constants';
-import { RmqUrl } from '@nestjs/microservices/external/rmq-url.interface';
+import type { RmqUrl } from '@nestjs/microservices/external/rmq-url.interface';
 import { AmqpConnectionManager, ChannelWrapper, connect } from 'amqp-connection-manager';
-import { Channel, ConsumeMessage, Options } from 'amqplib';
+import type { Channel, ConsumeMessage, Message, Options } from 'amqplib';
 
 import {
   AMQP_DEFAULT_EXCHANGE_OPTIONS,
@@ -32,7 +34,7 @@ import {
   CONNECT_FAILED_EVENT_MSG,
 } from './amqp.constants';
 import { AmqpOptions } from './amqp.interfaces';
-import { AmqpRecordSerializer } from './amqp-record.serializer';
+import { AmqpRecordConsumerDeserializer, AmqpRecordSerializer } from './amqp-record.serializer';
 
 export enum AmqpWildcard {
   SINGLE_LEVEL = '*',
@@ -55,6 +57,7 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
   private exchangeOptions?: Options.AssertExchange;
   private prefetchCount: number;
   private isGlobalPrefetchCount: boolean;
+  private noAck: boolean;
   private noAssert: boolean;
   private noQueueAssert: boolean;
   private noExchangeAssert: boolean;
@@ -65,19 +68,20 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
     this.transportId = transportId;
     this.server = null;
     this.channel = null;
-    this.urls = this.getOptionsProp(this.options, 'urls') || [RQM_DEFAULT_URL];
-    this.queue = this.getOptionsProp(this.options, 'queue') || '';
-    this.queueOptions = this.getOptionsProp(this.options, 'queueOptions') || RQM_DEFAULT_QUEUE_OPTIONS;
-    this.exchange = this.getOptionsProp(this.options, 'exchange') || undefined;
-    this.exchangeType = this.getOptionsProp(this.options, 'exchangeType') || AMQP_DEFAULT_EXCHANGE_TYPE;
-    this.exchangeOptions = this.getOptionsProp(this.options, 'exchangeOptions') || AMQP_DEFAULT_EXCHANGE_OPTIONS;
-    this.prefetchCount = this.getOptionsProp(this.options, 'prefetchCount') || RQM_DEFAULT_PREFETCH_COUNT;
+    this.noAck = this.getOptionsProp(this.options, 'noAck') ?? RQM_DEFAULT_NOACK;
+    this.urls = this.getOptionsProp(this.options, 'urls') ?? [RQM_DEFAULT_URL];
+    this.queue = this.getOptionsProp(this.options, 'queue') ?? '';
+    this.queueOptions = this.getOptionsProp(this.options, 'queueOptions') ?? RQM_DEFAULT_QUEUE_OPTIONS;
+    this.exchange = this.getOptionsProp(this.options, 'exchange') ?? undefined;
+    this.exchangeType = this.getOptionsProp(this.options, 'exchangeType') ?? AMQP_DEFAULT_EXCHANGE_TYPE;
+    this.exchangeOptions = this.getOptionsProp(this.options, 'exchangeOptions') ?? AMQP_DEFAULT_EXCHANGE_OPTIONS;
+    this.prefetchCount = this.getOptionsProp(this.options, 'prefetchCount') ?? RQM_DEFAULT_PREFETCH_COUNT;
     this.isGlobalPrefetchCount =
-      this.getOptionsProp(this.options, 'isGlobalPrefetchCount') || RQM_DEFAULT_IS_GLOBAL_PREFETCH_COUNT;
-    this.noAssert = this.getOptionsProp(this.options, 'noAssert') || RQM_DEFAULT_NO_ASSERT;
-    this.noQueueAssert = this.getOptionsProp(this.options, 'noQueueAssert') || RQM_DEFAULT_NO_ASSERT;
-    this.noExchangeAssert = this.getOptionsProp(this.options, 'noExchangeAssert') || RQM_DEFAULT_NO_ASSERT;
-    this.deleteChannelOnFailure = this.getOptionsProp(this.options, 'deleteChannelOnFailure') || true;
+      this.getOptionsProp(this.options, 'isGlobalPrefetchCount') ?? RQM_DEFAULT_IS_GLOBAL_PREFETCH_COUNT;
+    this.noAssert = this.getOptionsProp(this.options, 'noAssert') ?? RQM_DEFAULT_NO_ASSERT;
+    this.noQueueAssert = this.getOptionsProp(this.options, 'noQueueAssert') ?? RQM_DEFAULT_NO_ASSERT;
+    this.noExchangeAssert = this.getOptionsProp(this.options, 'noExchangeAssert') ?? RQM_DEFAULT_NO_ASSERT;
+    this.deleteChannelOnFailure = this.getOptionsProp(this.options, 'deleteChannelOnFailure') ?? true;
 
     this.initializeSerializer(options);
     this.initializeDeserializer(options);
@@ -174,7 +178,6 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
 
   async setupChannel(channel: Channel, callback?: (error?: unknown) => void, retried?: boolean): Promise<void> {
     try {
-      const noAck = this.getOptionsProp(this.options, 'noAck', RQM_DEFAULT_NOACK);
       const { queue, exchange } = this;
       if (exchange && !this.skipExchangeAssert) {
         await channel.assertExchange(exchange, this.exchangeType, this.exchangeOptions);
@@ -187,7 +190,7 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
 
       await channel.prefetch(this.prefetchCount, this.isGlobalPrefetchCount);
       channel.consume(queue, (msg) => this.handleMessage(msg, channel), {
-        noAck,
+        noAck: this.noAck,
       });
       callback?.();
     } catch (e) {
@@ -245,13 +248,21 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
     return null;
   }
 
+  override async handleEvent(pattern: string, packet: IncomingRequest | IncomingEvent, context: RmqContext) {
+    const handler = this.getHandlerByPattern(pattern);
+    if (!handler && !this.noAck) {
+      this.channel?.nack(context.getMessage() as Message, false, false);
+      return this.logger.warn(RQM_NO_EVENT_HANDLER`${pattern}`);
+    }
+    return super.handleEvent(pattern, packet, context);
+  }
+
   async handleMessage(message: ConsumeMessage | null, channel: Channel): Promise<void> {
     if (isNil(message)) {
       return;
     }
-    const { content, properties } = message;
-    const rawMessage = JSON.parse(content.toString());
-    const packet = await this.deserializer.deserialize(rawMessage, properties);
+    const { properties } = message;
+    const packet = await this.deserializer.deserialize(message, properties);
     const pattern = isString(packet.pattern) ? packet.pattern : JSON.stringify(packet.pattern);
     const rmqContext = new RmqContext([message, channel, pattern]);
     if (isUndefined((packet as IncomingRequest).id)) {
@@ -283,5 +294,9 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
 
   protected override initializeSerializer(options: AmqpOptions) {
     this.serializer = options?.serializer ?? new AmqpRecordSerializer();
+  }
+
+  protected override initializeDeserializer(options: AmqpOptions) {
+    this.deserializer = options?.deserializer ?? new AmqpRecordConsumerDeserializer();
   }
 }

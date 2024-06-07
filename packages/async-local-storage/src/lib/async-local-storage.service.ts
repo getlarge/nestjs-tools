@@ -69,6 +69,14 @@ export class AsyncLocalStorageService extends Map<K, T[K]> {
     return this.instance?.getStore();
   }
 
+  static get<k extends K>(key: k): T[k] | undefined {
+    return this.store?.get(key) as T[k];
+  }
+
+  static set<k extends K>(key: k, value: T[k]): void {
+    this.store?.set(key, value);
+  }
+
   static get requestContext(): T[typeof REQUEST_CONTEXT_KEY] {
     return this.store?.get(REQUEST_CONTEXT_KEY) as T[typeof REQUEST_CONTEXT_KEY];
   }

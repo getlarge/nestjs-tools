@@ -68,20 +68,20 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
     this.transportId = transportId;
     this.server = null;
     this.channel = null;
-    this.noAck = this.getOptionsProp(this.options, 'noAck') || RQM_DEFAULT_NOACK;
-    this.urls = this.getOptionsProp(this.options, 'urls') || [RQM_DEFAULT_URL];
-    this.queue = this.getOptionsProp(this.options, 'queue') || '';
-    this.queueOptions = this.getOptionsProp(this.options, 'queueOptions') || RQM_DEFAULT_QUEUE_OPTIONS;
-    this.exchange = this.getOptionsProp(this.options, 'exchange') || undefined;
-    this.exchangeType = this.getOptionsProp(this.options, 'exchangeType') || AMQP_DEFAULT_EXCHANGE_TYPE;
-    this.exchangeOptions = this.getOptionsProp(this.options, 'exchangeOptions') || AMQP_DEFAULT_EXCHANGE_OPTIONS;
-    this.prefetchCount = this.getOptionsProp(this.options, 'prefetchCount') || RQM_DEFAULT_PREFETCH_COUNT;
+    this.noAck = this.getOptionsProp(this.options, 'noAck') ?? RQM_DEFAULT_NOACK;
+    this.urls = this.getOptionsProp(this.options, 'urls') ?? [RQM_DEFAULT_URL];
+    this.queue = this.getOptionsProp(this.options, 'queue') ?? '';
+    this.queueOptions = this.getOptionsProp(this.options, 'queueOptions') ?? RQM_DEFAULT_QUEUE_OPTIONS;
+    this.exchange = this.getOptionsProp(this.options, 'exchange') ?? undefined;
+    this.exchangeType = this.getOptionsProp(this.options, 'exchangeType') ?? AMQP_DEFAULT_EXCHANGE_TYPE;
+    this.exchangeOptions = this.getOptionsProp(this.options, 'exchangeOptions') ?? AMQP_DEFAULT_EXCHANGE_OPTIONS;
+    this.prefetchCount = this.getOptionsProp(this.options, 'prefetchCount') ?? RQM_DEFAULT_PREFETCH_COUNT;
     this.isGlobalPrefetchCount =
-      this.getOptionsProp(this.options, 'isGlobalPrefetchCount') || RQM_DEFAULT_IS_GLOBAL_PREFETCH_COUNT;
-    this.noAssert = this.getOptionsProp(this.options, 'noAssert') || RQM_DEFAULT_NO_ASSERT;
-    this.noQueueAssert = this.getOptionsProp(this.options, 'noQueueAssert') || RQM_DEFAULT_NO_ASSERT;
-    this.noExchangeAssert = this.getOptionsProp(this.options, 'noExchangeAssert') || RQM_DEFAULT_NO_ASSERT;
-    this.deleteChannelOnFailure = this.getOptionsProp(this.options, 'deleteChannelOnFailure') || true;
+      this.getOptionsProp(this.options, 'isGlobalPrefetchCount') ?? RQM_DEFAULT_IS_GLOBAL_PREFETCH_COUNT;
+    this.noAssert = this.getOptionsProp(this.options, 'noAssert') ?? RQM_DEFAULT_NO_ASSERT;
+    this.noQueueAssert = this.getOptionsProp(this.options, 'noQueueAssert') ?? RQM_DEFAULT_NO_ASSERT;
+    this.noExchangeAssert = this.getOptionsProp(this.options, 'noExchangeAssert') ?? RQM_DEFAULT_NO_ASSERT;
+    this.deleteChannelOnFailure = this.getOptionsProp(this.options, 'deleteChannelOnFailure') ?? true;
 
     this.initializeSerializer(options);
     this.initializeDeserializer(options);

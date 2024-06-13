@@ -28,7 +28,8 @@
       "conventionalCommits": true,
       "generatorOptions": {
         "skipLockFileUpdate": true
-      }
+      },
+      "preVersionCommand": "nx run-many --target=build --all"
     },
     "git": {
       "commit": true,

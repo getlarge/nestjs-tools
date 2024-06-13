@@ -1,0 +1,28 @@
+{
+  "name": "@getlarge/nestjs-tools-fastify-upload",
+  "version": "0.0.1",
+  "description": "Fastify Upload utilies for NestJS",
+  "keywords": [
+    "fastify",
+    "file",
+    "upload",
+    "nestjs"
+  ],
+  "license": "Apache-2.0",
+  "author": "Edouard Maleix <ed@getlarge.eu>",
+  "homepage": "https://github.com/getlarge/nestjs-tools/tree/main/packages/fastify-upload",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0",
+    "@nestjs/common": "^10.0.2",
+    "rxjs": "^7.8.0",
+    "fastify": "4.27.0",
+    "@fastify/busboy": "2.1.1",
+    "@fastify/multipart": "^8.0.0"
+  },
+  "type": "commonjs",
+  "main": "./src/index.js",
+  "typings": "./src/index.d.ts"
+}

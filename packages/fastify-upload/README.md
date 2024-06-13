@@ -10,6 +10,8 @@ It uses the [@fastify/multipart](https://www.npmjs.com/package/@fastify/multipar
 
 The [nestjs-tools-file-storage](../file-storage/README.md) library can store the uploaded files in various storage backends.
 
+Read [this issue](https://github.com/getlarge/nestjs-tools/issues/71) to understand why this library was created.
+
 ## Installation
 
 ```bash

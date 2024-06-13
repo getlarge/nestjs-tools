@@ -19,6 +19,7 @@ This repository contains several helpful packages for NestJS that I have develop
 | [Async-Local-Storage](./packages/async-local-storage/README.md) | A NestJS module to provide async local storage for your application                                       | [![npm](https://img.shields.io/npm/v/@getlarge/nestjs-tools-async-local-storage?style=flat)](https://npmjs.org/package/@getlarge/nestjs-tools-async-local-storage) |
 | [File-Storage](./packages/file-storage/README.md)               | A NestJS module supporting FS and S3 strategies                                                           | [![npm](https://img.shields.io/npm/v/@getlarge/nestjs-tools-file-storage?style=flat)](https://npmjs.org/package/@getlarge/nestjs-tools-file-storage)               |
 | [Lock](./packages/lock/README.md)                               | A NestJS module to provide a distributed lock for your application                                        | [![npm](https://img.shields.io/npm/v/@getlarge/nestjs-tools-lock?style=flat)](https://npmjs.org/package/@getlarge/nestjs-tools-lock)                               |
+| [Fastify-Upload](./packages/fastify-upload/README.md)           | A NestJS module to provide file upload support for Fastify                                                | [![npm](https://img.shields.io/npm/v/@getlarge/nestjs-tools-fastify-upload?style=flat)](https://npmjs.org/package/@getlarge/nestjs-tools-fastify-upload)           |
 
 ## Installation and usage
 
@@ -28,4 +29,5 @@ Check the README of each package for more details.
 
 Check out the following projects for examples of using these packages:
 
-- the [ticketing repository](https://github.com/getlarge/ticketing) is a real-world example of AMQP-Transport, File-Storage, Lock,
+- The [ticketing repository](https://github.com/getlarge/ticketing) is a real-world example of AMQP-Transport, File-Storage, Lock
+- The [cat fostering repository](https://github.com/getlarge/catfostering) uses Fastify-Upload

@@ -2,16 +2,14 @@ import {
   BigIntOptions,
   createReadStream,
   createWriteStream,
-  existsSync,
-  mkdirSync,
   ObjectEncodingOptions,
   stat,
   StatOptions,
   unlink,
   WriteFileOptions,
-} from 'fs';
-import { readdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { resolve as resolvePath } from 'node:path';
+} from 'node:fs';
+import { access, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { normalize, resolve as resolvePath, sep } from 'node:path';
 import { finished, Readable } from 'node:stream';
 
 import {
@@ -43,12 +41,21 @@ export type FileStorageLocalSetup = {
 
 function config(setup: FileStorageLocalSetup) {
   const { maxPayloadSize, storagePath } = setup;
-  const filePath = (options: { req?: Request; methodType: MethodTypes; fileName: string }): string => {
+  const filePath = async (options: { req?: Request; methodType: MethodTypes; fileName: string }): Promise<string> => {
     const { fileName, methodType } = options;
-    if (!existsSync(storagePath) && methodType === MethodTypes.WRITE) {
-      mkdirSync(storagePath, { recursive: true });
+    // Normalize and resolve the path to prevent path traversal
+    const safeFileName = normalize(fileName).replace(/^(\.\.(\/|\\|$))+/, '');
+    const fullPath = resolvePath(storagePath, safeFileName);
+    // Ensure the resolved path starts with the intended storagePath to prevent path traversal
+    if (!fullPath.startsWith(storagePath + sep)) {
+      throw new Error('Invalid file path');
     }
-    return resolvePath(storagePath, fileName);
+
+    if (methodType === MethodTypes.WRITE) {
+      const storageExists = await access(storagePath).catch(() => false);
+      !storageExists && (await mkdir(storagePath, { recursive: true }));
+    }
+    return Promise.resolve(resolvePath(storagePath, fileName));
   };
   const limits = { fileSize: maxPayloadSize * 1024 * 1024 };
   return { filePath, limits };

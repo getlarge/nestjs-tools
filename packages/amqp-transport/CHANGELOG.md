@@ -1,10 +1,8 @@
 ## 0.6.0 (2024-06-07)
 
-
 ### 🚀 Features
 
 - **nestjs-tools-amqp-transport:** add custom event handler ([ea215d5](https://github.com/getlarge/nestjs-tools/commit/ea215d5))
-
 
 ### 🩹 Fixes
 
@@ -12,20 +10,17 @@
 
 - **nestjs-tools-amqp-transport:** evaluate default options correctly ([077a2d2](https://github.com/getlarge/nestjs-tools/commit/077a2d2))
 
-
-### ❤️  Thank You
+### ❤️ Thank You
 
 - getlarge @getlarge
 
 ## 0.5.2 (2024-04-16)
 
-
 ### 🩹 Fixes
 
 - **amqp-transport:** solve type issues and improve reconnection handling ([faf027c](https://github.com/getlarge/nestjs-tools/commit/faf027c))
 
-
-### ❤️  Thank You
+### ❤️ Thank You
 
 - getlarge @getlarge
 

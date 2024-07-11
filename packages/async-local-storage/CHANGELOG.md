@@ -1,10 +1,8 @@
 ## 0.3.0 (2024-04-16)
 
-
 ### 🚀 Features
 
 - add module implementation ([715e29d](https://github.com/getlarge/nestjs-tools/commit/715e29d))
-
 
 ### 🩹 Fixes
 
@@ -14,8 +12,7 @@
 
 - **nestjs-tools-async-local-storage:** use stricter typing ([e588371](https://github.com/getlarge/nestjs-tools/commit/e588371))
 
-
-### ❤️  Thank You
+### ❤️ Thank You
 
 - Edouard @getlarge
 - getlarge @getlarge

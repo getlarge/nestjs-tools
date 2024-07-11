@@ -1,44 +1,24 @@
-import {
-  DeleteObjectCommandInput,
-  DeleteObjectsCommandInput,
-  GetObjectCommandInput,
-  HeadObjectCommandInput,
-  ListObjectsV2CommandInput,
-  PutObjectCommandInput,
-  S3,
-} from '@aws-sdk/client-s3';
+import { DeleteObjectsCommandInput, ListObjectsV2CommandInput, S3 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { PassThrough, Readable } from 'node:stream';
 
-import {
+import type {
   FileStorage,
-  FileStorageBaseArgs,
   FileStorageConfig,
   FileStorageConfigFactory,
   FileStorageDirBaseArgs,
 } from './file-storage.class';
+import type {
+  FileStorageS3Config,
+  FileStorageS3DeleteFile,
+  FileStorageS3DownloadFile,
+  FileStorageS3DownloadStream,
+  FileStorageS3FileExists,
+  FileStorageS3Setup,
+  FileStorageS3UploadFile,
+  FileStorageS3UploadStream,
+} from './file-storage-s3.types';
 import { FileStorageWritable, MethodTypes, Request } from './types';
-
-/**
- * Either region or endpoint must be provided
- */
-export type FileStorageS3Setup = {
-  bucket: string;
-  maxPayloadSize: number;
-  credentials?: {
-    accessKeyId: string;
-    secretAccessKey: string;
-  };
-  logger?: S3['config']['logger'];
-  [key: string]: unknown;
-} & ({ region: string; endpoint?: never } | { endpoint: string; region?: never });
-
-export interface FileStorageS3Config {
-  s3: S3;
-  bucket: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
-}
 
 function config(setup: FileStorageS3Setup) {
   const { bucket, maxPayloadSize, credentials, endpoint, logger } = setup;
@@ -67,31 +47,6 @@ function config(setup: FileStorageS3Setup) {
     filePath,
     limits,
   };
-}
-
-export interface FileStorageS3FileExists extends FileStorageBaseArgs {
-  options?: HeadObjectCommandInput;
-}
-
-export interface FileStorageS3UploadFile extends FileStorageBaseArgs {
-  content: string | Uint8Array | Buffer;
-  options?: PutObjectCommandInput;
-}
-
-export interface FileStorageS3UploadStream extends FileStorageBaseArgs {
-  options?: PutObjectCommandInput;
-}
-
-export interface FileStorageS3DownloadFile extends FileStorageBaseArgs {
-  options?: GetObjectCommandInput;
-}
-
-export interface FileStorageS3DownloadStream extends FileStorageBaseArgs {
-  options?: GetObjectCommandInput;
-}
-
-export interface FileStorageS3DeleteFile extends FileStorageBaseArgs {
-  options?: DeleteObjectCommandInput;
 }
 
 function removeTrailingForwardSlash(x?: string) {
@@ -212,14 +167,14 @@ export class FileStorageS3 implements FileStorage {
       return;
     }
 
-    const deleteParams: DeleteObjectsCommandInput = {
+    const deleteParams = {
       Bucket,
       Delete: {
         Objects: listedObjects.Contents.map(({ Key }) => ({
           Key,
         })),
       },
-    };
+    } satisfies DeleteObjectsCommandInput;
     await s3.deleteObjects(deleteParams);
 
     if (listedObjects.IsTruncated) {

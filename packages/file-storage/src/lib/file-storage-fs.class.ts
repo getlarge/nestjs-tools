@@ -1,43 +1,24 @@
-import {
-  BigIntOptions,
-  createReadStream,
-  createWriteStream,
-  ObjectEncodingOptions,
-  stat,
-  StatOptions,
-  unlink,
-  WriteFileOptions,
-} from 'node:fs';
+import { createReadStream, createWriteStream, ObjectEncodingOptions, stat, unlink } from 'node:fs';
 import { access, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { normalize, resolve as resolvePath, sep } from 'node:path';
 import { finished, Readable } from 'node:stream';
 
-import {
+import type {
   FileStorage,
   FileStorageBaseArgs,
   FileStorageConfig,
   FileStorageConfigFactory,
   FileStorageDirBaseArgs,
 } from './file-storage.class';
+import type {
+  FileStorageLocalDownloadFile,
+  FileStorageLocalDownloadStream,
+  FileStorageLocalFileExists,
+  FileStorageLocalSetup,
+  FileStorageLocalUploadFile,
+  FileStorageLocalUploadStream,
+} from './file-storage-fs.types';
 import { FileStorageWritable, MethodTypes, Request } from './types';
-
-export type StreamOptions = {
-  flags?: string;
-  encoding?: BufferEncoding;
-  fd?: number;
-  mode?: number;
-  autoClose?: boolean;
-  emitClose?: boolean;
-  start?: number;
-  end?: number;
-  highWaterMark?: number;
-};
-
-export type FileStorageLocalSetup = {
-  storagePath: string;
-  maxPayloadSize: number;
-  [key: string]: unknown;
-};
 
 function config(setup: FileStorageLocalSetup) {
   const { maxPayloadSize, storagePath } = setup;
@@ -59,34 +40,6 @@ function config(setup: FileStorageLocalSetup) {
   };
   const limits = { fileSize: maxPayloadSize * 1024 * 1024 };
   return { filePath, limits };
-}
-
-export interface FileStorageLocalFileExists extends FileStorageBaseArgs {
-  options?: StatOptions | BigIntOptions;
-}
-
-export interface FileStorageLocalUploadFile extends FileStorageBaseArgs {
-  content: string | Uint8Array | Buffer;
-  options?: WriteFileOptions;
-}
-
-export interface FileStorageLocalUploadStream extends FileStorageBaseArgs {
-  options?: BufferEncoding | StreamOptions;
-}
-
-export interface FileStorageLocalDownloadFile extends FileStorageBaseArgs {
-  options:
-    | { encoding?: null; flag?: string }
-    | { encoding: BufferEncoding; flag?: string }
-    | BufferEncoding
-    | (ObjectEncodingOptions & { flag?: string })
-    | undefined
-    | null;
-  // options?: Record<string, any> | BufferEncoding | null;
-}
-
-export interface FileStorageLocalDownloadStream extends FileStorageBaseArgs {
-  options?: BufferEncoding | StreamOptions;
 }
 
 // TODO: control filesize limit

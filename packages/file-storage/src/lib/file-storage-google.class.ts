@@ -18,9 +18,10 @@ import type {
 import { FileStorageWritable, MethodTypes } from './types';
 
 function config(setup: FileStorageGoogleSetup) {
-  const { bucketName, maxPayloadSize } = setup;
-
-  const storage = new Storage();
+  const { bucketName, maxPayloadSize, projectId } = setup;
+  const storage = new Storage({
+    ...(projectId ? { projectId } : {}),
+  });
 
   const filePath = (options: { request?: Request; fileName: string }): string => {
     const { fileName } = options;

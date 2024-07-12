@@ -15,6 +15,7 @@ import type { FileStorageBaseArgs, FileStorageDirBaseArgs } from './file-storage
 // TODO: add authentication options
 export interface FileStorageGoogleSetup {
   maxPayloadSize: number;
+  projectId?: string;
   bucketName: string;
 }
 

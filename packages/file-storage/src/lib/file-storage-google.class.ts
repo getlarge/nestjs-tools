@@ -119,6 +119,7 @@ export class FileStorageGoogle implements FileStorage {
     await storage.bucket(bucket).deleteFiles({ ...options, prefix });
   }
 
+  // TODO: make filepaths compliant with the other readDir implementations
   async readDir(args: FileStorageGoogleReadDir): Promise<string[]> {
     const { storage, bucket } = this.config;
     const { options = {}, request } = args;

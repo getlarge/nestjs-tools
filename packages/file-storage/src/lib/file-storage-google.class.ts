@@ -88,7 +88,7 @@ export class FileStorageGoogle implements FileStorage {
     const { storage, bucket } = this.config;
     const { options = {}, request } = args;
     const filePath = await this.transformFilePath(args.filePath, MethodTypes.READ, request, options);
-    const [content] = await storage.bucket(bucket).file(filePath).download();
+    const [content] = await storage.bucket(bucket).file(filePath).download(options);
     return content;
   }
 
@@ -105,7 +105,7 @@ export class FileStorageGoogle implements FileStorage {
       const { storage, bucket } = this.config;
       const { options = {}, request } = args;
       const filePath = await this.transformFilePath(args.filePath, MethodTypes.DELETE, request, options);
-      await storage.bucket(bucket).file(filePath).delete();
+      await storage.bucket(bucket).file(filePath).delete(options);
       return true;
     } catch (error) {
       return false;

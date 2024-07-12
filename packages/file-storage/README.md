@@ -36,7 +36,7 @@ import { AppService } from './env';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
         const environment = configService.get('NODE_ENV', { infer: true });
-        if (environment === Environment.Development) {
+        if (environment === 'development') {
           const setup = {
             storagePath: configService.get('STORAGE_PATH'),
             maxPayloadSize: configService.get('MAX_PAYLOAD_SIZE'),
@@ -75,18 +75,19 @@ export class AppService {
     private readonly fileStorageService: FileStorageService,
   ) {}
 
-  async getFile(): Promise<Uint8Array> {
-    const filePath = this.configService.get('FILE_PATH');
-    return this.fileStorage.downloadFile({
+  getFile(filePath: string): Promise<Buffer> {
+    return this.fileStorage.downloadFile({ filePath });
+  }
+
+  setFile(filePath: string, content: string): Promise<void> {
+    return this.fileStorage.uploadFile({
       filePath,
+      content,
     });
   }
 
-  setFile(content: string): Promise<void> {
-    return this.fileStorage.uploadFile({
-      filePath: this.configService.get('FILE_PATH'),
-      content,
-    });
+  deleteFile(filePath: string): Promise<void> {
+    return this.fileStorage.deleteFile({ filePath });
   }
 }
 ```
@@ -98,14 +99,22 @@ You should also authenticate to external services.
 
 ### AWS
 
-I highly recommend configuring the [AWS Identity Center](https://docs.aws.amazon.com/singlesignon/latest/userguide/quick-start-default-idc.html) to manage your AWS credentials for development. You can use the `aws` CLI to authenticate, find more information [here](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html/).
+I highly recommend configuring the [AWS Identity Center](https://docs.aws.amazon.com/singlesignon/latest/userguide/quick-start-default-idc.html) to manage your AWS credentials for development.
 
-Once done authenticated with the CLI, set the `AWS_PROFILE` environment variable to the profile you want to use.
+> **Note:**
+> You can use the `aws` CLI to authenticate, find more information [here](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html/).
+
+Once authenticated:
+
+- set the `AWS_PROFILE` environment variable to the profile you want to use
+- or set the `AWS_S3_ACCESS_KEY_ID` and `AWS_S3_SECRET_ACCESS_KEY` environment variables.
 
 ### Google Cloud
 
-The recommended approach is to setup (Application Default Credentials)[https://cloud.google.com/docs/authentication/provide-credentials-adc#local-dev].
-You can use the `gcloud` CLI to authenticate, more information [here](https://cloud.google.com/sdk/gcloud/reference/auth/application-default/login).
+The recommended approach is to setup [Application Default Credentials](https://cloud.google.com/docs/authentication/provide-credentials-adc#local-dev).
+
+> **Note:**
+> You can use the `gcloud` CLI to authenticate, more information [here](https://cloud.google.com/sdk/gcloud/reference/auth/application-default/login).
 
 ## Troubleshooting
 

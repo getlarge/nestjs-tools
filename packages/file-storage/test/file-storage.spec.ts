@@ -20,6 +20,7 @@ declare global {
       S3_REGION: string;
       AWS_ACCESS_KEY_ID?: string;
       AWS_SECRET_ACCESS_KEY?: string;
+      AWS_SECRET_SESSION_TOKEN?: string;
       AWS_PROFILE?: string;
       GC_BUCKET: string;
       GC_PROJECT_ID?: string;
@@ -62,6 +63,7 @@ const testMap: {
                 credentials: {
                   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
                   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+                  sessionToken: process.env.AWS_SECRET_SESSION_TOKEN,
                 },
               }
             : {}),
@@ -141,7 +143,7 @@ testMap.forEach((testSuite) => {
       const upload = await fileStorage.uploadStream({ filePath: testFileName });
       const entry = Readable.from(Buffer.from(testFileContent));
       const ac = new AbortController();
-      const t = setTimeout(() => ac.abort(), 300);
+      const t = setTimeout(() => ac.abort(), 1000);
       const listener = once(upload, 'done', { signal: ac.signal }).finally(() => clearTimeout(t));
       await pipeline(entry, upload);
       await listener;

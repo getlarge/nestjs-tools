@@ -18,6 +18,7 @@ export type FileStorageS3Setup = {
   credentials?: {
     accessKeyId: string;
     secretAccessKey: string;
+    sessionToken?: string;
   };
   logger?: S3['config']['logger'];
   [key: string]: unknown;

@@ -69,7 +69,7 @@ export class FileStorageLocal implements FileStorage {
   async fileExists(args: FileStorageLocalFileExists): Promise<boolean> {
     const { filePath, options = {}, request } = args;
     const fileName = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
-    return new Promise<boolean>((resolve, reject) => stat(fileName, (err) => (err ? reject(err) : resolve(true))));
+    return new Promise<boolean>((resolve) => stat(fileName, (err) => (err ? resolve(false) : resolve(true))));
   }
 
   async uploadFile(args: FileStorageLocalUploadFile): Promise<void> {

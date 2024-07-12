@@ -87,8 +87,12 @@ export class FileStorageS3 implements FileStorage {
     const { filePath, options = {}, request } = args;
     const { s3, bucket: Bucket } = this.config;
     const Key = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
-    await s3.headObject({ ...options, Key, Bucket });
-    return true;
+    try {
+      await s3.headObject({ ...options, Key, Bucket });
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   async uploadFile(args: FileStorageS3UploadFile): Promise<void> {

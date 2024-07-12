@@ -28,7 +28,7 @@ function config(setup: FileStorageLocalSetup) {
     const safeFileName = normalize(fileName).replace(/^(\.\.(\/|\\|$))+/, '');
     const fullPath = resolvePath(storagePath, safeFileName);
     // Ensure the resolved path starts with the intended storagePath to prevent path traversal
-    if (!fullPath.startsWith(storagePath + sep)) {
+    if (!fullPath.startsWith(resolvePath(storagePath + sep))) {
       throw new Error('Invalid file path');
     }
 
@@ -133,10 +133,9 @@ export class FileStorageLocal implements FileStorage {
     const { dirPath, request } = args;
     try {
       const transformedDirPath = await this.transformFilePath(dirPath, MethodTypes.READ, request);
-      // we need return await to catch the error
       return await readdir(transformedDirPath);
     } catch (err) {
-      if (err instanceof Error && 'code' in err && err['code'] === 'ENOENT') {
+      if (err && typeof err === 'object' && 'code' in err && err['code'] === 'ENOENT') {
         return [];
       }
       throw err;

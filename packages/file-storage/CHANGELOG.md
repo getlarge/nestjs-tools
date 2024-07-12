@@ -1,3 +1,28 @@
+## 1.1.0 (2024-07-12)
+
+
+### 🚀 Features
+
+- **nestjs-tools-file-storage:** integrate Google storage API ([ff2aa79](https://github.com/getlarge/nestjs-tools/commit/ff2aa79))
+
+- **nestjs-tools-file-storage:** add Google File storage strategy ([126af14](https://github.com/getlarge/nestjs-tools/commit/126af14))
+
+- **nestjs-tools-file-storage:** add projectId option to GC file storage ([d901552](https://github.com/getlarge/nestjs-tools/commit/d901552))
+
+- **nestjs-tools-file-storage:** resolve boolean for fileExists ([6bad25f](https://github.com/getlarge/nestjs-tools/commit/6bad25f))
+
+
+### 🩹 Fixes
+
+- **nestjs-tools-file-storage:** prevent path traversal in default filePath factory ([975e483](https://github.com/getlarge/nestjs-tools/commit/975e483))
+
+- **nestjs-tools-file-storage:** fix path traversal check in file storage class ([bec11ec](https://github.com/getlarge/nestjs-tools/commit/bec11ec))
+
+
+### ❤️  Thank You
+
+- getlarge @getlarge
+
 # 1.0.0 (2024-04-16)
 
 ### 🚀 Features

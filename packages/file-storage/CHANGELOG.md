@@ -67,6 +67,13 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 ## [0.6.2](https://github.com/s1seven/nestjs-tools/compare/@s1seven/nestjs-tools-file-storage@0.6.1...@s1seven/nestjs-tools-file-storage@0.6.2) (2023-04-04)
 
+### BREAKING CHANGES
+
+Use AWS SDK v3:
+- `accessKeyId` and `secretAccessKey` should be passed to `FileStorageS3Setup` as properties of a `credentials` object.
+- The `s3BucketEndpoint` property has been removed.
+- In AWS SDK v3, the `endpoint` property has been replaced by `region`. For compatibility, we currently extract the region from an `endpoint` url if it is present and the `region` property is not, but you should update to `region` as this may change in future updates.
+
 ### Bug Fixes
 
 - return folders and filenames from readDir S3 ([d6437fa](https://github.com/s1seven/nestjs-tools/commit/d6437fa5155177baf7ed13dfafaa527e82731256))

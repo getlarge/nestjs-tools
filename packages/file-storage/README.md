@@ -9,12 +9,7 @@ File storage classes for :
 
 - Node FileSystem
 - Amazon S3
-
-NOTE: release `@getlarge/nestjs-tools-file-storage@0.6.2` has some breaking changes as we now use AWS SDK v3:
-
-- `accessKeyId` and `secretAccessKey` should be passed to `FileStorageS3Setup` as properties of a `credentials` object.
-- The `s3BucketEndpoint` property has been removed.
-- In AWS SDK v3, the `endpoint` property has been replaced by `region`. For compatibility, we currently extract the region from an `endpoint` url if it is present and the `region` property is not, but you should update to `region` as this may change in future updates.
+- Google Cloud Storage
 
 ## Installation
 
@@ -25,128 +20,72 @@ $ npm install --save @getlarge/nestjs-tools-file-storage
 ## Example
 
 ```ts
-import { AppConfigService } from '@app/env';
+// module.ts
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { FileStorageLocal, FileStorageModule, FileStorageS3 } from '@getlarge/nestjs-tools-file-storage';
+
+import { AppService } from './env';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    FileStorageModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => {
+        const environment = configService.get('NODE_ENV', { infer: true });
+        if (environment === Environment.Development) {
+          const setup = {
+            storagePath: configService.get('STORAGE_PATH'),
+            maxPayloadSize: configService.get('MAX_PAYLOAD_SIZE'),
+          };
+          return new FileStorageLocal(setup);
+        }
+        const setup = {
+          maxPayloadSize: configService.get('MAX_PAYLOAD_SIZE'),
+          bucket: configService.get('AWS_S3_BUCKET'),
+          region: configService.get('AWS_S3_REGION'),
+          credentials: {
+            accessKeyId: configService.get('AWS_S3_ACCESS_KEY_ID'),
+            secretAccessKey: configService.get('AWS_S3_SECRET_ACCESS_KEY'),
+          },
+        };
+        return new FileStorageS3(setup);
+      },
+    }),
+  ],
+  providers: [AppService],
+})
+export class AppModule {}
+```
+
+```ts
+// service.ts
+import { FileStorageService } from '@getlarge/nestjs-tools-file-storage';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { SymmetricCipher } from '@bigchaindb/wallet-plugins';
-import {
-  FileStorage,
-  FileStorageConfig,
-  FileStorageLocal,
-  FileStorageLocalSetup,
-  FileStorageS3,
-  FileStorageS3Config,
-  FileStorageS3Setup,
-} from '@getlarge/nestjs-tools-file-storage';
-import { S3 } from '@aws-sdk/client-s3';
-import { Upload } from '@aws-sdk/lib-storage';
-import { Request } from 'express';
-import { isBase64 } from 'class-validator';
-import chalk from 'chalk';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
-import { join, resolve } from 'path';
-import { decodeBase64 } from 'tweetnacl-util';
-
-function fileStorageConfigFactory(setup: FileStorageLocalSetup & { secretKeyPath: string }): FileStorageConfig {
-  const { maxPayloadSize, storagePath, secretKeyPath } = setup;
-  const filePath = (options: { req?: Request; fileName: string }): string => {
-    const { fileName } = options;
-    if (!existsSync(storagePath)) {
-      mkdirSync(storagePath, { recursive: true });
-    }
-    const path = resolve(join(storagePath, fileName));
-    if (!existsSync(path) && fileName === secretKeyPath) {
-      writeFileSync(path, '');
-    }
-    return path;
-  };
-  const limits = { fileSize: maxPayloadSize * 1024 * 1024 };
-  return { filePath, limits };
-}
-
-function s3StorageConfigFactory(
-  setup: FileStoragS3Setup & { secretKeyPath: string },
-): FileStorageConfig & FileStorageS3Config {
-  const { bucket, maxPayloadSize, credentials, region } = setup;
-  const s3 = new S3({
-    credentials,
-    region,
-  });
-  const filePath = async (options: { request?: Request; fileName: string }): Promise<string> => {
-    const { fileName } = options;
-    const fileExists = await s3
-      .headObject({ Key: fileName, Bucket: bucket })
-      .promise()
-      .then(() => true)
-      .catch(() => false);
-    if (!fileExists && fileName === secretKeyPath) {
-      await new Upload({
-        client: s3,
-        params: { Bucket: bucket, Key: fileName, Body: '' },
-      }).done();
-    }
-    return `${fileName}`;
-  };
-
-  const limits = { fileSize: maxPayloadSize * 1024 * 1024 };
-  return {
-    s3,
-    bucket,
-    filePath,
-    limits,
-  };
-}
 
 @Injectable()
-export class StorageService {
-  readonly logger = new Logger(StorageService.name);
-  readonly fileStorage: FileStorage;
+export class AppService {
+  constructor(
+    @Inject(ConfigService) private readonly configService: ConfigService,
+    @Inject(FileStorageService)
+    private readonly fileStorageService: FileStorageService,
+  ) {}
 
-  constructor(@Inject(ConfigService) private readonly configService: AppConfigService) {
-    const environment = this.configService.get<Environment>('NODE_ENV');
-    if (!environment || environment === 'development' || environment === 'test') {
-      const setup: FileStorageLocalSetup = {
-        secretKeyPath: configService.get<string>('SECRET_KEY_PATH'),
-        storagePath: configService.get<string>('STORAGE_PATH'),
-        maxPayloadSize: configService.get<number>('MAX_PAYLOAD_SIZE'),
-      };
-      this.fileStorage = new FileStorageLocal(setup, fileStorageConfigFactory);
-    } else {
-      const setup: FileStorageS3Setup = {
-        secretKeyPath: configService.get<string>('SECRET_KEY_PATH'),
-        maxPayloadSize: configService.get<number>('MAX_PAYLOAD_SIZE'),
-        region: configService.get<string>('S3_REGION'),
-        bucket: configService.get<string>('S3_BUCKET'),
-        credentials: {
-          secretAccessKey: configService.get<string>('S3_SECRET_ACCESS_KEY'),
-          accessKeyId: configService.get<string>('S3_ACCESS_KEY_ID'),
-        },
-      };
-      this.fileStorage = new FileStorageS3(setup, s3StorageConfigFactory);
-    }
+  async getFile(): Promise<Uint8Array> {
+    const filePath = this.configService.get('FILE_PATH');
+    return this.fileStorage.downloadFile({
+      filePath,
+    });
   }
 
-  async getSecret(): Promise<Uint8Array> {
-    const secretKey = this.configService.get('SECRET_KEY');
-    const secretKeyPath = this.configService.get('SECRET_KEY_PATH');
-    const secretBase64 = secretKey
-      ? secretKey
-      : await this.fileStorage.downloadFile({
-          filePath: secretKeyPath,
-        });
-    if (secretBase64?.length) {
-      return decodeBase64(secretBase64.toString());
-    }
-    return Promise.reject(new Error('Secret file not found'));
-  }
-
-  setSecret(secret: string): Promise<void> {
-    if (!isBase64(secret)) {
-      return Promise.reject(new Error('Secret should be a base64 encoded string'));
-    }
+  setFile(content: string): Promise<void> {
     return this.fileStorage.uploadFile({
-      filePath: this.configService.get('SECRET_KEY_PATH'),
-      content: secret,
+      filePath: this.configService.get('FILE_PATH'),
+      content,
     });
   }
 }

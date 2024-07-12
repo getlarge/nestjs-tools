@@ -30,7 +30,7 @@ export function getFileStorageStrategy<
   E extends Record<string, unknown> = Record<string, unknown>,
 >(storageType: S, config: FileStorageModuleOptions<E>[S]): FileStorageS3;
 export function getFileStorageStrategy<
-  S extends StorageType = StorageType.G,
+  S extends StorageType = StorageType.GC,
   E extends Record<string, unknown> = Record<string, unknown>,
 >(storageType: S, config: FileStorageModuleOptions<E>[S]): FileStorageGoogle;
 export function getFileStorageStrategy<S extends StorageType, E extends Record<string, unknown>>(
@@ -46,7 +46,7 @@ export function getFileStorageStrategy<S extends StorageType, E extends Record<s
       );
     case StorageType.S3:
       return new FileStorageS3(setup as FileStorageS3Setup, factory as FileStorageS3Options<E>['factory']);
-    case StorageType.G:
+    case StorageType.GC:
       return new FileStorageGoogle(setup as FileStorageGoogleSetup, factory as FileStorageGoogleOptions<E>['factory']);
     default:
       throw new TypeError(`Invalid storage type: ${storageType}`);
@@ -56,7 +56,7 @@ export function getFileStorageStrategy<S extends StorageType, E extends Record<s
 @Module({})
 export class FileStorageModule {
   public static forRoot(
-    storageType: StorageType.FS | StorageType.S3 | StorageType.G,
+    storageType: StorageType.FS | StorageType.S3 | StorageType.GC,
     options: Partial<FileStorageModuleOptions<Record<string, unknown>>> = {
       [StorageType.FS]: { setup: { storagePath: 'store', maxPayloadSize: 1 } },
     },

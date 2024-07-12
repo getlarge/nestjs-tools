@@ -9,7 +9,7 @@ import type { FileStorageS3Config, FileStorageS3Setup } from './file-storage-s3.
 export enum StorageType {
   FS = 'FS',
   S3 = 'S3',
-  G = 'G',
+  GC = 'GC',
 }
 
 export enum MethodTypes {
@@ -39,7 +39,7 @@ export interface FileStorageGoogleOptions<ExtraConfig extends Record<string, unk
 export type FileStorageModuleOptions<ExtraConfig extends Record<string, unknown> = Record<string, unknown>> = {
   [StorageType.FS]: FileStorageLocalOptions<ExtraConfig>;
   [StorageType.S3]: FileStorageS3Options<ExtraConfig>;
-  [StorageType.G]: FileStorageGoogleOptions<ExtraConfig>;
+  [StorageType.GC]: FileStorageGoogleOptions<ExtraConfig>;
 };
 
 export interface FileStorageModuleAsyncOptions extends Pick<ModuleMetadata, 'imports'> {

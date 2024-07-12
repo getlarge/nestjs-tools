@@ -126,7 +126,6 @@ export class FileStorageGoogle implements FileStorage {
     const [files] = await storage
       .bucket(bucket)
       .getFiles({ includeTrailingDelimiter: false, includeFoldersAsPrefixes: false, ...options, prefix });
-    // return files.map((file) => file.name.replace(prefix, ''));
     return files.map((file) => (prefix ? file.name.replace(prefix, '').replace('/', '') : file.name));
   }
 }

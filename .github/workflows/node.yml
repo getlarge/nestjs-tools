@@ -65,14 +65,22 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.head_ref }}
 
-      - name: configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          role-to-assume: arn:aws:iam::555175933160:role/Github_Actions_S3
-          role-session-name: github-actions
-          aws-region: ${{ env.S3_REGION }}
+      # - name: configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     role-to-assume: arn:aws:iam::555175933160:role/Github_Actions_S3
+      #     role-session-name: github-actions
+      #     aws-region: ${{ env.S3_REGION }}
 
-      - uses: 'google-github-actions/auth@v2'
+      - name: configure AWS credentials
+        uses: mcblair/configure-aws-profile-action@v1.0.0
+        with:
+          role-arn: arn:aws:iam::555175933160:role/Github_Actions_S3
+          profile-name: github-actions
+          region: ${{ env.S3_REGION }}
+
+      - name: configure Google Cloud credentials
+        uses: 'google-github-actions/auth@v2'
         with:
           project_id: ${{ env.GC_PROJECT_ID }}
           workload_identity_provider: 'projects/686264090118/locations/global/workloadIdentityPools/github/providers/nestjs-tools'
@@ -108,6 +116,7 @@ jobs:
           CI: true
           # S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
           # S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          AWS_PROFILE: github-actions
           S3_BUCKET: ${{ env.S3_BUCKET }}
           S3_REGION: ${{ env.S3_REGION }}
           GC_BUCKET: ${{ env.GC_BUCKET }}

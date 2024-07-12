@@ -27,10 +27,10 @@ env:
   NX_CLOUD_DISTRIBUTED_EXECUTION: false
   NX_DISTRIBUTED_TASK_EXECUTION: false
   CI: true
-  S3_BUCKET: ${{ secrets.S3_BUCKET }}
-  S3_REGION: ${{ secrets.S3_REGION }}
-  GC_BUCKET: ${{ secrets.GC_BUCKET }}
-  GC_PROJECT_ID: ${{ secrets.GC_PROJECT_ID }}
+  S3_BUCKET: ${{ vars.S3_BUCKET }}
+  S3_REGION: ${{ vars.S3_REGION }}
+  GC_BUCKET: ${{ vars.GC_BUCKET }}
+  GC_PROJECT_ID: ${{ vars.GC_PROJECT_ID }}
 
 permissions:
   contents: read
@@ -110,7 +110,6 @@ jobs:
           # S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
           S3_BUCKET: ${{ env.S3_BUCKET }}
           S3_REGION: ${{ env.S3_REGION }}
-          S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
           GC_BUCKET: ${{ env.GC_BUCKET }}
           GC_PROJECT_ID: ${{ env.GC_PROJECT_ID }}
         run: npx nx affected -t lint,test,build --parallel=3

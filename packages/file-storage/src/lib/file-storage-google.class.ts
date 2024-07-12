@@ -24,8 +24,7 @@ function config(setup: FileStorageGoogleSetup) {
   });
 
   const filePath = (options: { request?: Request; fileName: string }): string => {
-    const { fileName } = options;
-    return `public/${fileName}`;
+    return options.fileName;
   };
   const limits = { fileSize: maxPayloadSize * 1024 * 1024 };
   return {
@@ -124,7 +123,10 @@ export class FileStorageGoogle implements FileStorage {
     const { storage, bucket } = this.config;
     const { options = {}, request } = args;
     const prefix = await this.transformFilePath(args.dirPath, MethodTypes.READ, request, options);
-    const [files] = await storage.bucket(bucket).getFiles({ ...options, prefix });
-    return files.map((file) => file.name);
+    const [files] = await storage
+      .bucket(bucket)
+      .getFiles({ includeTrailingDelimiter: false, includeFoldersAsPrefixes: false, ...options, prefix });
+    // return files.map((file) => file.name.replace(prefix, ''));
+    return files.map((file) => (prefix ? file.name.replace(prefix, '').replace('/', '') : file.name));
   }
 }

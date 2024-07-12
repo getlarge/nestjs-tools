@@ -152,6 +152,22 @@ export class StorageService {
 }
 ```
 
+## Testing
+
+To run the tests, you need to have a `.env.test` file in the root of the project following the structure of the `.env.test.sample` file.
+You should also authenticate to external services.
+
+### AWS
+
+I highly recommend configuring the [AWS Identity Center](https://docs.aws.amazon.com/singlesignon/latest/userguide/quick-start-default-idc.html) to manage your AWS credentials for development. You can use the `aws` CLI to authenticate, find more information [here](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html/).
+
+Once done authenticated with the CLI, set the `AWS_PROFILE` environment variable to the profile you want to use.
+
+### Google Cloud
+
+The recommended approach is to setup (Application Default Credentials)[https://cloud.google.com/docs/authentication/provide-credentials-adc#local-dev].
+You can use the `gcloud` CLI to authenticate, more information [here](https://cloud.google.com/sdk/gcloud/reference/auth/application-default/login).
+
 ## Troubleshooting
 
 If, after upgrading, you get the following error:

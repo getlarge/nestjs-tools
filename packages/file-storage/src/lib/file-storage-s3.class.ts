@@ -10,6 +10,7 @@ import type {
 } from './file-storage.class';
 import type {
   FileStorageS3Config,
+  FileStorageS3DeleteDir,
   FileStorageS3DeleteFile,
   FileStorageS3DownloadFile,
   FileStorageS3DownloadStream,
@@ -86,7 +87,7 @@ export class FileStorageS3 implements FileStorage {
     const { filePath, options = {}, request } = args;
     const { s3, bucket: Bucket } = this.config;
     const Key = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
-    await s3.headObject({ Key, Bucket, ...options });
+    await s3.headObject({ ...options, Key, Bucket });
     return true;
   }
 
@@ -96,7 +97,7 @@ export class FileStorageS3 implements FileStorage {
     const Key = await this.transformFilePath(filePath, MethodTypes.WRITE, request, options);
     await new Upload({
       client: s3,
-      params: { Bucket, Key, Body: content, ...options },
+      params: { ...options, Bucket, Key, Body: content },
     }).done();
   }
 
@@ -108,10 +109,10 @@ export class FileStorageS3 implements FileStorage {
     new Upload({
       client: s3,
       params: {
+        ...options,
         Body: writeStream,
         Key,
         Bucket,
-        ...options,
       },
     })
       .done()
@@ -128,7 +129,7 @@ export class FileStorageS3 implements FileStorage {
     const { filePath, options = {}, request } = args;
     const Key = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
     const { s3, bucket: Bucket } = this.config;
-    const readable = (await s3.getObject({ Bucket, Key, ...options })).Body as Readable;
+    const readable = (await s3.getObject({ ...options, Bucket, Key })).Body as Readable;
     const chunks: Buffer[] = [];
     for await (const chunk of readable) {
       chunks.push(chunk);
@@ -140,7 +141,7 @@ export class FileStorageS3 implements FileStorage {
     const { filePath, options = {}, request } = args;
     const Key = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
     const { s3, bucket: Bucket } = this.config;
-    const object = await s3.getObject({ Bucket, Key, ...options });
+    const object = await s3.getObject({ ...options, Bucket, Key });
     // from https://github.com/aws/aws-sdk-js-v3/issues/1877#issuecomment-755446927
     return object.Body as Readable;
   }
@@ -149,19 +150,19 @@ export class FileStorageS3 implements FileStorage {
     const { filePath, options = {}, request } = args;
     const Key = await this.transformFilePath(filePath, MethodTypes.DELETE, request, options);
     const { s3, bucket: Bucket } = this.config;
-    await s3.deleteObject({ Bucket, Key, ...options });
+    await s3.deleteObject({ ...options, Bucket, Key });
     return true;
   }
 
-  async deleteDir(args: FileStorageDirBaseArgs): Promise<void> {
-    const { dirPath, request } = args;
+  async deleteDir(args: FileStorageS3DeleteDir): Promise<void> {
+    const { dirPath, options = {}, request } = args;
     const { s3, bucket: Bucket } = this.config;
     const listKey = await this.transformFilePath(dirPath, MethodTypes.DELETE, request);
     const listParams: ListObjectsV2CommandInput = {
       Bucket,
       Prefix: listKey,
     };
-    // get list of objects in a dir
+    // get list of objects in a dir, limited to 1000 items
     const listedObjects = await s3.listObjectsV2(listParams);
     if (!listedObjects.Contents?.length) {
       return;
@@ -174,6 +175,7 @@ export class FileStorageS3 implements FileStorage {
           Key,
         })),
       },
+      ...options,
     } satisfies DeleteObjectsCommandInput;
     await s3.deleteObjects(deleteParams);
 

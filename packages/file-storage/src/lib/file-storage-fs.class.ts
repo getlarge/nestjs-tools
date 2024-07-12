@@ -1,85 +1,45 @@
-import {
-  BigIntOptions,
-  createReadStream,
-  createWriteStream,
-  existsSync,
-  mkdirSync,
-  ObjectEncodingOptions,
-  stat,
-  StatOptions,
-  unlink,
-  WriteFileOptions,
-} from 'fs';
-import { readdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { resolve as resolvePath } from 'node:path';
+import { createReadStream, createWriteStream, ObjectEncodingOptions, stat, unlink } from 'node:fs';
+import { access, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { normalize, resolve as resolvePath, sep } from 'node:path';
 import { finished, Readable } from 'node:stream';
 
-import {
+import type {
   FileStorage,
   FileStorageBaseArgs,
   FileStorageConfig,
   FileStorageConfigFactory,
   FileStorageDirBaseArgs,
 } from './file-storage.class';
+import type {
+  FileStorageLocalDownloadFile,
+  FileStorageLocalDownloadStream,
+  FileStorageLocalFileExists,
+  FileStorageLocalSetup,
+  FileStorageLocalUploadFile,
+  FileStorageLocalUploadStream,
+} from './file-storage-fs.types';
 import { FileStorageWritable, MethodTypes, Request } from './types';
-
-export type StreamOptions = {
-  flags?: string;
-  encoding?: BufferEncoding;
-  fd?: number;
-  mode?: number;
-  autoClose?: boolean;
-  emitClose?: boolean;
-  start?: number;
-  end?: number;
-  highWaterMark?: number;
-};
-
-export type FileStorageLocalSetup = {
-  storagePath: string;
-  maxPayloadSize: number;
-  [key: string]: unknown;
-};
 
 function config(setup: FileStorageLocalSetup) {
   const { maxPayloadSize, storagePath } = setup;
-  const filePath = (options: { req?: Request; methodType: MethodTypes; fileName: string }): string => {
+  const filePath = async (options: { req?: Request; methodType: MethodTypes; fileName: string }): Promise<string> => {
     const { fileName, methodType } = options;
-    if (!existsSync(storagePath) && methodType === MethodTypes.WRITE) {
-      mkdirSync(storagePath, { recursive: true });
+    // Normalize and resolve the path to prevent path traversal
+    const safeFileName = normalize(fileName).replace(/^(\.\.(\/|\\|$))+/, '');
+    const fullPath = resolvePath(storagePath, safeFileName);
+    // Ensure the resolved path starts with the intended storagePath to prevent path traversal
+    if (!fullPath.startsWith(resolvePath(storagePath + sep))) {
+      throw new Error('Invalid file path');
     }
-    return resolvePath(storagePath, fileName);
+
+    if (methodType === MethodTypes.WRITE) {
+      const storageExists = await access(storagePath).catch(() => false);
+      !storageExists && (await mkdir(storagePath, { recursive: true }));
+    }
+    return Promise.resolve(resolvePath(storagePath, fileName));
   };
   const limits = { fileSize: maxPayloadSize * 1024 * 1024 };
   return { filePath, limits };
-}
-
-export interface FileStorageLocalFileExists extends FileStorageBaseArgs {
-  options?: StatOptions | BigIntOptions;
-}
-
-export interface FileStorageLocalUploadFile extends FileStorageBaseArgs {
-  content: string | Uint8Array | Buffer;
-  options?: WriteFileOptions;
-}
-
-export interface FileStorageLocalUploadStream extends FileStorageBaseArgs {
-  options?: BufferEncoding | StreamOptions;
-}
-
-export interface FileStorageLocalDownloadFile extends FileStorageBaseArgs {
-  options:
-    | { encoding?: null; flag?: string }
-    | { encoding: BufferEncoding; flag?: string }
-    | BufferEncoding
-    | (ObjectEncodingOptions & { flag?: string })
-    | undefined
-    | null;
-  // options?: Record<string, any> | BufferEncoding | null;
-}
-
-export interface FileStorageLocalDownloadStream extends FileStorageBaseArgs {
-  options?: BufferEncoding | StreamOptions;
 }
 
 // TODO: control filesize limit
@@ -109,7 +69,7 @@ export class FileStorageLocal implements FileStorage {
   async fileExists(args: FileStorageLocalFileExists): Promise<boolean> {
     const { filePath, options = {}, request } = args;
     const fileName = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
-    return new Promise<boolean>((resolve, reject) => stat(fileName, (err) => (err ? reject(err) : resolve(true))));
+    return new Promise<boolean>((resolve) => stat(fileName, (err) => (err ? resolve(false) : resolve(true))));
   }
 
   async uploadFile(args: FileStorageLocalUploadFile): Promise<void> {
@@ -173,10 +133,9 @@ export class FileStorageLocal implements FileStorage {
     const { dirPath, request } = args;
     try {
       const transformedDirPath = await this.transformFilePath(dirPath, MethodTypes.READ, request);
-      // we need return await to catch the error
       return await readdir(transformedDirPath);
     } catch (err) {
-      if (err instanceof Error && 'code' in err && err['code'] === 'ENOENT') {
+      if (err && typeof err === 'object' && 'code' in err && err['code'] === 'ENOENT') {
         return [];
       }
       throw err;

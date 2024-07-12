@@ -1,44 +1,25 @@
-import {
-  DeleteObjectCommandInput,
-  DeleteObjectsCommandInput,
-  GetObjectCommandInput,
-  HeadObjectCommandInput,
-  ListObjectsV2CommandInput,
-  PutObjectCommandInput,
-  S3,
-} from '@aws-sdk/client-s3';
+import { DeleteObjectsCommandInput, ListObjectsV2CommandInput, S3 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { PassThrough, Readable } from 'node:stream';
 
-import {
+import type {
   FileStorage,
-  FileStorageBaseArgs,
   FileStorageConfig,
   FileStorageConfigFactory,
   FileStorageDirBaseArgs,
 } from './file-storage.class';
+import type {
+  FileStorageS3Config,
+  FileStorageS3DeleteDir,
+  FileStorageS3DeleteFile,
+  FileStorageS3DownloadFile,
+  FileStorageS3DownloadStream,
+  FileStorageS3FileExists,
+  FileStorageS3Setup,
+  FileStorageS3UploadFile,
+  FileStorageS3UploadStream,
+} from './file-storage-s3.types';
 import { FileStorageWritable, MethodTypes, Request } from './types';
-
-/**
- * Either region or endpoint must be provided
- */
-export type FileStorageS3Setup = {
-  bucket: string;
-  maxPayloadSize: number;
-  credentials?: {
-    accessKeyId: string;
-    secretAccessKey: string;
-  };
-  logger?: S3['config']['logger'];
-  [key: string]: unknown;
-} & ({ region: string; endpoint?: never } | { endpoint: string; region?: never });
-
-export interface FileStorageS3Config {
-  s3: S3;
-  bucket: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
-}
 
 function config(setup: FileStorageS3Setup) {
   const { bucket, maxPayloadSize, credentials, endpoint, logger } = setup;
@@ -67,31 +48,6 @@ function config(setup: FileStorageS3Setup) {
     filePath,
     limits,
   };
-}
-
-export interface FileStorageS3FileExists extends FileStorageBaseArgs {
-  options?: HeadObjectCommandInput;
-}
-
-export interface FileStorageS3UploadFile extends FileStorageBaseArgs {
-  content: string | Uint8Array | Buffer;
-  options?: PutObjectCommandInput;
-}
-
-export interface FileStorageS3UploadStream extends FileStorageBaseArgs {
-  options?: PutObjectCommandInput;
-}
-
-export interface FileStorageS3DownloadFile extends FileStorageBaseArgs {
-  options?: GetObjectCommandInput;
-}
-
-export interface FileStorageS3DownloadStream extends FileStorageBaseArgs {
-  options?: GetObjectCommandInput;
-}
-
-export interface FileStorageS3DeleteFile extends FileStorageBaseArgs {
-  options?: DeleteObjectCommandInput;
 }
 
 function removeTrailingForwardSlash(x?: string) {
@@ -131,8 +87,12 @@ export class FileStorageS3 implements FileStorage {
     const { filePath, options = {}, request } = args;
     const { s3, bucket: Bucket } = this.config;
     const Key = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
-    await s3.headObject({ Key, Bucket, ...options });
-    return true;
+    try {
+      await s3.headObject({ ...options, Key, Bucket });
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   async uploadFile(args: FileStorageS3UploadFile): Promise<void> {
@@ -141,7 +101,7 @@ export class FileStorageS3 implements FileStorage {
     const Key = await this.transformFilePath(filePath, MethodTypes.WRITE, request, options);
     await new Upload({
       client: s3,
-      params: { Bucket, Key, Body: content, ...options },
+      params: { ...options, Bucket, Key, Body: content },
     }).done();
   }
 
@@ -153,10 +113,10 @@ export class FileStorageS3 implements FileStorage {
     new Upload({
       client: s3,
       params: {
+        ...options,
         Body: writeStream,
         Key,
         Bucket,
-        ...options,
       },
     })
       .done()
@@ -173,7 +133,7 @@ export class FileStorageS3 implements FileStorage {
     const { filePath, options = {}, request } = args;
     const Key = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
     const { s3, bucket: Bucket } = this.config;
-    const readable = (await s3.getObject({ Bucket, Key, ...options })).Body as Readable;
+    const readable = (await s3.getObject({ ...options, Bucket, Key })).Body as Readable;
     const chunks: Buffer[] = [];
     for await (const chunk of readable) {
       chunks.push(chunk);
@@ -185,7 +145,7 @@ export class FileStorageS3 implements FileStorage {
     const { filePath, options = {}, request } = args;
     const Key = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
     const { s3, bucket: Bucket } = this.config;
-    const object = await s3.getObject({ Bucket, Key, ...options });
+    const object = await s3.getObject({ ...options, Bucket, Key });
     // from https://github.com/aws/aws-sdk-js-v3/issues/1877#issuecomment-755446927
     return object.Body as Readable;
   }
@@ -194,32 +154,33 @@ export class FileStorageS3 implements FileStorage {
     const { filePath, options = {}, request } = args;
     const Key = await this.transformFilePath(filePath, MethodTypes.DELETE, request, options);
     const { s3, bucket: Bucket } = this.config;
-    await s3.deleteObject({ Bucket, Key, ...options });
+    await s3.deleteObject({ ...options, Bucket, Key });
     return true;
   }
 
-  async deleteDir(args: FileStorageDirBaseArgs): Promise<void> {
-    const { dirPath, request } = args;
+  async deleteDir(args: FileStorageS3DeleteDir): Promise<void> {
+    const { dirPath, options = {}, request } = args;
     const { s3, bucket: Bucket } = this.config;
     const listKey = await this.transformFilePath(dirPath, MethodTypes.DELETE, request);
     const listParams: ListObjectsV2CommandInput = {
       Bucket,
       Prefix: listKey,
     };
-    // get list of objects in a dir
+    // get list of objects in a dir, limited to 1000 items
     const listedObjects = await s3.listObjectsV2(listParams);
     if (!listedObjects.Contents?.length) {
       return;
     }
 
-    const deleteParams: DeleteObjectsCommandInput = {
+    const deleteParams = {
       Bucket,
       Delete: {
         Objects: listedObjects.Contents.map(({ Key }) => ({
           Key,
         })),
       },
-    };
+      ...options,
+    } satisfies DeleteObjectsCommandInput;
     await s3.deleteObjects(deleteParams);
 
     if (listedObjects.IsTruncated) {

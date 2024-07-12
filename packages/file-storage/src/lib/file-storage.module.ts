@@ -4,8 +4,12 @@ import { FILE_STORAGE_STRATEGY_TOKEN } from './constants';
 import { FileStorage } from './file-storage.class';
 import { FileStorageService } from './file-storage.service';
 import { FileStorageLocal } from './file-storage-fs.class';
-import { FileStorageS3, FileStorageS3Setup } from './file-storage-s3.class';
+import { FileStorageGoogle } from './file-storage-google.class';
+import { FileStorageGoogleSetup } from './file-storage-google.types';
+import { FileStorageS3 } from './file-storage-s3.class';
+import { FileStorageS3Setup } from './file-storage-s3.types';
 import {
+  FileStorageGoogleOptions,
   FileStorageLocalOptions,
   FileStorageModuleAsyncOptions,
   FileStorageModuleOptions,
@@ -16,7 +20,7 @@ import {
 export function getFileStorageStrategy<S extends StorageType, E extends Record<string, unknown>>(
   storageType: S,
   config: FileStorageModuleOptions<E>[S],
-): FileStorageLocal | FileStorageS3;
+): FileStorageLocal | FileStorageS3 | FileStorageGoogle;
 export function getFileStorageStrategy<
   S extends StorageType = StorageType.FS,
   E extends Record<string, unknown> = Record<string, unknown>,
@@ -25,24 +29,34 @@ export function getFileStorageStrategy<
   S extends StorageType = StorageType.S3,
   E extends Record<string, unknown> = Record<string, unknown>,
 >(storageType: S, config: FileStorageModuleOptions<E>[S]): FileStorageS3;
+export function getFileStorageStrategy<
+  S extends StorageType = StorageType.GC,
+  E extends Record<string, unknown> = Record<string, unknown>,
+>(storageType: S, config: FileStorageModuleOptions<E>[S]): FileStorageGoogle;
 export function getFileStorageStrategy<S extends StorageType, E extends Record<string, unknown>>(
   storageType: S,
   config: FileStorageModuleOptions<E>[S],
-): FileStorageLocal | FileStorageS3 {
+): FileStorageLocal | FileStorageS3 | FileStorageGoogle {
   const { setup, factory } = config as FileStorageModuleOptions<E>[S];
-  if (storageType === StorageType.FS) {
-    return new FileStorageLocal(
-      setup as FileStorageLocalOptions<E>['setup'],
-      factory as FileStorageLocalOptions<E>['factory'],
-    );
+  switch (storageType) {
+    case StorageType.FS:
+      return new FileStorageLocal(
+        setup as FileStorageLocalOptions<E>['setup'],
+        factory as FileStorageLocalOptions<E>['factory'],
+      );
+    case StorageType.S3:
+      return new FileStorageS3(setup as FileStorageS3Setup, factory as FileStorageS3Options<E>['factory']);
+    case StorageType.GC:
+      return new FileStorageGoogle(setup as FileStorageGoogleSetup, factory as FileStorageGoogleOptions<E>['factory']);
+    default:
+      throw new TypeError(`Invalid storage type: ${storageType}`);
   }
-  return new FileStorageS3(setup as FileStorageS3Setup, factory as FileStorageS3Options<E>['factory']);
 }
 
 @Module({})
 export class FileStorageModule {
   public static forRoot(
-    storageType: StorageType.FS | StorageType.S3,
+    storageType: StorageType.FS | StorageType.S3 | StorageType.GC,
     options: Partial<FileStorageModuleOptions<Record<string, unknown>>> = {
       [StorageType.FS]: { setup: { storagePath: 'store', maxPayloadSize: 1 } },
     },

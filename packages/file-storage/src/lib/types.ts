@@ -1,13 +1,15 @@
-import { InjectionToken, ModuleMetadata } from '@nestjs/common';
-import { Writable } from 'node:stream';
+import type { InjectionToken, ModuleMetadata } from '@nestjs/common';
+import type { Writable } from 'node:stream';
 
-import { FileStorage, FileStorageConfigFactory } from './file-storage.class';
-import { FileStorageLocalSetup } from './file-storage-fs.class';
-import { FileStorageS3Config, FileStorageS3Setup } from './file-storage-s3.class';
+import type { FileStorage, FileStorageConfigFactory } from './file-storage.class';
+import type { FileStorageLocalSetup } from './file-storage-fs.types';
+import type { FileStorageGoogleConfig, FileStorageGoogleSetup } from './file-storage-google.types';
+import type { FileStorageS3Config, FileStorageS3Setup } from './file-storage-s3.types';
 
 export enum StorageType {
   FS = 'FS',
   S3 = 'S3',
+  GC = 'GC',
 }
 
 export enum MethodTypes {
@@ -29,9 +31,15 @@ export interface FileStorageS3Options<ExtraConfig extends Record<string, unknown
   factory?: FileStorageConfigFactory<FileStorageS3Config & ExtraConfig, FileStorageS3Setup>;
 }
 
+export interface FileStorageGoogleOptions<ExtraConfig extends Record<string, unknown>> {
+  setup: FileStorageGoogleSetup;
+  factory?: FileStorageConfigFactory<FileStorageGoogleConfig & ExtraConfig, FileStorageGoogleSetup>;
+}
+
 export type FileStorageModuleOptions<ExtraConfig extends Record<string, unknown> = Record<string, unknown>> = {
   [StorageType.FS]: FileStorageLocalOptions<ExtraConfig>;
   [StorageType.S3]: FileStorageS3Options<ExtraConfig>;
+  [StorageType.GC]: FileStorageGoogleOptions<ExtraConfig>;
 };
 
 export interface FileStorageModuleAsyncOptions extends Pick<ModuleMetadata, 'imports'> {

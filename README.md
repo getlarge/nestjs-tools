@@ -13,13 +13,14 @@ This repository contains several helpful packages for NestJS that I have develop
 
 ## List of packages
 
-| Package                                                         | Description                                                                                               | Version                                                                                                                                                            |
-| --------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [AMQP-Transport](./packages/amqp-transport/README.md)           | A NestJS microservice adapter around [AMQPlib](https://amqp-node.github.io/amqplib/) supporting exchanges | [![npm](https://img.shields.io/npm/v/@getlarge/nestjs-tools-amqp-transport.svg?style=flat)](https://npmjs.org/package/@getlarge/nestjs-tools-amqp-transport)       |
-| [Async-Local-Storage](./packages/async-local-storage/README.md) | A NestJS module to provide async local storage for your application                                       | [![npm](https://img.shields.io/npm/v/@getlarge/nestjs-tools-async-local-storage?style=flat)](https://npmjs.org/package/@getlarge/nestjs-tools-async-local-storage) |
-| [File-Storage](./packages/file-storage/README.md)               | A NestJS module supporting FS, S3 and GCP strategies                                                      | [![npm](https://img.shields.io/npm/v/@getlarge/nestjs-tools-file-storage?style=flat)](https://npmjs.org/package/@getlarge/nestjs-tools-file-storage)               |
-| [Lock](./packages/lock/README.md)                               | A NestJS module to provide a distributed lock for your application                                        | [![npm](https://img.shields.io/npm/v/@getlarge/nestjs-tools-lock?style=flat)](https://npmjs.org/package/@getlarge/nestjs-tools-lock)                               |
-| [Fastify-Upload](./packages/fastify-upload/README.md)           | A NestJS module to provide file upload support for Fastify                                                | [![npm](https://img.shields.io/npm/v/@getlarge/nestjs-tools-fastify-upload?style=flat)](https://npmjs.org/package/@getlarge/nestjs-tools-fastify-upload)           |
+| Package                                                         | Description                                                          | Version                                                                                                                                                            |
+| --------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [AMQP-Transport](./packages/amqp-transport/README.md)           | A NestJS microservice adapter around [AMQPlib] supporting exchanges. | [![npm](https://img.shields.io/npm/v/@getlarge/nestjs-tools-amqp-transport.svg?style=flat)](https://npmjs.org/package/@getlarge/nestjs-tools-amqp-transport)       |
+| [Async-Local-Storage](./packages/async-local-storage/README.md) | A NestJS module to track context with [AsyncLocalStorage].           | [![npm](https://img.shields.io/npm/v/@getlarge/nestjs-tools-async-local-storage?style=flat)](https://npmjs.org/package/@getlarge/nestjs-tools-async-local-storage) |
+| [Cluster](./packages/cluster/README.md)                         | A class to manage workers' lifecycle in a (Node.js) [cluster].       | [![npm](https://img.shields.io/npm/v/@getlarge/nestjs-tools-cluster?style=flat)](https://npmjs.org/package/@getlarge/nestjs-tools-cluster)                         |
+| [File-Storage](./packages/file-storage/README.md)               | A NestJS module supporting [FS], [S3] and [GCP] strategies.          | [![npm](https://img.shields.io/npm/v/@getlarge/nestjs-tools-file-storage?style=flat)](https://npmjs.org/package/@getlarge/nestjs-tools-file-storage)               |
+| [Lock](./packages/lock/README.md)                               | A NestJS module to provide a distributed lock for your application.  | [![npm](https://img.shields.io/npm/v/@getlarge/nestjs-tools-lock?style=flat)](https://npmjs.org/package/@getlarge/nestjs-tools-lock)                               |
+| [Fastify-Upload](./packages/fastify-upload/README.md)           | A NestJS module to provide file upload support for Fastify.          | [![npm](https://img.shields.io/npm/v/@getlarge/nestjs-tools-fastify-upload?style=flat)](https://npmjs.org/package/@getlarge/nestjs-tools-fastify-upload)           |
 
 ## Installation and usage
 
@@ -31,3 +32,10 @@ Check out the following projects for examples of using these packages:
 
 - The [ticketing repository](https://github.com/getlarge/ticketing) is a real-world example of AMQP-Transport, File-Storage, Lock
 - The [cat fostering repository](https://github.com/getlarge/catfostering) uses Fastify-Upload
+
+[AMQPlib]: https://amqp-node.github.io/amqplib/
+[AsyncLocalStorage]: https://nodejs.org/api/async_context.html#class-asynclocalstorage
+[cluster]: https://nodejs.org/api/cluster.html
+[FS]: https://nodejs.org/api/fs.html
+[S3]: https://aws.amazon.com/s3/
+[GCP]: https://cloud.google.com/storage

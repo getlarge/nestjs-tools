@@ -10,7 +10,7 @@ import { setTimeout } from 'node:timers/promises';
 
 import { AmqpClient, AmqpOptions, AmqpServer } from '../src';
 import { DUMMY_CLIENT, DUMMY_QUEUE, RMQ_URL } from './dummy.constants';
-import { DummyConsumerController } from './dummy-consumer.controller.mock.';
+import { DummyConsumerController } from './dummy-consumer.controller.mock';
 import { DummyProducerService } from './dummy-producer.service.mock';
 
 interface Closeable {
@@ -170,7 +170,7 @@ describe('AMQP tests', () => {
       producers: [moduleProducer],
     } = await setupAll();
     const msg = { message };
-    const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
+    const service = moduleProducer.get(DummyProducerService);
 
     // Then
     const result = await service.test(msg);
@@ -186,7 +186,7 @@ describe('AMQP tests', () => {
       producers: [moduleProducer],
     } = await setupAll();
     const msg = { message };
-    const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
+    const service = moduleProducer.get(DummyProducerService);
     // Then
     const results = await makeMultipleRequests(() => service.test(msg), 5);
     // Expect
@@ -206,7 +206,7 @@ describe('AMQP tests', () => {
       producers: [moduleProducer],
     } = await setupAll({ testConfiguration: { noAck } });
     const msg = { message };
-    const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
+    const service = moduleProducer.get(DummyProducerService);
     // Then
     const result = await service.test(msg, noAck);
     expect(result).toBeDefined();
@@ -222,7 +222,7 @@ describe('AMQP tests', () => {
       producers: [moduleProducer],
     } = await setupAll({ testConfiguration: { noAck } });
     const msg = { message };
-    const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
+    const service = moduleProducer.get(DummyProducerService);
     // Then
     const results = await makeMultipleRequests(() => service.test({ message }, noAck), 5);
     // Expect
@@ -242,7 +242,7 @@ describe('AMQP tests', () => {
     const {
       producers: [moduleProducer],
     } = await setupAll({ testConfiguration: { noAck } });
-    const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
+    const service = moduleProducer.get(DummyProducerService);
     // Then
     const result = await service.test(msg, noAck);
     expect(result).toBeDefined();
@@ -258,7 +258,7 @@ describe('AMQP tests', () => {
     const {
       producers: [moduleProducer],
     } = await setupAll({ testConfiguration: { noAck } });
-    const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
+    const service = moduleProducer.get(DummyProducerService);
     // Then
     const results = await makeMultipleRequests(() => service.test(msg, noAck), 5);
     // Expect
@@ -280,7 +280,7 @@ describe('AMQP tests', () => {
     } = await setupAll({
       testConfiguration: { noAck, prefetchCount: 5 },
     });
-    const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
+    const service = moduleProducer.get(DummyProducerService);
     // Then
     const results = await makeMultipleRequests(() => service.test(msg, noAck), 10);
     // Expect
@@ -302,7 +302,7 @@ describe('AMQP tests', () => {
     } = await setupAll({
       testConfiguration: { noAck, prefetchCount: 5 },
     });
-    const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
+    const service = moduleProducer.get(DummyProducerService);
     // Then
     const result = await service.test(msg, noAck);
     expect(result).toBeDefined();
@@ -318,7 +318,7 @@ describe('AMQP tests', () => {
     } = await setupAll({
       testConfiguration: { noAck, prefetchCount: 5, isGlobalPrefetchCount: true },
     });
-    const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
+    const service = moduleProducer.get(DummyProducerService);
     // Then
     const results = await makeMultipleRequests(() => service.test(msg, noAck), 5);
     // Expect
@@ -338,7 +338,7 @@ describe('AMQP tests', () => {
     } = await setupAll({
       testConfiguration: { noAck, prefetchCount: 5, isGlobalPrefetchCount: true },
     });
-    const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
+    const service = moduleProducer.get(DummyProducerService);
     // Then
     const results = await makeMultipleRequests(() => service.test(msg, noAck), 5);
     // Expect
@@ -357,7 +357,7 @@ describe('AMQP tests', () => {
       testConfiguration: { noAck, prefetchCount: 1 },
       consumersCount: 2,
     });
-    const service = moduleProducer.get<DummyProducerService>(DummyProducerService);
+    const service = moduleProducer.get(DummyProducerService);
     // Then
     const results = await makeMultipleRequests(() => service.getConsumerWorkerId(noAck), 20);
     // Expect
@@ -376,8 +376,8 @@ describe('AMQP tests', () => {
       testConfiguration: { noAck, prefetchCount: 1 },
       producersCount: 2,
     });
-    const service1 = moduleProducer1.get<DummyProducerService>(DummyProducerService);
-    const service2 = moduleProducer2.get<DummyProducerService>(DummyProducerService);
+    const service1 = moduleProducer1.get(DummyProducerService);
+    const service2 = moduleProducer2.get(DummyProducerService);
     // Then
     const resultsMatrix = await Promise.all([
       makeMultipleRequests(() => service1.test(msg, noAck), 10),
@@ -411,8 +411,8 @@ describe('AMQP tests', () => {
       },
       producersCount: 2,
     });
-    const service1 = moduleProducer1.get<DummyProducerService>(DummyProducerService);
-    const service2 = moduleProducer2.get<DummyProducerService>(DummyProducerService);
+    const service1 = moduleProducer1.get(DummyProducerService);
+    const service2 = moduleProducer2.get(DummyProducerService);
     // Then
     const resultsMatrix = await Promise.all([
       makeMultipleRequests(() => service1.test(msg, noAck), 10),
@@ -446,7 +446,7 @@ describe('AMQP tests', () => {
       },
       producersCount: 1,
     });
-    const service1 = moduleProducer1.get<DummyProducerService>(DummyProducerService);
+    const service1 = moduleProducer1.get(DummyProducerService);
     // Then
     const resultsMatrix = await Promise.all([makeMultipleRequests(() => service1.test(msg, noAck), 10)]);
     // Expect
@@ -473,8 +473,8 @@ describe('AMQP tests', () => {
         },
         producersCount: 2,
       });
-      const service1 = moduleProducer1.get<DummyProducerService>(DummyProducerService);
-      const service2 = moduleProducer2.get<DummyProducerService>(DummyProducerService);
+      const service1 = moduleProducer1.get(DummyProducerService);
+      const service2 = moduleProducer2.get(DummyProducerService);
       // Then
       await Promise.all([
         makeMultipleRequests(() => service1.test(msg, noAck), 5),

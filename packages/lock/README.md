@@ -20,12 +20,12 @@ $ npm install --save @getlarge/nestjs-tools-lock
 
 ```ts
 import { LockService } from '@getlarge/nestjs-tools-lock';
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class TasksService implements OnModuleDestroy {
-  constructor(@Inject(LockService) private lockService: LockService) {}
+  constructor(private lockService: LockService) {}
 
   onModuleDestroy() {
     this.lockService.close();

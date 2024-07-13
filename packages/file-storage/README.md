@@ -5,11 +5,13 @@
 [npm-image]: https://img.shields.io/npm/v/@getlarge/nestjs-tools-file-storage.svg?style=flat
 [npm-url]: https://npmjs.org/package/@getlarge/nestjs-tools-file-storage
 
-File storage classes for :
+This module provide a unified API to store files in different storage providers.
 
-- Node FileSystem
-- Amazon S3
-- Google Cloud Storage
+Supoorted backends:
+
+- [Node FileSystem](./src/lib/file-storage-fs.class.ts)
+- [AWS S3](./src/lib/file-storage-s3.class.ts)
+- [Google Cloud Storage](./src/lib/file-storage-google.class.ts)
 
 ## Installation
 

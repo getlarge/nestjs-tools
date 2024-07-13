@@ -5,10 +5,10 @@
 [npm-image]: https://img.shields.io/npm/v/@getlarge/nestjs-tools-fastify-upload.svg?style=flat
 [npm-url]: https://npmjs.org/package/@getlarge/nestjs-tools-fastify-upload
 
-The Fastify Upload Service provides file upload support for NestJS applications using the Fastify adapter.
+This library provides file upload support for NestJS applications using the Fastify adapter.
 It uses the [@fastify/multipart](https://www.npmjs.com/package/@fastify/multipart) module.
 
-The [nestjs-tools-file-storage](../file-storage/README.md) library can store the uploaded files in various storage backends.
+It can be used in combintation of the [nestjs-tools-file-storage](../file-storage/README.md) library to store the uploaded files in various storage backends.
 
 Read [this issue](https://github.com/getlarge/nestjs-tools/issues/71) to understand why this library was created.
 

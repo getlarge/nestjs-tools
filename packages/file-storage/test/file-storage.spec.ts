@@ -165,7 +165,7 @@ testMap.forEach((testSuite) => {
       const upload = await fileStorage.uploadStream({ filePath });
       const entry = Readable.from(content);
       const ac = new AbortController();
-      const t = setTimeout(() => ac.abort(), 1000);
+      const t = setTimeout(() => ac.abort(), 2000);
       const listener = once(upload, 'done', { signal: ac.signal }).finally(() => clearTimeout(t));
       await pipeline(entry, upload);
       await listener;

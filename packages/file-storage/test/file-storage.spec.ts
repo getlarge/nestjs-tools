@@ -29,7 +29,7 @@ declare global {
   }
 }
 
-const storagePath = resolve('store');
+const fsStoragePath = resolve('store');
 
 const testMap: {
   description: string;
@@ -40,7 +40,7 @@ const testMap: {
     description: 'file-storage-fs',
     storageType: StorageType.FS,
     options: {
-      [StorageType.FS]: { setup: { storagePath, maxPayloadSize: 1 } },
+      [StorageType.FS]: { setup: { storagePath: fsStoragePath, maxPayloadSize: 1 } },
     },
   },
   {
@@ -92,17 +92,26 @@ testMap.forEach((testSuite) => {
       }).compile();
 
       fileStorage = module.get(FILE_STORAGE_STRATEGY_TOKEN);
-      if (storageType === StorageType.FS) await mkdir(storagePath, { recursive: true });
+
+      if (storageType === StorageType.FS) {
+        await mkdir(fsStoragePath, { recursive: true });
+      }
       // ensure S3 and GC buckets are empty
-      if ([StorageType.S3, StorageType.GC].includes(storageType)) await fileStorage.deleteDir({ dirPath: '' });
+      if ([StorageType.S3, StorageType.GC].includes(storageType)) {
+        await fileStorage.deleteDir({ dirPath: '' });
+      }
     });
 
     afterAll(async () => {
-      if (storageType === StorageType.FS)
-        await rm(storagePath, { recursive: true, force: true }).catch(() => {
+      if (storageType === StorageType.FS) {
+        await rm(fsStoragePath, { recursive: true, force: true }).catch(() => {
           // ignore error
         });
-      if ([StorageType.S3, StorageType.GC].includes(storageType)) await fileStorage.deleteDir({ dirPath: '' });
+      }
+
+      if ([StorageType.S3, StorageType.GC].includes(storageType)) {
+        await fileStorage.deleteDir({ dirPath: '' });
+      }
     });
 
     it('calling fileExists on a filepath that exists returns true', async () => {
@@ -114,7 +123,7 @@ testMap.forEach((testSuite) => {
       await fileStorage.deleteFile({ filePath });
     });
 
-    it('calling fileExists on a filepath that doesnt exist return false', async () => {
+    it("calling fileExists on a filepath that doesn't exist return false", async () => {
       const fileExists = await fileStorage.fileExists({ filePath: 'fileDoesntExist' });
       //
       expect(fileExists).toBe(false);
@@ -191,22 +200,20 @@ testMap.forEach((testSuite) => {
       const content = randomBytes(10).toString();
       await fileStorage.uploadFile({ filePath, content });
       //
-      const download = await fileStorage.downloadStream({ filePath });
+      const stream = await fileStorage.downloadStream({ filePath });
       //
-      expect(download).toBeInstanceOf(Readable);
-      // this makes the assumption that the stream is readable and all the data is available in one read
-      // eslint-disable-next-line no-unreachable-loop
-      for await (const chunk of download) {
-        expect(chunk.toString()).toBe(content);
-        break;
-      }
+      expect(stream).toBeInstanceOf(Readable);
+      // this makes the assumption that when the stream is readable, all the data is available in one read
+      await once(stream, 'readable');
+      const chunk = stream.read();
+      expect(chunk.toString()).toBe(content);
       await fileStorage.deleteFile({ filePath });
     });
 
-    it('uploads a file to a nested folder', async () => {
+    it('uploads a file to a nested directory', async () => {
       const nestedDir = 'nested';
       const nestedFileName = 'nested.txt';
-      const nestedFilePath = `${storagePath}/${nestedDir}`;
+      const nestedFilePath = `${fsStoragePath}/${nestedDir}`;
       if (storageType === StorageType.FS) await mkdir(nestedFilePath, { recursive: true });
       //
       await fileStorage.uploadFile({ filePath: `${nestedDir}/${nestedFileName}`, content: 'this is a nested file' });
@@ -216,12 +223,12 @@ testMap.forEach((testSuite) => {
       await fileStorage.deleteDir({ dirPath: nestedDir });
     });
 
-    it('readDir returns an array of files and folders in a dir', async () => {
+    it('readDir returns an array of files and folders in a directory', async () => {
       const dirPath = '';
       const filePath = randomUUID();
       const nestedFilePath = `nest/${randomUUID()}`;
       const content = randomBytes(1024);
-      if (storageType === StorageType.FS) await mkdir(`${storagePath}/nest`, { recursive: true });
+      if (storageType === StorageType.FS) await mkdir(`${fsStoragePath}/nest`, { recursive: true });
 
       await fileStorage.uploadFile({ filePath, content });
       await fileStorage.uploadFile({ filePath: nestedFilePath, content });
@@ -239,7 +246,7 @@ testMap.forEach((testSuite) => {
       }
     });
 
-    it('deleteDir deletes a dir', async () => {
+    it('deleteDir deletes a directory', async () => {
       const dirPath = '';
       //
       await fileStorage.deleteDir({ dirPath });

@@ -95,6 +95,11 @@ export abstract class FileStorage {
     throw new Error(defaultErrorMessage);
   }
 
+  // TODO:
+  // createDir(args: FileStorageDirBaseArgs): Promise<void> {
+  //   throw new Error(defaultErrorMessage);
+  // }
+
   deleteDir(args: FileStorageDirBaseArgs): Promise<void> {
     throw new Error(defaultErrorMessage);
   }

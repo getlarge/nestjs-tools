@@ -7,6 +7,7 @@ import { mkdir, rm } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { once, Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
+import { setTimeout as setTimeoutPromise } from 'node:timers/promises';
 
 import { FileStorage, FileStorageModule, FileStorageModuleOptions, StorageType } from '../src';
 import { FILE_STORAGE_STRATEGY_TOKEN } from '../src/lib/constants';
@@ -86,6 +87,12 @@ testMap.forEach((testSuite) => {
   describe(description, () => {
     let fileStorage: FileStorage;
 
+    const createDummyFile = async (filePath: string = randomUUID(), content = randomBytes(1024)) => {
+      await fileStorage?.uploadFile({ filePath, content });
+      await setTimeoutPromise(100);
+      return { filePath, content };
+    };
+
     beforeAll(async () => {
       const module: TestingModule = await Test.createTestingModule({
         imports: [FileStorageModule.forRoot(storageType, options)],
@@ -135,8 +142,7 @@ testMap.forEach((testSuite) => {
     });
 
     it('uploadFile uploads a file', async () => {
-      const filePath = randomUUID();
-      await fileStorage.uploadFile({ filePath, content: 'this is a test' });
+      const { filePath } = await createDummyFile();
       //
       const fileExists = await fileStorage.fileExists({ filePath });
       expect(fileExists).toBe(true);
@@ -146,7 +152,7 @@ testMap.forEach((testSuite) => {
     it('moveFile moves a file to a new location and remove the previous one', async () => {
       const oldFileName = 'oldFileName.txt';
       const newFileName = 'newFileName.txt';
-      await fileStorage.uploadFile({ filePath: oldFileName, content: 'this is a test' });
+      await createDummyFile(oldFileName);
       //
       await fileStorage.moveFile({ filePath: oldFileName, newFilePath: newFileName });
       //
@@ -158,8 +164,7 @@ testMap.forEach((testSuite) => {
     });
 
     it('deleteFile deletes a file', async () => {
-      const filePath = randomUUID();
-      await fileStorage.uploadFile({ filePath, content: 'this is a test' });
+      const { filePath } = await createDummyFile();
       //
       await fileStorage.deleteFile({ filePath });
       //
@@ -185,9 +190,7 @@ testMap.forEach((testSuite) => {
     });
 
     it('downloadFile downloads a file', async () => {
-      const filePath = randomUUID();
-      const content = randomBytes(1024);
-      await fileStorage.uploadFile({ filePath, content });
+      const { filePath, content } = await createDummyFile();
       //
       const file = await fileStorage.downloadFile({ filePath });
       //
@@ -196,9 +199,7 @@ testMap.forEach((testSuite) => {
     });
 
     it('downloadStream downloads a file', async () => {
-      const filePath = randomUUID();
-      const content = randomBytes(10).toString();
-      await fileStorage.uploadFile({ filePath, content });
+      const { filePath, content } = await createDummyFile();
       //
       const stream = await fileStorage.downloadStream({ filePath });
       //
@@ -229,9 +230,9 @@ testMap.forEach((testSuite) => {
       const nestedFilePath = `nest/${randomUUID()}`;
       const content = randomBytes(1024);
       if (storageType === StorageType.FS) await mkdir(`${fsStoragePath}/nest`, { recursive: true });
-
       await fileStorage.uploadFile({ filePath, content });
       await fileStorage.uploadFile({ filePath: nestedFilePath, content });
+      await setTimeoutPromise(100);
       //
       const result = await fileStorage.readDir({ dirPath });
       //

@@ -87,7 +87,7 @@ testMap.forEach((testSuite) => {
   describe(description, () => {
     let fileStorage: FileStorage;
 
-    const createDummyFile = async (filePath: string = randomUUID(), content = randomBytes(1024)) => {
+    const createDummyFile = async (filePath: string = randomUUID(), content = 'this is a test content') => {
       await fileStorage?.uploadFile({ filePath, content });
       await setTimeoutPromise(100);
       return { filePath, content };

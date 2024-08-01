@@ -33,7 +33,7 @@ export interface FileStorageGoogleFileExists extends FileStorageBaseArgs {
 
 export interface FileStorageGoogleMoveFile extends FileStorageBaseArgs {
   newFilePath: string;
-  options?: FileOptions & MoveOptions
+  options?: FileOptions & MoveOptions;
 }
 
 export interface FileStorageGoogleUploadFile extends FileStorageBaseArgs {

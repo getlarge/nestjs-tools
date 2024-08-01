@@ -127,12 +127,13 @@ describe(description, () => {
   it('uploads a file to a nested directory', async () => {
     const nestedDir = 'nested';
     const nestedFileName = 'nested.txt';
+    const filePath = `${nestedDir}/${nestedFileName}`;
     //
-    await fileStorage.uploadFile({ filePath: `${nestedDir}/${nestedFileName}`, content: 'this is a nested file' });
+    await fileStorage.uploadFile({ filePath, content: 'this is a nested file' });
     //
     const result = await fileStorage.readDir({ dirPath: nestedDir });
     expect(result.find((fileName) => fileName === nestedFileName)).not.toBeUndefined();
-    await fileStorage.deleteDir({ dirPath: nestedDir });
+    await fileStorage.deleteFile({ filePath });
   });
 
   it('readDir returns an array of files and folders in a directory', async () => {

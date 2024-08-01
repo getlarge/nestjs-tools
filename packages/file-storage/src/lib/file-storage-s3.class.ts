@@ -15,6 +15,7 @@ import type {
   FileStorageS3DownloadFile,
   FileStorageS3DownloadStream,
   FileStorageS3FileExists,
+  FileStorageS3MoveFile,
   FileStorageS3Setup,
   FileStorageS3UploadFile,
   FileStorageS3UploadStream,
@@ -93,6 +94,15 @@ export class FileStorageS3 implements FileStorage {
     } catch (e) {
       return false;
     }
+  }
+
+  async moveFile(args: FileStorageS3MoveFile): Promise<void> {
+    const { filePath, newFilePath, options = {}, request } = args;
+    const { s3, bucket: Bucket } = this.config;
+    const Key = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
+    const newKey = await this.transformFilePath(newFilePath, MethodTypes.WRITE, request, options);
+    await s3.copyObject({ ...options, Bucket, CopySource: `${Bucket}/${Key}`, Key: newKey });
+    await s3.deleteObject({ ...options, Key, Bucket });
   }
 
   async uploadFile(args: FileStorageS3UploadFile): Promise<void> {

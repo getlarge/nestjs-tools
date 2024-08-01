@@ -53,6 +53,15 @@ export abstract class FileStorage {
     throw new Error(defaultErrorMessage);
   }
 
+  moveFile(
+    args: FileStorageBaseArgs & {
+      newFilePath: string;
+      options?: string | any;
+    },
+  ): Promise<void> {
+    throw new Error(defaultErrorMessage);
+  }
+
   uploadFile(
     args: FileStorageBaseArgs & {
       content: Buffer | Uint8Array | string;

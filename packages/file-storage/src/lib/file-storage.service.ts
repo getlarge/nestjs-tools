@@ -6,6 +6,7 @@ import type {
   FileStorageLocalDownloadFile,
   FileStorageLocalDownloadStream,
   FileStorageLocalFileExists,
+  FileStorageLocalMoveFile,
   FileStorageLocalUploadFile,
   FileStorageLocalUploadStream,
 } from './file-storage-fs.types';
@@ -15,6 +16,7 @@ import type {
   FileStorageGoogleDownloadFile,
   FileStorageGoogleDownloadStream,
   FileStorageGoogleFileExists,
+  FileStorageGoogleMoveFile,
   FileStorageGoogleReadDir,
   FileStorageGoogleUploadFile,
   FileStorageGoogleUploadStream,
@@ -25,6 +27,7 @@ import type {
   FileStorageS3DownloadFile,
   FileStorageS3DownloadStream,
   FileStorageS3FileExists,
+  FileStorageS3MoveFile,
   FileStorageS3UploadFile,
   FileStorageS3UploadStream,
 } from './file-storage-s3.types';
@@ -39,6 +42,10 @@ export class FileStorageService implements Omit<FileStorage, 'transformFilePath'
     args: FileStorageLocalFileExists | FileStorageS3FileExists | FileStorageGoogleFileExists,
   ): Promise<boolean> {
     return this.fileStorage.fileExists(args);
+  }
+
+  moveFile(args: FileStorageLocalMoveFile | FileStorageS3MoveFile | FileStorageGoogleMoveFile): Promise<void> {
+    return this.fileStorage.moveFile(args);
   }
 
   uploadFile(args: FileStorageLocalUploadFile | FileStorageS3UploadFile | FileStorageGoogleUploadFile): Promise<void> {

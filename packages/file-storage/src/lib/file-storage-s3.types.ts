@@ -35,6 +35,11 @@ export interface FileStorageS3FileExists extends FileStorageBaseArgs {
   options?: Omit<HeadObjectCommandInput, 'Bucket' | 'Key'>;
 }
 
+export interface FileStorageS3MoveFile extends FileStorageBaseArgs {
+  newFilePath: string;
+  options?: Omit<DeleteObjectCommandInput, 'Bucket' | 'Key'>;
+}
+
 export interface FileStorageS3UploadFile extends FileStorageBaseArgs {
   content: string | Uint8Array | Buffer;
   options?: Omit<PutObjectCommandInput, 'Body' | 'Bucket' | 'Key'>;

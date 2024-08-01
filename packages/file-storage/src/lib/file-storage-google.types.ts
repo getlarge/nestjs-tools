@@ -5,6 +5,7 @@ import type {
   DownloadOptions,
   FileOptions,
   GetFilesOptions,
+  MoveOptions,
   SaveOptions,
   Storage,
 } from '@google-cloud/storage';
@@ -28,6 +29,11 @@ export interface FileStorageGoogleConfig {
 
 export interface FileStorageGoogleFileExists extends FileStorageBaseArgs {
   options?: ExistsOptions & FileOptions;
+}
+
+export interface FileStorageGoogleMoveFile extends FileStorageBaseArgs {
+  newFilePath: string;
+  options?: FileOptions & MoveOptions
 }
 
 export interface FileStorageGoogleUploadFile extends FileStorageBaseArgs {

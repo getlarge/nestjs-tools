@@ -10,6 +10,7 @@ import type {
   FileStorageGoogleDownloadFile,
   FileStorageGoogleDownloadStream,
   FileStorageGoogleFileExists,
+  FileStorageGoogleMoveFile,
   FileStorageGoogleReadDir,
   FileStorageGoogleSetup,
   FileStorageGoogleUploadFile,
@@ -64,6 +65,14 @@ export class FileStorageGoogle implements FileStorage {
     const filePath = await this.transformFilePath(args.filePath, MethodTypes.READ, request, options);
     const [exists] = await storage.bucket(bucket).file(filePath, options).exists(options);
     return exists;
+  }
+
+  async moveFile(args: FileStorageGoogleMoveFile): Promise<void> {
+    const { storage, bucket } = this.config;
+    const { options = {}, request } = args;
+    const oldFilePath = await this.transformFilePath(args.filePath, MethodTypes.READ, request, options);
+    const newFilePath = await this.transformFilePath(args.newFilePath, MethodTypes.WRITE, request, options);
+    await storage.bucket(bucket).file(oldFilePath).move(newFilePath, options);
   }
 
   async uploadFile(args: FileStorageGoogleUploadFile & { content: Buffer | string }): Promise<void> {

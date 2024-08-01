@@ -134,6 +134,20 @@ testMap.forEach((testSuite) => {
       await fileStorage.deleteFile({ filePath });
     });
 
+    it('moveFile moves a file to a new location and remove the previous one', async () => {
+      const oldFileName = 'oldFileName.txt';
+      const newFileName = 'newFileName.txt';
+      await fileStorage.uploadFile({ filePath: oldFileName, content: 'this is a test' });
+      //
+      await fileStorage.moveFile({ filePath: oldFileName, newFilePath: newFileName });
+      //
+      const oldFileExists = await fileStorage.fileExists({ filePath: oldFileName });
+      expect(oldFileExists).toBe(false);
+      const newFileExists = await fileStorage.fileExists({ filePath: newFileName });
+      expect(newFileExists).toBe(true);
+      await fileStorage.deleteFile({ filePath: newFileName });
+    });
+
     it('deleteFile deletes a file', async () => {
       const filePath = randomUUID();
       await fileStorage.uploadFile({ filePath, content: 'this is a test' });

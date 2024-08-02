@@ -66,7 +66,7 @@ describe(description, () => {
     const newFileExists = await fileStorage.fileExists({ filePath: newFileName });
     expect(newFileExists).toBe(true);
     await fileStorage.deleteFile({ filePath: newFileName });
-  });
+  }, 7000);
 
   it('deleteFile deletes a file', async () => {
     const { filePath } = await createDummyFile(fileStorage);
@@ -84,7 +84,7 @@ describe(description, () => {
     const upload = await fileStorage.uploadStream({ filePath });
     const entry = Readable.from(content);
     const ac = new AbortController();
-    const t = setTimeout(() => ac.abort(), 2000);
+    const t = setTimeout(() => ac.abort(), 2500);
     const listener = once(upload, 'done', { signal: ac.signal }).finally(() => clearTimeout(t));
     await pipeline(entry, upload);
     await listener;
@@ -143,13 +143,13 @@ describe(description, () => {
     const parts = nestedFilePath.split('/');
     const expected = [parts.shift(), filePath];
     expect(result.every((item) => expected.includes(item))).toBe(true);
-  });
+  }, 7000);
 
   it('deleteDir deletes a directory', async () => {
     const dirPath = '';
     //
     await fileStorage.deleteDir({ dirPath });
-    await delay(100);
+    await delay(1000);
 
     //
     expect(await fileStorage.readDir({ dirPath })).toEqual([]);

@@ -1,3 +1,15 @@
+## 1.2.0 (2024-08-02)
+
+
+### 🚀 Features
+
+- **nestjs-tools-file-storage:** create moveFile interfaces and methods ([b33bc32](https://github.com/getlarge/nestjs-tools/commit/b33bc32))
+
+
+### ❤️  Thank You
+
+- getlarge
+
 ## 1.1.0 (2024-07-12)
 
 ### 🚀 Features

@@ -35,7 +35,6 @@ describe(description, () => {
     //
     const fileExists = await fileStorage.fileExists({ filePath });
     expect(fileExists).toBe(true);
-    await fileStorage.deleteFile({ filePath });
   });
 
   it("calling fileExists on a filepath that doesn't exist return false", async () => {
@@ -54,13 +53,12 @@ describe(description, () => {
     //
     const fileExists = await fileStorage.fileExists({ filePath });
     expect(fileExists).toBe(true);
-    await fileStorage.deleteFile({ filePath });
   });
 
   it('moveFile moves a file to a new location and remove the previous one', async () => {
     const oldFileName = 'oldFileName.txt';
     const newFileName = 'newFileName.txt';
-    await createDummyFile(fileStorage, oldFileName);
+    await createDummyFile(fileStorage, { filePath: oldFileName, deleteAfter: false });
     //
     await fileStorage.moveFile({ filePath: oldFileName, newFilePath: newFileName });
     //
@@ -72,7 +70,7 @@ describe(description, () => {
   });
 
   it('deleteFile deletes a file', async () => {
-    const { filePath } = await createDummyFile(fileStorage);
+    const { filePath } = await createDummyFile(fileStorage, { deleteAfter: false });
     //
     await fileStorage.deleteFile({ filePath });
     //
@@ -103,7 +101,6 @@ describe(description, () => {
     const file = await fileStorage.downloadFile({ filePath });
     //
     expect(file.toString()).toEqual(content.toString());
-    await fileStorage.deleteFile({ filePath });
   });
 
   it('downloadStream downloads a file', async () => {
@@ -116,7 +113,6 @@ describe(description, () => {
     await once(stream, 'readable');
     const chunk = stream.read();
     expect(chunk.toString()).toBe(content);
-    await fileStorage.deleteFile({ filePath });
   });
 
   it('uploads a file to a nested directory', async () => {

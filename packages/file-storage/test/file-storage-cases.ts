@@ -79,10 +79,23 @@ export const delay = async (ms = 100) => {
 
 export const createDummyFile = async (
   fileStorage: FileStorage,
-  filePath: string = randomUUID(),
-  content = 'this is a test content',
-) => {
+  options: { filePath?: string; content?: string; deleteAfter?: boolean } = {},
+): Promise<
+  AsyncDisposable & {
+    filePath: string;
+    content: string;
+  }
+> => {
+  const { filePath = randomUUID(), content = 'dummy', deleteAfter = true } = options;
   await fileStorage.uploadFile({ filePath, content });
   await delay(100);
-  return { filePath, content };
+  return {
+    [Symbol.asyncDispose]: async () => {
+      if (deleteAfter) {
+        await fileStorage.deleteFile({ filePath });
+      }
+    },
+    filePath,
+    content,
+  };
 };

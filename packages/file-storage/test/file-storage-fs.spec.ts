@@ -5,22 +5,15 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { mkdir, rm } from 'node:fs/promises';
 import { once, Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { setTimeout as setTimeoutPromise } from 'node:timers/promises';
 
 import { FileStorage, FileStorageModule } from '../src';
 import { FILE_STORAGE_STRATEGY_TOKEN } from '../src/lib/constants';
-import { fsStoragePath, testMap } from './file-storage-cases';
+import { createDummyFile, fsStoragePath, testMap } from './file-storage-cases';
 
 const { description, storageType, options } = testMap[0];
 
 describe(description, () => {
   let fileStorage: FileStorage;
-
-  const createDummyFile = async (filePath: string = randomUUID(), content = 'this is a test content') => {
-    await fileStorage?.uploadFile({ filePath, content });
-    await setTimeoutPromise(100);
-    return { filePath, content };
-  };
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -38,8 +31,7 @@ describe(description, () => {
   });
 
   it('calling fileExists on a filepath that exists returns true', async () => {
-    const filePath = randomUUID();
-    await fileStorage.uploadFile({ filePath, content: 'this is a test' });
+    const { filePath } = await createDummyFile(fileStorage);
     //
     const fileExists = await fileStorage.fileExists({ filePath });
     expect(fileExists).toBe(true);
@@ -58,7 +50,7 @@ describe(description, () => {
   });
 
   it('uploadFile uploads a file', async () => {
-    const { filePath } = await createDummyFile();
+    const { filePath } = await createDummyFile(fileStorage);
     //
     const fileExists = await fileStorage.fileExists({ filePath });
     expect(fileExists).toBe(true);
@@ -68,7 +60,7 @@ describe(description, () => {
   it('moveFile moves a file to a new location and remove the previous one', async () => {
     const oldFileName = 'oldFileName.txt';
     const newFileName = 'newFileName.txt';
-    await createDummyFile(oldFileName);
+    await createDummyFile(fileStorage, oldFileName);
     //
     await fileStorage.moveFile({ filePath: oldFileName, newFilePath: newFileName });
     //
@@ -80,7 +72,7 @@ describe(description, () => {
   });
 
   it('deleteFile deletes a file', async () => {
-    const { filePath } = await createDummyFile();
+    const { filePath } = await createDummyFile(fileStorage);
     //
     await fileStorage.deleteFile({ filePath });
     //
@@ -106,7 +98,7 @@ describe(description, () => {
   });
 
   it('downloadFile downloads a file', async () => {
-    const { filePath, content } = await createDummyFile();
+    const { filePath, content } = await createDummyFile(fileStorage);
     //
     const file = await fileStorage.downloadFile({ filePath });
     //
@@ -115,7 +107,7 @@ describe(description, () => {
   });
 
   it('downloadStream downloads a file', async () => {
-    const { filePath, content } = await createDummyFile();
+    const { filePath, content } = await createDummyFile(fileStorage);
     //
     const stream = await fileStorage.downloadStream({ filePath });
     //
@@ -148,12 +140,10 @@ describe(description, () => {
     await mkdir(`${fsStoragePath}/nest`, { recursive: true });
     await fileStorage.uploadFile({ filePath, content });
     await fileStorage.uploadFile({ filePath: nestedFilePath, content });
-    await setTimeoutPromise(100);
     //
     const result = await fileStorage.readDir({ dirPath });
     //
     expect(result.length).toBe(2);
-
     const parts = nestedFilePath.split('/');
     const expected = [parts.shift(), filePath];
     expect(result.every((item) => expected.includes(item))).toBe(true);

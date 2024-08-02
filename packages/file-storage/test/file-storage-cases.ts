@@ -1,7 +1,9 @@
 import * as dotenv from 'dotenv';
+import { randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
+import { setTimeout } from 'node:timers/promises';
 
-import { StorageType } from '../src';
+import { FileStorage, StorageType } from '../src';
 
 dotenv.config({ path: resolve(__dirname, '../.env.test') });
 
@@ -17,6 +19,7 @@ declare global {
       AWS_PROFILE?: string;
       GC_BUCKET: string;
       GC_PROJECT_ID?: string;
+      CI?: string;
     }
   }
 }
@@ -67,3 +70,19 @@ export const testMap = [
     },
   },
 ] as const;
+
+export const delay = async (ms = 100) => {
+  if (process.env.CI) {
+    await setTimeout(ms);
+  }
+};
+
+export const createDummyFile = async (
+  fileStorage: FileStorage,
+  filePath: string = randomUUID(),
+  content = 'this is a test content',
+) => {
+  await fileStorage.uploadFile({ filePath, content });
+  await delay(100);
+  return { filePath, content };
+};

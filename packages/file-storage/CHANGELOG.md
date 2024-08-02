@@ -1,12 +1,10 @@
 ## 1.2.0 (2024-08-02)
 
-
 ### 🚀 Features
 
 - **nestjs-tools-file-storage:** create moveFile interfaces and methods ([b33bc32](https://github.com/getlarge/nestjs-tools/commit/b33bc32))
 
-
-### ❤️  Thank You
+### ❤️ Thank You
 
 - getlarge
 
@@ -82,6 +80,7 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 ### BREAKING CHANGES
 
 Use AWS SDK v3:
+
 - `accessKeyId` and `secretAccessKey` should be passed to `FileStorageS3Setup` as properties of a `credentials` object.
 - The `s3BucketEndpoint` property has been removed.
 - In AWS SDK v3, the `endpoint` property has been replaced by `region`. For compatibility, we currently extract the region from an `endpoint` url if it is present and the `region` property is not, but you should update to `region` as this may change in future updates.

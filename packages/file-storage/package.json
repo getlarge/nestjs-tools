@@ -1,6 +1,6 @@
 {
   "name": "@getlarge/nestjs-tools-file-storage",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "File Storage Juggler",
   "keywords": [
     "file",

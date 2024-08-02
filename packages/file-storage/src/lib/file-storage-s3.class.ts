@@ -1,4 +1,4 @@
-import { DeleteObjectsCommandInput, ListObjectsV2CommandInput, S3 } from '@aws-sdk/client-s3';
+import { DeleteObjectsCommandInput, ListObjectsCommandInput, S3 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { PassThrough, Readable } from 'node:stream';
 
@@ -15,6 +15,7 @@ import type {
   FileStorageS3DownloadFile,
   FileStorageS3DownloadStream,
   FileStorageS3FileExists,
+  FileStorageS3MoveFile,
   FileStorageS3Setup,
   FileStorageS3UploadFile,
   FileStorageS3UploadStream,
@@ -95,6 +96,15 @@ export class FileStorageS3 implements FileStorage {
     }
   }
 
+  async moveFile(args: FileStorageS3MoveFile): Promise<void> {
+    const { filePath, newFilePath, options = {}, request } = args;
+    const { s3, bucket: Bucket } = this.config;
+    const Key = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
+    const newKey = await this.transformFilePath(newFilePath, MethodTypes.WRITE, request, options);
+    await s3.copyObject({ ...options, Bucket, CopySource: `${Bucket}/${Key}`, Key: newKey });
+    await s3.deleteObject({ ...options, Key, Bucket });
+  }
+
   async uploadFile(args: FileStorageS3UploadFile): Promise<void> {
     const { filePath, content, options = {}, request } = args;
     const { s3, bucket: Bucket } = this.config;
@@ -162,12 +172,12 @@ export class FileStorageS3 implements FileStorage {
     const { dirPath, options = {}, request } = args;
     const { s3, bucket: Bucket } = this.config;
     const listKey = await this.transformFilePath(dirPath, MethodTypes.DELETE, request);
-    const listParams: ListObjectsV2CommandInput = {
+    const listParams: ListObjectsCommandInput = {
       Bucket,
       Prefix: listKey,
     };
     // get list of objects in a dir, limited to 1000 items
-    const listedObjects = await s3.listObjectsV2(listParams);
+    const listedObjects = await s3.listObjects(listParams);
     if (!listedObjects.Contents?.length) {
       return;
     }
@@ -193,7 +203,7 @@ export class FileStorageS3 implements FileStorage {
     const { dirPath, request } = args;
     const { s3, bucket: Bucket } = this.config;
     const Key = await this.transformFilePath(dirPath, MethodTypes.READ, request);
-    const listParams: ListObjectsV2CommandInput = {
+    const listParams: ListObjectsCommandInput = {
       Bucket,
       Delimiter: '/',
     };
@@ -201,8 +211,8 @@ export class FileStorageS3 implements FileStorage {
     if (Key !== '/' && Key !== '') {
       listParams.Prefix = addTrailingForwardSlash(Key);
     }
-    const listedObjects = await s3.listObjectsV2(listParams);
-    const filesAndFilders = [];
+    const listedObjects = await s3.listObjects(listParams);
+    const filesAndFilders: string[] = [];
     //  add nested folders, CommonPrefixes contains <prefix>/<next nested dir>
     if (listedObjects.CommonPrefixes?.length) {
       const folders = listedObjects.CommonPrefixes.map((prefixObject) => {
@@ -213,6 +223,7 @@ export class FileStorageS3 implements FileStorage {
       });
       filesAndFilders.push(...folders);
     }
+
     // adds filenames
     if (listedObjects.Contents?.length && listedObjects.Prefix) {
       const files = listedObjects.Contents.filter((file) => !!file.Key).map((file) =>

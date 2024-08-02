@@ -53,6 +53,15 @@ export abstract class FileStorage {
     throw new Error(defaultErrorMessage);
   }
 
+  moveFile(
+    args: FileStorageBaseArgs & {
+      newFilePath: string;
+      options?: string | any;
+    },
+  ): Promise<void> {
+    throw new Error(defaultErrorMessage);
+  }
+
   uploadFile(
     args: FileStorageBaseArgs & {
       content: Buffer | Uint8Array | string;
@@ -85,6 +94,11 @@ export abstract class FileStorage {
   deleteFile(args: FileStorageBaseArgs): Promise<boolean> {
     throw new Error(defaultErrorMessage);
   }
+
+  // TODO:
+  // createDir(args: FileStorageDirBaseArgs): Promise<void> {
+  //   throw new Error(defaultErrorMessage);
+  // }
 
   deleteDir(args: FileStorageDirBaseArgs): Promise<void> {
     throw new Error(defaultErrorMessage);

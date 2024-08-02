@@ -24,6 +24,10 @@ export interface FileStorageLocalFileExists extends FileStorageBaseArgs {
   options?: StatOptions | BigIntOptions;
 }
 
+export interface FileStorageLocalMoveFile extends FileStorageBaseArgs {
+  newFilePath: string;
+}
+
 export interface FileStorageLocalUploadFile extends FileStorageBaseArgs {
   content: string | Uint8Array | Buffer;
   options?: WriteFileOptions;

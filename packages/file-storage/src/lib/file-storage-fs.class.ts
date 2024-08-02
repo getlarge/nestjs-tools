@@ -1,5 +1,5 @@
 import { createReadStream, createWriteStream, ObjectEncodingOptions, stat, unlink } from 'node:fs';
-import { access, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { access, mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { normalize, resolve as resolvePath, sep } from 'node:path';
 import { finished, Readable } from 'node:stream';
 
@@ -70,6 +70,13 @@ export class FileStorageLocal implements FileStorage {
     const { filePath, options = {}, request } = args;
     const fileName = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
     return new Promise<boolean>((resolve) => stat(fileName, (err) => (err ? resolve(false) : resolve(true))));
+  }
+
+  async moveFile(args: FileStorageBaseArgs & { newFilePath: string }): Promise<void> {
+    const { filePath, newFilePath, request } = args;
+    const oldFileName = await this.transformFilePath(filePath, MethodTypes.READ, request);
+    const newFileName = await this.transformFilePath(newFilePath, MethodTypes.WRITE, request);
+    await rename(oldFileName, newFileName);
   }
 
   async uploadFile(args: FileStorageLocalUploadFile): Promise<void> {

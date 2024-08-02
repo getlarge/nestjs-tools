@@ -1,5 +1,5 @@
 import type { InjectionToken, ModuleMetadata } from '@nestjs/common';
-import type { Writable } from 'node:stream';
+import type { Stream } from 'node:stream';
 
 import type { FileStorage, FileStorageConfigFactory } from './file-storage.class';
 import type { FileStorageLocalSetup } from './file-storage-fs.types';
@@ -60,4 +60,4 @@ interface WritableWithDoneEvent {
   removeListener(event: 'done', listener: () => void): this;
 }
 
-export type FileStorageWritable = Writable & WritableWithDoneEvent;
+export type FileStorageWritable = NodeJS.WritableStream & Stream & WritableWithDoneEvent;

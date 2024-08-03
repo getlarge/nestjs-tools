@@ -26,7 +26,10 @@ export class StreamStorage extends Storage<StreamStorageFile> {
     if (!force) {
       await finished(file.stream);
       file.stream.destroy();
+      return;
     }
-    // ? should we still check whether the stream was being read in filter phase?
+    if (!file.stream.destroyed) {
+      file.stream.destroy();
+    }
   }
 }

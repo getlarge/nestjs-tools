@@ -74,7 +74,46 @@ export const testMap = [
   },
 ] as const;
 
-// TODO: create retryable operation instead of delays for CI
+export async function retry<T>(
+  fn: () => Promise<T>,
+  condition: (result: unknown) => boolean,
+  retries: number,
+  ms = 200,
+): Promise<T> {
+  let attempt = 0;
+  while (attempt < retries) {
+    try {
+      const result = await fn();
+      if (condition(result)) {
+        return result;
+      }
+    } catch (error) {
+      attempt++;
+      if (!condition(error) || attempt >= retries) {
+        throw error;
+      }
+    } finally {
+      await setTimeout(ms);
+    }
+  }
+  throw new Error('Max retries exceeded');
+}
+
+export function fileExists(storage: FileStorage, filePath: string, exists = true): Promise<boolean> {
+  return retry(
+    () => storage.fileExists({ filePath }),
+    (result) => result === exists,
+    3,
+  );
+}
+
+export function readDir(storage: FileStorage, dirPath: string, exists = true): Promise<string[]> {
+  return retry(
+    () => storage.readDir({ dirPath }),
+    (result) => (result as string[]).length > 0 === exists,
+    3,
+  );
+}
 
 export const delay = async (ms = 100) => {
   if (process.env.CI) {

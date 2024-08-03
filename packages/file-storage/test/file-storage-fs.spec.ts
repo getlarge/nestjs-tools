@@ -58,8 +58,7 @@ describe(description, () => {
   it('moveFile moves a file to a new location and remove the previous one', async () => {
     const oldFileName = 'oldFileName.txt';
     const newFileName = 'newFileName.txt';
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    await using file = await createDummyFile(fileStorage, { filePath: oldFileName, deleteAfter: false });
+    await createDummyFile(fileStorage, { filePath: oldFileName, deleteAfter: false });
     //
     try {
       await fileStorage.moveFile({ filePath: oldFileName, newFilePath: newFileName });

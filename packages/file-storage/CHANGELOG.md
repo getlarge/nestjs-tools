@@ -1,17 +1,14 @@
 ## 1.3.0 (2024-08-03)
 
-
 ### 🚀 Features
 
 - **nestjs-tools-file-storage:** enable to serialize `readDir` output ([a80febb](https://github.com/getlarge/nestjs-tools/commit/a80febb))
-
 
 ### 🩹 Fixes
 
 - **nestjs-tools-file-storage:** add missing exports ([720c1ad](https://github.com/getlarge/nestjs-tools/commit/720c1ad))
 
-
-### ❤️  Thank You
+### ❤️ Thank You
 
 - getlarge
 

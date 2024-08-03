@@ -1,24 +1,20 @@
 ## 0.1.2 (2024-08-03)
 
-
 ### 🩹 Fixes
 
 - **nestjs-tools-fastify-upload:** update busboy [skip ci] ([c7708da](https://github.com/getlarge/nestjs-tools/commit/c7708da))
 
-
-### ❤️  Thank You
+### ❤️ Thank You
 
 - getlarge
 
 ## 0.1.1 (2024-08-03)
 
-
 ### 🩹 Fixes
 
 - **nestjs-tools-fastify-upload:** ensure StreamStorage.removeFile does not hang in filtering phase ([78e5d07](https://github.com/getlarge/nestjs-tools/commit/78e5d07))
 
-
-### ❤️  Thank You
+### ❤️ Thank You
 
 - getlarge
 

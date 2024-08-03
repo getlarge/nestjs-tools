@@ -63,7 +63,10 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
   private noExchangeAssert: boolean;
   private deleteChannelOnFailure: boolean;
 
-  constructor(private options: AmqpOptions, transportId: number | Transport = Transport.RMQ) {
+  constructor(
+    private options: AmqpOptions,
+    transportId: number | Transport = Transport.RMQ,
+  ) {
     super();
     this.transportId = transportId;
     this.server = null;

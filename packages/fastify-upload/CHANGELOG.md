@@ -1,3 +1,15 @@
+## 0.1.1 (2024-08-03)
+
+
+### 🩹 Fixes
+
+- **nestjs-tools-fastify-upload:** ensure StreamStorage.removeFile does not hang in filtering phase ([78e5d07](https://github.com/getlarge/nestjs-tools/commit/78e5d07))
+
+
+### ❤️  Thank You
+
+- getlarge
+
 ## 0.1.0 (2024-06-13)
 
 ### 🚀 Features

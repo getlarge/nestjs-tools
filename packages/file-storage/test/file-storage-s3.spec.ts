@@ -61,6 +61,7 @@ describe(description, () => {
     try {
       await fileStorage.moveFile({ filePath: oldFileName, newFilePath: newFileName });
       //
+      await delay(500);
       const oldFileExists = await fileStorage.fileExists({ filePath: oldFileName });
       expect(oldFileExists).toBe(false);
       const newFileExists = await fileStorage.fileExists({ filePath: newFileName });
@@ -127,7 +128,7 @@ describe(description, () => {
     try {
       await fileStorage.uploadFile({ filePath, content: 'this is a nested file' });
       //
-      await delay(100);
+      await delay(500);
       const result = await fileStorage.readDir({ dirPath: nestedDir });
       expect(result.find((fileName) => fileName === nestedFileName)).not.toBeUndefined();
     } finally {
@@ -142,7 +143,7 @@ describe(description, () => {
     const content = randomBytes(1024);
     await fileStorage.uploadFile({ filePath, content });
     await fileStorage.uploadFile({ filePath: nestedFilePath, content });
-    await delay(100);
+    await delay(500);
     //
     const result = await fileStorage.readDir({ dirPath });
     //

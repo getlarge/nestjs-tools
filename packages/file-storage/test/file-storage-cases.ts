@@ -74,6 +74,8 @@ export const testMap = [
   },
 ] as const;
 
+// TODO: create retryable operation instead of delays for CI
+
 export const delay = async (ms = 100) => {
   if (process.env.CI) {
     await setTimeout(ms);
@@ -91,14 +93,14 @@ export const createDummyFile = async (
 > => {
   const { filePath = randomUUID(), content = 'dummy', deleteAfter = true } = options;
   await fileStorage.uploadFile({ filePath, content });
-  await delay(100);
+  await delay(200);
   return {
     [Symbol.asyncDispose]: async () => {
       if (deleteAfter) {
         await fileStorage.deleteFile({ filePath }).catch((e) => {
           console.warn(e.message);
         });
-        await setTimeout(50);
+        await setTimeout(200);
       }
     },
     filePath,

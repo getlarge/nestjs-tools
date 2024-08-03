@@ -60,7 +60,7 @@ export class FileStorageService implements Omit<FileStorage, 'transformFilePath'
 
   downloadFile(
     args: FileStorageLocalDownloadFile | FileStorageS3DownloadFile | FileStorageGoogleDownloadFile,
-  ): Promise<Buffer | string> {
+  ): Promise<Buffer> {
     return this.fileStorage.downloadFile(args);
   }
 

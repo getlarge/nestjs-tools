@@ -28,9 +28,9 @@ describe(description, () => {
   });
 
   it('calling fileExists on a filepath that exists returns true', async () => {
-    const { filePath } = await createDummyFile(fileStorage);
+    await using file = await createDummyFile(fileStorage);
     //
-    const fileExists = await fileStorage.fileExists({ filePath });
+    const fileExists = await fileStorage.fileExists({ filePath: file.filePath });
     expect(fileExists).toBe(true);
   });
 
@@ -46,32 +46,36 @@ describe(description, () => {
   });
 
   it('uploadFile uploads a file', async () => {
-    const { filePath } = await createDummyFile(fileStorage);
+    await using file = await createDummyFile(fileStorage);
     //
-    const fileExists = await fileStorage.fileExists({ filePath });
+    const fileExists = await fileStorage.fileExists({ filePath: file.filePath });
     expect(fileExists).toBe(true);
   });
 
   it('moveFile moves a file to a new location and remove the previous one', async () => {
     const oldFileName = 'oldFileName.txt';
     const newFileName = 'newFileName.txt';
-    await createDummyFile(fileStorage, { filePath: oldFileName, deleteAfter: false });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    await using file = await createDummyFile(fileStorage, { filePath: oldFileName, deleteAfter: false });
     //
-    await fileStorage.moveFile({ filePath: oldFileName, newFilePath: newFileName });
-    //
-    const oldFileExists = await fileStorage.fileExists({ filePath: oldFileName });
-    expect(oldFileExists).toBe(false);
-    const newFileExists = await fileStorage.fileExists({ filePath: newFileName });
-    expect(newFileExists).toBe(true);
-    await fileStorage.deleteFile({ filePath: newFileName });
+    try {
+      await fileStorage.moveFile({ filePath: oldFileName, newFilePath: newFileName });
+      //
+      const oldFileExists = await fileStorage.fileExists({ filePath: oldFileName });
+      expect(oldFileExists).toBe(false);
+      const newFileExists = await fileStorage.fileExists({ filePath: newFileName });
+      expect(newFileExists).toBe(true);
+    } finally {
+      await fileStorage.deleteFile({ filePath: newFileName });
+    }
   }, 7000);
 
   it('deleteFile deletes a file', async () => {
-    const { filePath } = await createDummyFile(fileStorage, { deleteAfter: false });
+    await using file = await createDummyFile(fileStorage);
     //
-    await fileStorage.deleteFile({ filePath });
+    await fileStorage.deleteFile({ filePath: file.filePath });
     //
-    const oldFileExists = await fileStorage.fileExists({ filePath });
+    const oldFileExists = await fileStorage.fileExists({ filePath: file.filePath });
     expect(oldFileExists).toBe(false);
   });
 
@@ -79,37 +83,40 @@ describe(description, () => {
     const filePath = randomUUID();
     const content = randomBytes(1024);
     //
-    const upload = await fileStorage.uploadStream({ filePath });
-    const entry = Readable.from(content);
-    const ac = new AbortController();
-    const t = setTimeout(() => ac.abort(), 2500);
-    const listener = once(upload, 'done', { signal: ac.signal }).finally(() => clearTimeout(t));
-    await pipeline(entry, upload);
-    await listener;
-    //
-    const fileExists = await fileStorage.fileExists({ filePath });
-    expect(fileExists).toBe(true);
-    await fileStorage.deleteFile({ filePath });
+    try {
+      const upload = await fileStorage.uploadStream({ filePath });
+      const entry = Readable.from(content);
+      const ac = new AbortController();
+      const t = setTimeout(() => ac.abort(), 2500);
+      const listener = once(upload, 'done', { signal: ac.signal }).finally(() => clearTimeout(t));
+      await pipeline(entry, upload);
+      await listener;
+      //
+      const fileExists = await fileStorage.fileExists({ filePath });
+      expect(fileExists).toBe(true);
+    } finally {
+      await fileStorage.deleteFile({ filePath });
+    }
   });
 
   it('downloadFile downloads a file', async () => {
-    const { filePath, content } = await createDummyFile(fileStorage);
+    await using file = await createDummyFile(fileStorage);
     //
-    const file = await fileStorage.downloadFile({ filePath });
+    const buffer = await fileStorage.downloadFile({ filePath: file.filePath });
     //
-    expect(file.toString()).toEqual(content.toString());
+    expect(buffer.toString()).toEqual(file.content);
   });
 
   it('downloadStream downloads a file', async () => {
-    const { filePath, content } = await createDummyFile(fileStorage);
+    await using file = await createDummyFile(fileStorage);
     //
-    const stream = await fileStorage.downloadStream({ filePath });
+    const stream = await fileStorage.downloadStream({ filePath: file.filePath });
     //
     expect(stream).toBeInstanceOf(Readable);
     // this makes the assumption that when the stream is readable, all the data is available in one read
     await once(stream, 'readable');
     const chunk = stream.read();
-    expect(chunk.toString()).toBe(content);
+    expect(chunk.toString()).toBe(file.content);
   });
 
   it('uploads a file to a nested directory', async () => {
@@ -117,11 +124,14 @@ describe(description, () => {
     const nestedFileName = 'nested.txt';
     const filePath = `${nestedDir}/${nestedFileName}`;
     //
-    await fileStorage.uploadFile({ filePath, content: 'this is a nested file' });
-    //
-    const result = await fileStorage.readDir({ dirPath: nestedDir });
-    expect(result.find((fileName) => fileName === nestedFileName)).not.toBeUndefined();
-    await fileStorage.deleteFile({ filePath });
+    try {
+      await fileStorage.uploadFile({ filePath, content: 'this is a nested file' });
+      //
+      const result = await fileStorage.readDir({ dirPath: nestedDir });
+      expect(result.find((fileName) => fileName === nestedFileName)).not.toBeUndefined();
+    } finally {
+      await fileStorage.deleteFile({ filePath });
+    }
   });
 
   it('readDir returns an array of files and folders in a directory', async () => {

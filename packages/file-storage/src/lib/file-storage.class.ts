@@ -79,7 +79,7 @@ export abstract class FileStorage {
     throw new Error(defaultErrorMessage);
   }
 
-  downloadFile(args: FileStorageBaseArgs & { options?: string | any }): Promise<Buffer | string> {
+  downloadFile(args: FileStorageBaseArgs & { options?: string | any }): Promise<Buffer> {
     throw new Error(defaultErrorMessage);
   }
 

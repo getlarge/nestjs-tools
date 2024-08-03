@@ -7,6 +7,9 @@ import { FileStorage, StorageType } from '../src';
 
 dotenv.config({ path: resolve(__dirname, '../.env.test') });
 
+// @ts-expect-error Symbol is not defined
+Symbol.asyncDispose ??= Symbol('Symbol.asyncDispose');
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace NodeJS {
@@ -92,7 +95,10 @@ export const createDummyFile = async (
   return {
     [Symbol.asyncDispose]: async () => {
       if (deleteAfter) {
-        await fileStorage.deleteFile({ filePath });
+        await fileStorage.deleteFile({ filePath }).catch((e) => {
+          console.warn(e.message);
+        });
+        await setTimeout(50);
       }
     },
     filePath,

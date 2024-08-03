@@ -1,12 +1,22 @@
-## 0.1.3 (2024-08-03)
+## 0.1.4 (2024-08-03)
 
+
+### 🩹 Fixes
+
+- **nestjs-tools-fastify-upload:** export transformException ([924b3d0](https://github.com/getlarge/nestjs-tools/commit/924b3d0))
+
+
+### ❤️  Thank You
+
+- getlarge
+
+## 0.1.3 (2024-08-03)
 
 ### 🩹 Fixes
 
 - **nestjs-tools-fastify-upload:** fix file stream destruction logic ([e791752](https://github.com/getlarge/nestjs-tools/commit/e791752))
 
-
-### ❤️  Thank You
+### ❤️ Thank You
 
 - getlarge
 

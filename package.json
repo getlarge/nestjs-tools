@@ -82,7 +82,7 @@
     "typescript": "~5.4.2"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.554.0",
+    "@aws-sdk/client-s3": "^3.623.0",
     "@aws-sdk/lib-storage": "^3.554.0",
     "@fastify/multipart": "^8.0.0",
     "@google-cloud/storage": "^7.11.3",

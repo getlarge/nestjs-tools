@@ -155,8 +155,8 @@ describe(description, () => {
     const dirPath = '';
     //
     await fileStorage.deleteDir({ dirPath });
-    await delay(1000);
+    await delay(1500);
     //
     expect(await fileStorage.readDir({ dirPath })).toEqual([]);
-  });
+  }, 7000);
 });

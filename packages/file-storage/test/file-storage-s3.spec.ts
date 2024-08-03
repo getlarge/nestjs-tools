@@ -127,6 +127,7 @@ describe(description, () => {
     try {
       await fileStorage.uploadFile({ filePath, content: 'this is a nested file' });
       //
+      await delay(100);
       const result = await fileStorage.readDir({ dirPath: nestedDir });
       expect(result.find((fileName) => fileName === nestedFileName)).not.toBeUndefined();
     } finally {
@@ -155,8 +156,8 @@ describe(description, () => {
     const dirPath = '';
     //
     await fileStorage.deleteDir({ dirPath });
-    await delay(1000);
+    await delay(1500);
     //
     expect(await fileStorage.readDir({ dirPath })).toEqual([]);
-  });
+  }, 7000);
 });

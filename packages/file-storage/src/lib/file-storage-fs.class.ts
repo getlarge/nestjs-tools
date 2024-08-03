@@ -1,4 +1,4 @@
-import { createReadStream, createWriteStream, ObjectEncodingOptions, stat, unlink } from 'node:fs';
+import { createReadStream, createWriteStream, Dirent, ObjectEncodingOptions, stat, unlink } from 'node:fs';
 import { access, mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { normalize, resolve as resolvePath, sep } from 'node:path';
 import { finished, Readable } from 'node:stream';
@@ -8,12 +8,13 @@ import type {
   FileStorageBaseArgs,
   FileStorageConfig,
   FileStorageConfigFactory,
-  FileStorageDirBaseArgs,
 } from './file-storage.class';
 import type {
+  FileStorageLocalDeleteDir,
   FileStorageLocalDownloadFile,
   FileStorageLocalDownloadStream,
   FileStorageLocalFileExists,
+  FileStorageLocalReadDir,
   FileStorageLocalSetup,
   FileStorageLocalUploadFile,
   FileStorageLocalUploadStream,
@@ -129,18 +130,28 @@ export class FileStorageLocal implements FileStorage {
     );
   }
 
-  async deleteDir(args: FileStorageDirBaseArgs): Promise<void> {
-    const { dirPath, request } = args;
+  async deleteDir(args: FileStorageLocalDeleteDir): Promise<void> {
+    const { options = { recursive: true, force: true }, dirPath, request } = args;
     const dirName = await this.transformFilePath(dirPath, MethodTypes.DELETE, request);
-    return rm(dirName, { recursive: true, force: true });
+    return rm(dirName, options);
   }
 
-  // TODO: indicate if the item is a file or a directory
-  async readDir(args: FileStorageDirBaseArgs): Promise<string[]> {
-    const { dirPath, request } = args;
+  async readDir<R = string>(args: FileStorageLocalReadDir<R>): Promise<R[]> {
+    type RawOutput = string[] | Buffer[] | Dirent[];
+    const defaultSerializer = (v: RawOutput) =>
+      v.map((val) => {
+        if (val instanceof Buffer) {
+          return val.toString() as unknown as R;
+        } else if (val instanceof Dirent) {
+          return val.name as unknown as R;
+        }
+        return val as unknown as R;
+      });
+    const { dirPath, request, serializer = defaultSerializer, options = {} } = args;
     try {
       const transformedDirPath = await this.transformFilePath(dirPath, MethodTypes.READ, request);
-      return await readdir(transformedDirPath);
+      const result = (await readdir(transformedDirPath, options)) as string[] | Buffer[] | Dirent[];
+      return serializer(result);
     } catch (err) {
       if (err && typeof err === 'object' && 'code' in err && err['code'] === 'ENOENT') {
         return [];

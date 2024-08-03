@@ -7,6 +7,9 @@ import { FileStorage, StorageType } from '../src';
 
 dotenv.config({ path: resolve(__dirname, '../.env.test') });
 
+// @ts-expect-error Symbol is not defined
+Symbol.asyncDispose ??= Symbol('Symbol.asyncDispose');
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace NodeJS {
@@ -71,6 +74,47 @@ export const testMap = [
   },
 ] as const;
 
+export async function retry<T>(
+  fn: () => Promise<T>,
+  condition: (result: unknown) => boolean,
+  retries: number,
+  ms = 200,
+): Promise<T> {
+  let attempt = 0;
+  while (attempt < retries) {
+    try {
+      const result = await fn();
+      if (condition(result)) {
+        return result;
+      }
+    } catch (error) {
+      attempt++;
+      if (!condition(error) || attempt >= retries) {
+        throw error;
+      }
+    } finally {
+      await setTimeout(ms);
+    }
+  }
+  throw new Error('Max retries exceeded');
+}
+
+export function fileExists(storage: FileStorage, filePath: string, exists = true): Promise<boolean> {
+  return retry(
+    () => storage.fileExists({ filePath }),
+    (result) => result === exists,
+    3,
+  );
+}
+
+export function readDir(storage: FileStorage, dirPath: string, exists = true): Promise<string[]> {
+  return retry(
+    () => storage.readDir({ dirPath }),
+    (result) => (result as string[]).length > 0 === exists,
+    3,
+  );
+}
+
 export const delay = async (ms = 100) => {
   if (process.env.CI) {
     await setTimeout(ms);
@@ -79,10 +123,26 @@ export const delay = async (ms = 100) => {
 
 export const createDummyFile = async (
   fileStorage: FileStorage,
-  filePath: string = randomUUID(),
-  content = 'this is a test content',
-) => {
+  options: { filePath?: string; content?: string; deleteAfter?: boolean } = {},
+): Promise<
+  AsyncDisposable & {
+    filePath: string;
+    content: string;
+  }
+> => {
+  const { filePath = randomUUID(), content = 'dummy', deleteAfter = true } = options;
   await fileStorage.uploadFile({ filePath, content });
-  await delay(100);
-  return { filePath, content };
+  await delay(200);
+  return {
+    [Symbol.asyncDispose]: async () => {
+      if (deleteAfter) {
+        await fileStorage.deleteFile({ filePath }).catch((e) => {
+          console.warn(e.message);
+        });
+        await setTimeout(200);
+      }
+    },
+    filePath,
+    content,
+  };
 };

@@ -1,13 +1,8 @@
-import { DeleteObjectsCommandInput, ListObjectsCommandInput, S3 } from '@aws-sdk/client-s3';
-import { Upload } from '@aws-sdk/lib-storage';
+import type { DeleteObjectsCommandInput, ListObjectsCommandInput, ListObjectsCommandOutput } from '@aws-sdk/client-s3';
+import type { Options as UploadOptions } from '@aws-sdk/lib-storage';
 import { PassThrough, Readable } from 'node:stream';
 
-import type {
-  FileStorage,
-  FileStorageConfig,
-  FileStorageConfigFactory,
-  FileStorageDirBaseArgs,
-} from './file-storage.class';
+import type { FileStorage, FileStorageConfig, FileStorageConfigFactory } from './file-storage.class';
 import type {
   FileStorageS3Config,
   FileStorageS3DeleteDir,
@@ -16,10 +11,12 @@ import type {
   FileStorageS3DownloadStream,
   FileStorageS3FileExists,
   FileStorageS3MoveFile,
+  FileStorageS3ReadDir,
   FileStorageS3Setup,
   FileStorageS3UploadFile,
   FileStorageS3UploadStream,
 } from './file-storage-s3.types';
+import { loadPackage } from './helpers';
 import { FileStorageWritable, MethodTypes, Request } from './types';
 
 function config(setup: FileStorageS3Setup) {
@@ -28,6 +25,8 @@ function config(setup: FileStorageS3Setup) {
   if (!region) {
     throw new Error('AWS region is missing');
   }
+  const loaderFn = (): { S3: typeof import('@aws-sdk/client-s3').S3 } => require('@aws-sdk/client-s3');
+  const { S3 } = loadPackage('@aws-sdk/client-s3', FileStorageS3.name, loaderFn);
   const s3 = new S3({
     /**
      * We cannot really make calls without credentials unless we use a workaround
@@ -105,37 +104,36 @@ export class FileStorageS3 implements FileStorage {
     await s3.deleteObject({ ...options, Key, Bucket });
   }
 
+  private async upload(options: UploadOptions['params']) {
+    const { s3, bucket: Bucket } = this.config;
+    const { Upload } = await loadPackage(
+      '@aws-sdk/lib-storage',
+      FileStorageS3.name,
+      () => import('@aws-sdk/lib-storage'),
+    );
+    return new Upload({ client: s3, params: { ...options, Bucket } }).done();
+  }
+
   async uploadFile(args: FileStorageS3UploadFile): Promise<void> {
     const { filePath, content, options = {}, request } = args;
-    const { s3, bucket: Bucket } = this.config;
+    const { bucket: Bucket } = this.config;
     const Key = await this.transformFilePath(filePath, MethodTypes.WRITE, request, options);
-    await new Upload({
-      client: s3,
-      params: { ...options, Bucket, Key, Body: content },
-    }).done();
+    await this.upload({ ...options, Bucket, Key, Body: content });
   }
 
   async uploadStream(args: FileStorageS3UploadStream): Promise<FileStorageWritable> {
     const { filePath, options = {}, request } = args;
     const Key = await this.transformFilePath(filePath, MethodTypes.WRITE, request, options);
-    const { s3, bucket: Bucket } = this.config;
+    const { bucket: Bucket } = this.config;
     const writeStream = new PassThrough();
-    new Upload({
-      client: s3,
-      params: {
-        ...options,
-        Body: writeStream,
-        Key,
-        Bucket,
-      },
-    })
-      .done()
+    this.upload({ ...options, Bucket, Key, Body: writeStream })
       .then(() => {
         writeStream.emit('done');
       })
       .catch((err) => {
         writeStream.emit('done', err);
       });
+
     return writeStream;
   }
 
@@ -198,12 +196,34 @@ export class FileStorageS3 implements FileStorage {
     }
   }
 
-  // TODO: indicate if the item is a file or a directory
-  async readDir(args: FileStorageDirBaseArgs): Promise<string[]> {
-    const { dirPath, request } = args;
+  async readDir<R = string>(args: FileStorageS3ReadDir<R>): Promise<R[]> {
+    const defaultSerializer = (list: ListObjectsCommandOutput) => {
+      const { CommonPrefixes, Contents, Prefix } = list;
+      const filesAndFilders: R[] = [];
+      //  add nested folders, CommonPrefixes contains <prefix>/<next nested dir>
+      if (CommonPrefixes?.length) {
+        const folders = CommonPrefixes.map((prefixObject) => {
+          const prefix = removeTrailingForwardSlash(prefixObject.Prefix) ?? '';
+          const key = listParams['Prefix'];
+          // If key exists, we are looking for a nested folder
+          return (key ? prefix.slice(key.length) : prefix) as R;
+        });
+        filesAndFilders.push(...folders);
+      }
+
+      // adds filenames
+      if (Contents?.length && Prefix) {
+        const files = Contents.filter((file) => !!file.Key).map((file) => file.Key?.replace(Prefix, '') as R);
+        filesAndFilders.push(...files);
+      }
+      return filesAndFilders;
+    };
+
+    const { dirPath, request, serializer = defaultSerializer, options = {} } = args;
     const { s3, bucket: Bucket } = this.config;
     const Key = await this.transformFilePath(dirPath, MethodTypes.READ, request);
     const listParams: ListObjectsCommandInput = {
+      ...options,
       Bucket,
       Delimiter: '/',
     };
@@ -212,25 +232,6 @@ export class FileStorageS3 implements FileStorage {
       listParams.Prefix = addTrailingForwardSlash(Key);
     }
     const listedObjects = await s3.listObjects(listParams);
-    const filesAndFilders: string[] = [];
-    //  add nested folders, CommonPrefixes contains <prefix>/<next nested dir>
-    if (listedObjects.CommonPrefixes?.length) {
-      const folders = listedObjects.CommonPrefixes.map((prefixObject) => {
-        const prefix = removeTrailingForwardSlash(prefixObject.Prefix) ?? '';
-        const key = listParams['Prefix'];
-        // If key exists, we are looking for a nested folder
-        return key ? prefix.slice(key.length) : prefix;
-      });
-      filesAndFilders.push(...folders);
-    }
-
-    // adds filenames
-    if (listedObjects.Contents?.length && listedObjects.Prefix) {
-      const files = listedObjects.Contents.filter((file) => !!file.Key).map((file) =>
-        file.Key?.replace(listedObjects.Prefix as string, ''),
-      ) as string[];
-      filesAndFilders.push(...files);
-    }
-    return filesAndFilders;
+    return serializer(listedObjects);
   }
 }

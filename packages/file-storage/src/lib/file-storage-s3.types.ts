@@ -3,11 +3,12 @@ import type {
   DeleteObjectsCommandInput,
   GetObjectCommandInput,
   HeadObjectCommandInput,
+  ListObjectsCommandInput,
   PutObjectCommandInput,
   S3,
 } from '@aws-sdk/client-s3';
 
-import type { FileStorageBaseArgs, FileStorageDirBaseArgs } from './file-storage.class';
+import type { FileStorageBaseArgs, FileStorageDirBaseArgs, FileStorageReadDirBaseArgs } from './file-storage.class';
 
 /**
  * Either region or endpoint must be provided
@@ -63,4 +64,8 @@ export interface FileStorageS3DeleteFile extends FileStorageBaseArgs {
 
 export interface FileStorageS3DeleteDir extends FileStorageDirBaseArgs {
   options?: Omit<DeleteObjectsCommandInput, 'Bucket' | 'Delete'>;
+}
+
+export interface FileStorageS3ReadDir<R = string> extends FileStorageReadDirBaseArgs<R> {
+  options?: Omit<ListObjectsCommandInput, 'Bucket' | 'Delimiter'>;
 }

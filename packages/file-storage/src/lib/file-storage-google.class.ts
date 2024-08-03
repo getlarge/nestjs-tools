@@ -1,4 +1,4 @@
-import { Storage } from '@google-cloud/storage';
+import type { File } from '@google-cloud/storage';
 import { Injectable } from '@nestjs/common';
 import { finished, type Readable } from 'node:stream';
 
@@ -16,10 +16,13 @@ import type {
   FileStorageGoogleUploadFile,
   FileStorageGoogleUploadStream,
 } from './file-storage-google.types';
+import { loadPackage } from './helpers';
 import { FileStorageWritable, MethodTypes } from './types';
 
 function config(setup: FileStorageGoogleSetup) {
   const { bucketName, maxPayloadSize, projectId } = setup;
+  const loaderFn = (): { Storage: typeof import('@google-cloud/storage').Storage } => require('@google-cloud/storage');
+  const { Storage } = loadPackage('@google-cloud/storage', FileStorageGoogle.name, loaderFn);
   const storage = new Storage({
     ...(projectId ? { projectId } : {}),
   });
@@ -128,14 +131,17 @@ export class FileStorageGoogle implements FileStorage {
     await storage.bucket(bucket).deleteFiles({ ...options, prefix });
   }
 
-  // TODO: make filepaths compliant with the other readDir implementations
-  async readDir(args: FileStorageGoogleReadDir): Promise<string[]> {
+  // TODO: make default serializer compliant with the other readDir implementations
+  async readDir<R = string>(args: FileStorageGoogleReadDir<R>): Promise<R[]> {
+    const defaultSerializer = (files: File[]) =>
+      files.map((f) => (prefix ? (f.name.replace(prefix, '').replace('/', '') as R) : (f.name as R)));
+
     const { storage, bucket } = this.config;
-    const { options = {}, request } = args;
-    const prefix = await this.transformFilePath(args.dirPath, MethodTypes.READ, request, options);
+    const { dirPath, request, serializer = defaultSerializer, options = {} } = args;
+    const prefix = await this.transformFilePath(dirPath, MethodTypes.READ, request, options);
     const [files] = await storage
       .bucket(bucket)
       .getFiles({ includeTrailingDelimiter: false, includeFoldersAsPrefixes: false, ...options, prefix });
-    return files.map((file) => (prefix ? file.name.replace(prefix, '').replace('/', '') : file.name));
+    return serializer(files);
   }
 }

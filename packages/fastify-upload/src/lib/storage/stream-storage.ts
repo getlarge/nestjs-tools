@@ -22,8 +22,11 @@ export class StreamStorage extends Storage<StreamStorageFile> {
     });
   }
 
-  async removeFile(file: StreamStorageFile): Promise<void> {
-    await finished(file.stream);
-    file.stream.destroy();
+  async removeFile(file: StreamStorageFile, force?: boolean): Promise<void> {
+    if (!force) {
+      await finished(file.stream);
+      file.stream.destroy();
+    }
+    // ? should we still check whether the stream was being read in filter phase?
   }
 }

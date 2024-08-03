@@ -7,6 +7,7 @@ import type {
   FileStorageLocalDownloadStream,
   FileStorageLocalFileExists,
   FileStorageLocalMoveFile,
+  FileStorageLocalReadDir,
   FileStorageLocalUploadFile,
   FileStorageLocalUploadStream,
 } from './file-storage-fs.types';
@@ -28,6 +29,7 @@ import type {
   FileStorageS3DownloadStream,
   FileStorageS3FileExists,
   FileStorageS3MoveFile,
+  FileStorageS3ReadDir,
   FileStorageS3UploadFile,
   FileStorageS3UploadStream,
 } from './file-storage-s3.types';
@@ -60,7 +62,7 @@ export class FileStorageService implements Omit<FileStorage, 'transformFilePath'
 
   downloadFile(
     args: FileStorageLocalDownloadFile | FileStorageS3DownloadFile | FileStorageGoogleDownloadFile,
-  ): Promise<Buffer | string> {
+  ): Promise<Buffer> {
     return this.fileStorage.downloadFile(args);
   }
 
@@ -74,7 +76,9 @@ export class FileStorageService implements Omit<FileStorage, 'transformFilePath'
     return this.fileStorage.deleteFile(args);
   }
 
-  readDir(args: FileStorageDirBaseArgs | FileStorageGoogleReadDir): Promise<string[]> {
+  readDir<R = string>(
+    args: FileStorageLocalReadDir<R> | FileStorageS3ReadDir<R> | FileStorageGoogleReadDir<R>,
+  ): Promise<R[]> {
     return this.fileStorage.readDir(args);
   }
 

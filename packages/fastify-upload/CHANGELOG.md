@@ -1,3 +1,15 @@
+## 0.1.3 (2024-08-03)
+
+
+### 🩹 Fixes
+
+- **nestjs-tools-fastify-upload:** fix file stream destruction logic ([e791752](https://github.com/getlarge/nestjs-tools/commit/e791752))
+
+
+### ❤️  Thank You
+
+- getlarge
+
 ## 0.1.2 (2024-08-03)
 
 ### 🩹 Fixes

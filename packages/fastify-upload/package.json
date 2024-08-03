@@ -20,7 +20,7 @@
   "peerDependencies": {
     "@nestjs/common": "10",
     "fastify": "4",
-    "@fastify/busboy": "2 | 3",
+    "@fastify/busboy": "^2.0.0 || ^3.0.0",
     "@fastify/multipart": "8",
     "rxjs": "7"
   },

@@ -1,4 +1,3 @@
-import { Storage } from '@google-cloud/storage';
 import { Injectable } from '@nestjs/common';
 import { finished, type Readable } from 'node:stream';
 
@@ -16,10 +15,13 @@ import type {
   FileStorageGoogleUploadFile,
   FileStorageGoogleUploadStream,
 } from './file-storage-google.types';
+import { loadPackage } from './helpers';
 import { FileStorageWritable, MethodTypes } from './types';
 
 function config(setup: FileStorageGoogleSetup) {
   const { bucketName, maxPayloadSize, projectId } = setup;
+  const loaderFn = (): { Storage: typeof import('@google-cloud/storage').Storage } => require('@google-cloud/storage');
+  const { Storage } = loadPackage('@google-cloud/storage', FileStorageGoogle.name, loaderFn);
   const storage = new Storage({
     ...(projectId ? { projectId } : {}),
   });
@@ -36,6 +38,7 @@ function config(setup: FileStorageGoogleSetup) {
   };
 }
 
+// TODO: import @google-cloud/storage dynamically
 @Injectable()
 export class FileStorageGoogle implements FileStorage {
   readonly config: FileStorageConfig & FileStorageGoogleConfig;

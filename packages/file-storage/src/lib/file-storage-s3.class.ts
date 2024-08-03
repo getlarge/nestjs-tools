@@ -1,5 +1,5 @@
-import { DeleteObjectsCommandInput, ListObjectsCommandInput, S3 } from '@aws-sdk/client-s3';
-import { Upload } from '@aws-sdk/lib-storage';
+import type { DeleteObjectsCommandInput, ListObjectsCommandInput } from '@aws-sdk/client-s3';
+import type { Options as UploadOptions } from '@aws-sdk/lib-storage';
 import { PassThrough, Readable } from 'node:stream';
 
 import type {
@@ -20,6 +20,7 @@ import type {
   FileStorageS3UploadFile,
   FileStorageS3UploadStream,
 } from './file-storage-s3.types';
+import { loadPackage } from './helpers';
 import { FileStorageWritable, MethodTypes, Request } from './types';
 
 function config(setup: FileStorageS3Setup) {
@@ -28,6 +29,8 @@ function config(setup: FileStorageS3Setup) {
   if (!region) {
     throw new Error('AWS region is missing');
   }
+  const loaderFn = (): { S3: typeof import('@aws-sdk/client-s3').S3 } => require('@aws-sdk/client-s3');
+  const { S3 } = loadPackage('@aws-sdk/client-s3', FileStorageS3.name, loaderFn);
   const s3 = new S3({
     /**
      * We cannot really make calls without credentials unless we use a workaround
@@ -60,6 +63,7 @@ function addTrailingForwardSlash(x: string) {
 }
 
 // TODO: control filesize limit
+// TODO: import @aws-sdk/client-s3 and @aws-sdk/lib-storage dynamically
 export class FileStorageS3 implements FileStorage {
   readonly config: FileStorageConfig & FileStorageS3Config;
 
@@ -105,37 +109,36 @@ export class FileStorageS3 implements FileStorage {
     await s3.deleteObject({ ...options, Key, Bucket });
   }
 
+  private async upload(options: UploadOptions['params']) {
+    const { s3, bucket: Bucket } = this.config;
+    const { Upload } = await loadPackage(
+      '@aws-sdk/lib-storage',
+      FileStorageS3.name,
+      () => import('@aws-sdk/lib-storage'),
+    );
+    return new Upload({ client: s3, params: { ...options, Bucket } }).done();
+  }
+
   async uploadFile(args: FileStorageS3UploadFile): Promise<void> {
     const { filePath, content, options = {}, request } = args;
-    const { s3, bucket: Bucket } = this.config;
+    const { bucket: Bucket } = this.config;
     const Key = await this.transformFilePath(filePath, MethodTypes.WRITE, request, options);
-    await new Upload({
-      client: s3,
-      params: { ...options, Bucket, Key, Body: content },
-    }).done();
+    await this.upload({ ...options, Bucket, Key, Body: content });
   }
 
   async uploadStream(args: FileStorageS3UploadStream): Promise<FileStorageWritable> {
     const { filePath, options = {}, request } = args;
     const Key = await this.transformFilePath(filePath, MethodTypes.WRITE, request, options);
-    const { s3, bucket: Bucket } = this.config;
+    const { bucket: Bucket } = this.config;
     const writeStream = new PassThrough();
-    new Upload({
-      client: s3,
-      params: {
-        ...options,
-        Body: writeStream,
-        Key,
-        Bucket,
-      },
-    })
-      .done()
+    this.upload({ ...options, Bucket, Key, Body: writeStream })
       .then(() => {
         writeStream.emit('done');
       })
       .catch((err) => {
         writeStream.emit('done', err);
       });
+
     return writeStream;
   }
 

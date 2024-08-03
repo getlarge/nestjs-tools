@@ -1,3 +1,15 @@
+## 0.1.2 (2024-08-03)
+
+
+### 🩹 Fixes
+
+- **nestjs-tools-fastify-upload:** update busboy [skip ci] ([c7708da](https://github.com/getlarge/nestjs-tools/commit/c7708da))
+
+
+### ❤️  Thank You
+
+- getlarge
+
 ## 0.1.1 (2024-08-03)
 
 

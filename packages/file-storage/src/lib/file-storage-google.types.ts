@@ -11,7 +11,7 @@ import type {
 } from '@google-cloud/storage';
 import type { DeleteOptions, ExistsOptions } from '@google-cloud/storage/build/cjs/src/nodejs-common/service-object';
 
-import type { FileStorageBaseArgs, FileStorageDirBaseArgs } from './file-storage.class';
+import type { FileStorageBaseArgs, FileStorageDirBaseArgs, FileStorageReadDirBaseArgs } from './file-storage.class';
 
 // TODO: add authentication options
 export interface FileStorageGoogleSetup {
@@ -61,6 +61,6 @@ export interface FileStorageGoogleDeleteDir extends FileStorageDirBaseArgs {
   options?: Omit<DeleteFilesOptions, 'prefix'> & FileOptions;
 }
 
-export interface FileStorageGoogleReadDir extends FileStorageDirBaseArgs {
+export interface FileStorageGoogleReadDir<R = string> extends FileStorageReadDirBaseArgs<R> {
   options?: Omit<GetFilesOptions, 'prefix'> & FileOptions;
 }

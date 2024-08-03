@@ -1,6 +1,6 @@
 import type { BigIntOptions, ObjectEncodingOptions, StatOptions, WriteFileOptions } from 'node:fs';
 
-import type { FileStorageBaseArgs } from './file-storage.class';
+import type { FileStorageBaseArgs, FileStorageDirBaseArgs, FileStorageReadDirBaseArgs } from './file-storage.class';
 
 export type StreamOptions = {
   flags?: string;
@@ -50,4 +50,12 @@ export interface FileStorageLocalDownloadFile extends FileStorageBaseArgs {
 
 export interface FileStorageLocalDownloadStream extends FileStorageBaseArgs {
   options?: BufferEncoding | StreamOptions;
+}
+
+export interface FileStorageLocalDeleteDir extends FileStorageDirBaseArgs {
+  options?: { recursive?: boolean; force?: boolean };
+}
+
+export interface FileStorageLocalReadDir<R = string> extends FileStorageReadDirBaseArgs<R> {
+  options?: { encoding: BufferEncoding; withFileTypes?: boolean; recursive?: boolean } | BufferEncoding;
 }

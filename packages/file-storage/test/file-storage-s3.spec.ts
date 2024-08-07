@@ -5,21 +5,26 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import { once, Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 
-import { FileStorage, FileStorageModule } from '../src';
-import { FILE_STORAGE_STRATEGY_TOKEN } from '../src/lib/constants';
+import { FileStorageModule, FileStorageService, StorageType } from '../src';
 import { createDummyFile, delay, fileExists, readDir, testMap } from './file-storage-cases';
 
 const { description, storageType, options } = testMap[1];
 
 describe(description, () => {
-  let fileStorage: FileStorage;
+  let fileStorage: FileStorageService<StorageType.S3>;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [FileStorageModule.forRoot(storageType, options)],
     }).compile();
 
-    fileStorage = module.get(FILE_STORAGE_STRATEGY_TOKEN);
+    fileStorage = module.get(FileStorageService);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    fileStorage['fileStorage'].config!.filePath = (options: { request?: Request; fileName: string }): string => {
+      const { fileName } = options;
+      const prefix = process.env.PREFIX ? `${process.env.PREFIX}/` : 'public/';
+      return `${prefix}${fileName}`;
+    };
     await fileStorage.deleteDir({ dirPath: '' });
   });
 
@@ -133,6 +138,14 @@ describe(description, () => {
     }
   });
 
+  it('getFileMeta returns file metadata', async () => {
+    await using file = await createDummyFile(fileStorage);
+    //
+    const meta = await fileStorage.getFileMeta({ filePath: file.filePath });
+    //
+    expect(meta.ContentLength).toBe(file.content.length);
+  });
+
   it('readDir returns an array of files and folders in a directory', async () => {
     const dirPath = '';
     const filePath = randomUUID();
@@ -140,7 +153,7 @@ describe(description, () => {
     const content = randomBytes(1024);
     await fileStorage.uploadFile({ filePath, content });
     await fileStorage.uploadFile({ filePath: nestedFilePath, content });
-    await delay(1000);
+    await delay(500);
     //
     const result = await fileStorage.readDir({ dirPath });
     //

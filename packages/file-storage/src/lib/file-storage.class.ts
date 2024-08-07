@@ -2,44 +2,23 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Readable } from 'node:stream';
 
-import { FileStorageWritable, MethodTypes, Request } from './types';
-
-export interface FileStorageConfig {
-  filePath?: (options: {
-    request?: Request;
-    fileName: string;
-    methodType: MethodTypes;
-    [key: string]: unknown;
-  }) => string | Promise<string>;
-  limits?: { fileSize: number };
-}
-
-export type FileStorageConfigFactory<T extends Record<string, any>, S extends Record<string, any>> = (
-  setup: S,
-) => T & FileStorageConfig;
+import {
+  FileStorageBaseArgs,
+  FileStorageConfig,
+  FileStorageDirBaseArgs,
+  FileStorageDownloadFile,
+  FileStorageDownloadStream,
+  FileStorageFileExists,
+  FileStorageGetFileMeta,
+  FileStorageMoveFile,
+  FileStorageReadDir,
+  FileStorageTransformPath,
+  FileStorageUploadFile,
+  FileStorageUploadStream,
+} from './file-storage.types';
+import { FileStorageWritable } from './types';
 
 const defaultErrorMessage = 'Funtion must be implemented';
-
-export interface FileStorageBaseArgs {
-  filePath: string;
-  request?: Request;
-}
-
-export interface FileStorageDirBaseArgs {
-  dirPath: string;
-  request?: Request;
-}
-
-export interface FileStorageReadDirBaseArgs<R = string[], T = any> extends FileStorageDirBaseArgs {
-  serializer?: (data: T) => R;
-}
-
-export type FileStorageTransformPath = (
-  fileName: string,
-  methodType: MethodTypes,
-  request?: Request,
-  options?: any,
-) => string | Promise<string>;
 
 export abstract class FileStorage {
   readonly config?: FileStorageConfig & Record<string, any>;
@@ -53,49 +32,35 @@ export abstract class FileStorage {
     throw new Error(defaultErrorMessage);
   };
 
-  fileExists(args: FileStorageBaseArgs & { options?: string | any }): Promise<boolean> {
+  fileExists(args: FileStorageFileExists): Promise<boolean> {
     throw new Error(defaultErrorMessage);
   }
 
-  moveFile(
-    args: FileStorageBaseArgs & {
-      newFilePath: string;
-      options?: string | any;
-    },
-  ): Promise<void> {
+  moveFile(args: FileStorageMoveFile): Promise<void> {
     throw new Error(defaultErrorMessage);
   }
 
-  uploadFile(
-    args: FileStorageBaseArgs & {
-      content: Buffer | Uint8Array | string;
-      options?: string | any;
-    },
-  ): Promise<void> {
+  uploadFile(args: FileStorageUploadFile): Promise<void> {
     throw new Error(defaultErrorMessage);
   }
 
-  uploadStream(
-    args: FileStorageBaseArgs & {
-      options?: string | any;
-    },
-  ): Promise<FileStorageWritable> {
+  uploadStream(args: FileStorageUploadStream): Promise<FileStorageWritable> {
     throw new Error(defaultErrorMessage);
   }
 
-  downloadFile(args: FileStorageBaseArgs & { options?: string | any }): Promise<Buffer> {
+  downloadFile(args: FileStorageDownloadFile): Promise<Buffer> {
     throw new Error(defaultErrorMessage);
   }
 
-  downloadStream(
-    args: FileStorageBaseArgs & {
-      options?: string | any;
-    },
-  ): Promise<Readable> {
+  downloadStream(args: FileStorageDownloadStream): Promise<Readable> {
     throw new Error(defaultErrorMessage);
   }
 
   deleteFile(args: FileStorageBaseArgs): Promise<boolean> {
+    throw new Error(defaultErrorMessage);
+  }
+
+  getFileMeta(args: FileStorageGetFileMeta): Promise<any> {
     throw new Error(defaultErrorMessage);
   }
 
@@ -108,7 +73,7 @@ export abstract class FileStorage {
     throw new Error(defaultErrorMessage);
   }
 
-  readDir<R = string[]>(args: FileStorageReadDirBaseArgs<R>): Promise<R> {
+  readDir<R = string[]>(args: FileStorageReadDir<R>): Promise<R> {
     throw new Error(defaultErrorMessage);
   }
 }

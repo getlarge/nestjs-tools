@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 
-import { FileStorage, StorageType } from '../src';
+import { FileStorageService, StorageType } from '../src';
 
 dotenv.config({ path: resolve(__dirname, '../.env.test') });
 
@@ -23,6 +23,7 @@ declare global {
       GC_BUCKET: string;
       GC_PROJECT_ID?: string;
       CI?: string;
+      PREFIX?: string;
     }
   }
 }
@@ -99,7 +100,7 @@ export async function retry<T>(
   throw new Error('Max retries exceeded');
 }
 
-export function fileExists(storage: FileStorage, filePath: string, exists = true): Promise<boolean> {
+export function fileExists(storage: FileStorageService, filePath: string, exists = true): Promise<boolean> {
   return retry(
     () => storage.fileExists({ filePath }),
     (result) => result === exists,
@@ -107,7 +108,7 @@ export function fileExists(storage: FileStorage, filePath: string, exists = true
   );
 }
 
-export function readDir(storage: FileStorage, dirPath: string, exists = true): Promise<string[]> {
+export function readDir(storage: FileStorageService, dirPath: string, exists = true): Promise<string[]> {
   return retry(
     () => storage.readDir({ dirPath }),
     (result) => (result as string[]).length > 0 === exists,
@@ -122,7 +123,7 @@ export const delay = async (ms = 100) => {
 };
 
 export const createDummyFile = async (
-  fileStorage: FileStorage,
+  fileStorage: FileStorageService,
   options: { filePath?: string; content?: string; deleteAfter?: boolean } = {},
 ): Promise<
   AsyncDisposable & {

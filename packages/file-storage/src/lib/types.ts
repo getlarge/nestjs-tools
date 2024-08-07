@@ -1,7 +1,8 @@
 import type { InjectionToken, ModuleMetadata } from '@nestjs/common';
 import type { Stream } from 'node:stream';
 
-import type { FileStorage, FileStorageConfigFactory } from './file-storage.class';
+import type { FileStorage } from './file-storage.class';
+import type { FileStorageConfigFactory } from './file-storage.types';
 import type { FileStorageLocalSetup } from './file-storage-fs.types';
 import type { FileStorageGoogleConfig, FileStorageGoogleSetup } from './file-storage-google.types';
 import type { FileStorageS3Config, FileStorageS3Setup } from './file-storage-s3.types';

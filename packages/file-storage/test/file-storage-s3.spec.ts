@@ -148,7 +148,7 @@ describe(description, () => {
     const content = randomBytes(1024);
     await fileStorage.uploadFile({ filePath, content });
     await fileStorage.uploadFile({ filePath: nestedFilePath, content });
-    await delay(1000);
+    await delay(1500);
     //
     const result = await fileStorage.readDir({ dirPath });
     //

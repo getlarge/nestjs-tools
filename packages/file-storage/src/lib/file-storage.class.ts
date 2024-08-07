@@ -30,8 +30,8 @@ export interface FileStorageDirBaseArgs {
   request?: Request;
 }
 
-export interface FileStorageReadDirBaseArgs<R = string> extends FileStorageDirBaseArgs {
-  serializer?: <T>(data: T) => R[];
+export interface FileStorageReadDirBaseArgs<R = string[], T = any> extends FileStorageDirBaseArgs {
+  serializer?: (data: T) => R;
 }
 
 export type FileStorageTransformPath = (
@@ -108,7 +108,7 @@ export abstract class FileStorage {
     throw new Error(defaultErrorMessage);
   }
 
-  readDir<R = string>(args: FileStorageReadDirBaseArgs<R>): Promise<R[]> {
+  readDir<R = string[]>(args: FileStorageReadDirBaseArgs<R>): Promise<R> {
     throw new Error(defaultErrorMessage);
   }
 }

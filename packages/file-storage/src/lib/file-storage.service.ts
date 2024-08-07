@@ -76,9 +76,9 @@ export class FileStorageService implements Omit<FileStorage, 'transformFilePath'
     return this.fileStorage.deleteFile(args);
   }
 
-  readDir<R = string>(
+  readDir<R = string[]>(
     args: FileStorageLocalReadDir<R> | FileStorageS3ReadDir<R> | FileStorageGoogleReadDir<R>,
-  ): Promise<R[]> {
+  ): Promise<R> {
     return this.fileStorage.readDir(args);
   }
 

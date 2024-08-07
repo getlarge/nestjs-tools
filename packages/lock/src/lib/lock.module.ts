@@ -1,14 +1,15 @@
 import { DynamicModule, InjectionToken, Module, ModuleMetadata, Provider, Type } from '@nestjs/common';
 
 import { LOCK_SERVICE_OPTIONS } from './constants';
-import { LockService, LockServiceOptions } from './lock.service';
+import { LockService } from './lock.service';
+import { LockServiceOptions } from './types';
 
 export type Injection = InjectionToken[];
 export interface LockModuleModuleAsyncOptions extends Pick<ModuleMetadata, 'imports' | 'providers'> {
   name?: string;
   useClass?: Type;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  useFactory?: (...args: any[]) => LockServiceOptions;
+  useFactory?: (...args: any[]) => LockServiceOptions | Promise<LockServiceOptions>;
   inject?: Injection;
 }
 

@@ -1,20 +1,9 @@
 import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import IORedis, { Redis, RedisOptions } from 'ioredis';
-import Redlock, { ExecutionResult, Lock, RedlockAbortSignal, ResourceLockedError, Settings } from 'redlock';
+import IORedis, { Redis } from 'ioredis';
+import Redlock, { ExecutionResult, Lock, RedlockAbortSignal, ResourceLockedError } from 'redlock';
 
 import { LOCK_SERVICE_OPTIONS } from './constants';
-
-export type LockResponse = {
-  unlock: () => Promise<void>;
-  lockId: string;
-};
-
-export type LockOptions = Partial<Settings>;
-
-export interface LockServiceOptions {
-  redis: RedisOptions;
-  lock?: LockOptions;
-}
+import { LockOptions, LockServiceOptions } from './types';
 
 @Injectable()
 export class LockService implements OnModuleInit, OnModuleDestroy {
@@ -28,12 +17,50 @@ export class LockService implements OnModuleInit, OnModuleDestroy {
 
   constructor(@Inject(LOCK_SERVICE_OPTIONS) readonly options: LockServiceOptions) {}
 
-  onModuleInit(): void {
+  async onModuleInit(): Promise<void> {
     this.createConnection();
+    await this.waitUntilInitialized();
   }
 
   async onModuleDestroy(): Promise<void> {
     await this.close();
+  }
+
+  private async waitUntilInitialized(timeout = 5000): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const controller = new AbortController();
+      const signal = controller.signal;
+
+      const interval = setInterval(() => {
+        if (this.isInitialized) {
+          controller.abort();
+          resolve();
+        }
+      }, 150);
+
+      const timer = setTimeout(() => {
+        if (!this.isInitialized) {
+          controller.abort();
+          reject(new Error('Initialization timed out'));
+        }
+      }, timeout);
+
+      signal.addEventListener('abort', () => {
+        clearInterval(interval);
+        clearTimeout(timer);
+      });
+    });
+  }
+
+  get isInitialized(): boolean {
+    const validRedisStatus = ['connected', 'ready'];
+    return !!this.redis && validRedisStatus.includes(this.redis.status) && !!this.redlock;
+  }
+
+  checkInitialization(): void {
+    if (!this.isInitialized) {
+      throw new Error('Redis was not yet initialized');
+    }
   }
 
   errorHandler(error: unknown) {
@@ -51,31 +78,25 @@ export class LockService implements OnModuleInit, OnModuleDestroy {
     // this.redlock.on('error', this.errorHandler);
   }
 
-  isInitialized(): void {
-    if (!this.redis || !this.redlock) {
-      throw new Error('Redis was not yet initialized');
-    }
-  }
-
   optimistic<T = unknown>(key: string, ttl: number, cb: (signal: RedlockAbortSignal) => Promise<T>): Promise<T> {
-    this.isInitialized();
+    this.checkInitialization();
     return this.redlock.using<T>([key], ttl, cb);
   }
 
   lock(key: string, ttl: number): Promise<Lock> {
-    this.isInitialized();
+    this.checkInitialization();
     return this.redlock.acquire([key], ttl);
   }
 
   async get(key: string, lockId: string): Promise<Lock | null> {
-    this.isInitialized();
+    this.checkInitialization();
     const value = await this.redis.get(key);
     // provide fake data for attempts and expiration as this lock would be used for release only
     return value !== lockId ? null : new Lock(this.redlock, [key], lockId, [], 100);
   }
 
   async unlock(key: string, lockId: string): Promise<ExecutionResult> {
-    this.isInitialized();
+    this.checkInitialization();
     const lock = await this.get(key, lockId);
     if (!lock) {
       throw new Error(`Lock ${key} - ${lockId} not found.`);

@@ -1,3 +1,22 @@
+## 1.4.0 (2024-08-07)
+
+
+### 🚀 Features
+
+- **nestjs-tools-file-storage:** implement `getFileMeta` methods ([f7266eb](https://github.com/getlarge/nestjs-tools/commit/f7266eb))
+
+- **nestjs-tools-file-storage:** update FileStorageService ([5ff2500](https://github.com/getlarge/nestjs-tools/commit/5ff2500))
+
+
+### 🩹 Fixes
+
+- **nestjs-tools-file-storage:** restore GC serializer ([e78b1c1](https://github.com/getlarge/nestjs-tools/commit/e78b1c1))
+
+
+### ❤️  Thank You
+
+- getlarge
+
 ## 1.3.0 (2024-08-03)
 
 ### 🚀 Features

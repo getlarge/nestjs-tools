@@ -1,3 +1,15 @@
+## 1.1.0 (2024-08-07)
+
+
+### 🚀 Features
+
+- **nestjs-tools-lock:** add non blocking method to wait for complete initialization ([8ad6142](https://github.com/getlarge/nestjs-tools/commit/8ad6142))
+
+
+### ❤️  Thank You
+
+- getlarge
+
 # 1.0.0 (2024-04-16)
 
 ### 🚀 Features

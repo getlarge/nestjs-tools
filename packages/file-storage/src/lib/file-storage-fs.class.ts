@@ -1,19 +1,25 @@
-import { createReadStream, createWriteStream, Dirent, ObjectEncodingOptions, stat, unlink } from 'node:fs';
-import { access, mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import {
+  BigIntStats,
+  createReadStream,
+  createWriteStream,
+  Dirent,
+  ObjectEncodingOptions,
+  stat,
+  Stats,
+  unlink,
+} from 'node:fs';
+import { access, mkdir, readdir, readFile, rename, rm, stat as statPromise, writeFile } from 'node:fs/promises';
 import { normalize, resolve as resolvePath, sep } from 'node:path';
 import { finished, Readable } from 'node:stream';
 
-import type {
-  FileStorage,
-  FileStorageBaseArgs,
-  FileStorageConfig,
-  FileStorageConfigFactory,
-} from './file-storage.class';
+import type { FileStorage } from './file-storage.class';
+import type { FileStorageBaseArgs, FileStorageConfig, FileStorageConfigFactory } from './file-storage.types';
 import type {
   FileStorageLocalDeleteDir,
   FileStorageLocalDownloadFile,
   FileStorageLocalDownloadStream,
   FileStorageLocalFileExists,
+  FileStorageLocalGetFileMeta,
   FileStorageLocalReadDir,
   FileStorageLocalSetup,
   FileStorageLocalUploadFile,
@@ -129,6 +135,22 @@ export class FileStorageLocal implements FileStorage {
     return new Promise((resolve, reject) =>
       unlink(fileName, (err) => (err && err.message === 'EENOENT' ? reject(err) : resolve(true))),
     );
+  }
+
+  async getFileMeta(
+    args: FileStorageLocalGetFileMeta & {
+      options: { bigint: false | undefined };
+    },
+  ): Promise<Stats>;
+  async getFileMeta(
+    args: FileStorageLocalGetFileMeta & {
+      options: { bigint: true };
+    },
+  ): Promise<BigIntStats>;
+  async getFileMeta(args: FileStorageLocalGetFileMeta): Promise<Stats | BigIntStats> {
+    const { filePath, options, request } = args;
+    const fileName = await this.transformFilePath(filePath, MethodTypes.READ, request);
+    return statPromise(fileName, options);
   }
 
   async deleteDir(args: FileStorageLocalDeleteDir): Promise<void> {

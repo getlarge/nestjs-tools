@@ -2,7 +2,8 @@ import type { DeleteObjectsCommandInput, ListObjectsCommandInput, ListObjectsCom
 import type { Options as UploadOptions } from '@aws-sdk/lib-storage';
 import { PassThrough, Readable } from 'node:stream';
 
-import type { FileStorage, FileStorageConfig, FileStorageConfigFactory } from './file-storage.class';
+import type { FileStorage } from './file-storage.class';
+import type { FileStorageConfig, FileStorageConfigFactory } from './file-storage.types';
 import type {
   FileStorageS3Config,
   FileStorageS3DeleteDir,
@@ -10,6 +11,8 @@ import type {
   FileStorageS3DownloadFile,
   FileStorageS3DownloadStream,
   FileStorageS3FileExists,
+  FileStorageS3GetFileMeta,
+  FileStorageS3GetFileMetaOutput,
   FileStorageS3MoveFile,
   FileStorageS3ReadDir,
   FileStorageS3Setup,
@@ -164,6 +167,13 @@ export class FileStorageS3 implements FileStorage {
     const { s3, bucket: Bucket } = this.config;
     await s3.deleteObject({ ...options, Bucket, Key });
     return true;
+  }
+
+  async getFileMeta(args: FileStorageS3GetFileMeta): Promise<FileStorageS3GetFileMetaOutput> {
+    const { filePath, options = {}, request } = args;
+    const Key = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
+    const { s3, bucket: Bucket } = this.config;
+    return s3.headObject({ ...options, Bucket, Key });
   }
 
   async deleteDir(args: FileStorageS3DeleteDir): Promise<void> {

@@ -3,6 +3,7 @@ import type {
   CreateWriteStreamOptions,
   DeleteFilesOptions,
   DownloadOptions,
+  FileMetadata,
   FileOptions,
   GetFilesOptions,
   GetFilesResponse,
@@ -10,9 +11,24 @@ import type {
   SaveOptions,
   Storage,
 } from '@google-cloud/storage';
-import type { DeleteOptions, ExistsOptions } from '@google-cloud/storage/build/cjs/src/nodejs-common/service-object';
+import type {
+  DeleteOptions,
+  ExistsOptions,
+  GetMetadataOptions,
+} from '@google-cloud/storage/build/cjs/src/nodejs-common/service-object';
 
-import type { FileStorageBaseArgs, FileStorageDirBaseArgs, FileStorageReadDirBaseArgs } from './file-storage.class';
+import type {
+  FileStorageDeleteDir,
+  FileStorageDeleteFile,
+  FileStorageDownloadFile,
+  FileStorageDownloadStream,
+  FileStorageFileExists,
+  FileStorageGetFileMeta,
+  FileStorageMoveFile,
+  FileStorageReadDir,
+  FileStorageUploadFile,
+  FileStorageUploadStream,
+} from './file-storage.types';
 
 // TODO: add authentication options
 export interface FileStorageGoogleSetup {
@@ -29,40 +45,44 @@ export interface FileStorageGoogleConfig {
   [key: string]: any;
 }
 
-export interface FileStorageGoogleFileExists extends FileStorageBaseArgs {
+export interface FileStorageGoogleFileExists extends FileStorageFileExists {
   options?: ExistsOptions & FileOptions;
 }
 
-export interface FileStorageGoogleMoveFile extends FileStorageBaseArgs {
-  newFilePath: string;
+export interface FileStorageGoogleMoveFile extends FileStorageMoveFile {
   options?: FileOptions & MoveOptions;
 }
 
-export interface FileStorageGoogleUploadFile extends FileStorageBaseArgs {
-  content: string | Uint8Array | Buffer;
+export interface FileStorageGoogleUploadFile extends FileStorageUploadFile {
   options?: FileOptions & SaveOptions;
 }
 
-export interface FileStorageGoogleUploadStream extends FileStorageBaseArgs {
+export interface FileStorageGoogleUploadStream extends FileStorageUploadStream {
   options?: CreateWriteStreamOptions & FileOptions;
 }
 
-export interface FileStorageGoogleDownloadFile extends FileStorageBaseArgs {
+export interface FileStorageGoogleDownloadFile extends FileStorageDownloadFile {
   options?: DownloadOptions & FileOptions;
 }
 
-export interface FileStorageGoogleDownloadStream extends FileStorageBaseArgs {
+export interface FileStorageGoogleDownloadStream extends FileStorageDownloadStream {
   options?: CreateReadStreamOptions & FileOptions;
 }
 
-export interface FileStorageGoogleDeleteFile extends FileStorageBaseArgs {
+export interface FileStorageGoogleDeleteFile extends FileStorageDeleteFile {
   options?: DeleteOptions & FileOptions;
 }
 
-export interface FileStorageGoogleDeleteDir extends FileStorageDirBaseArgs {
+export interface FileStorageGoogleGetFileMeta extends FileStorageGetFileMeta {
+  options?: GetMetadataOptions & FileOptions;
+}
+
+export type FileStorageGoogleGetFileMetaOutput = FileMetadata;
+
+export interface FileStorageGoogleDeleteDir extends FileStorageDeleteDir {
   options?: Omit<DeleteFilesOptions, 'prefix'> & FileOptions;
 }
 
-export interface FileStorageGoogleReadDir<R = string[]> extends FileStorageReadDirBaseArgs<R, GetFilesResponse> {
+export interface FileStorageGoogleReadDir<R = string[]> extends FileStorageReadDir<R, GetFilesResponse> {
   options?: Omit<GetFilesOptions, 'prefix'> & FileOptions;
 }

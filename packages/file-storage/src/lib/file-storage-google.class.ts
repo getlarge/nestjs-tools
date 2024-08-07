@@ -2,7 +2,8 @@ import type { File, GetFilesResponse } from '@google-cloud/storage';
 import { Injectable } from '@nestjs/common';
 import { finished, type Readable } from 'node:stream';
 
-import type { FileStorage, FileStorageConfig, FileStorageConfigFactory } from './file-storage.class';
+import type { FileStorage } from './file-storage.class';
+import type { FileStorageConfig, FileStorageConfigFactory } from './file-storage.types';
 import type {
   FileStorageGoogleConfig,
   FileStorageGoogleDeleteDir,
@@ -10,6 +11,8 @@ import type {
   FileStorageGoogleDownloadFile,
   FileStorageGoogleDownloadStream,
   FileStorageGoogleFileExists,
+  FileStorageGoogleGetFileMeta,
+  FileStorageGoogleGetFileMetaOutput,
   FileStorageGoogleMoveFile,
   FileStorageGoogleReadDir,
   FileStorageGoogleSetup,
@@ -123,6 +126,14 @@ export class FileStorageGoogle implements FileStorage {
     } catch (error) {
       return false;
     }
+  }
+
+  async getFileMeta(args: FileStorageGoogleGetFileMeta): Promise<FileStorageGoogleGetFileMetaOutput> {
+    const { storage, bucket } = this.config;
+    const { options = {}, request } = args;
+    const filePath = await this.transformFilePath(args.filePath, MethodTypes.READ, request, options);
+    const [metadata] = await storage.bucket(bucket).file(filePath).getMetadata(options);
+    return metadata;
   }
 
   async deleteDir(args: FileStorageGoogleDeleteDir): Promise<void> {

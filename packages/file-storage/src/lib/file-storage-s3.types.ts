@@ -3,13 +3,25 @@ import type {
   DeleteObjectsCommandInput,
   GetObjectCommandInput,
   HeadObjectCommandInput,
+  HeadObjectCommandOutput,
   ListObjectsCommandInput,
   ListObjectsCommandOutput,
   PutObjectCommandInput,
   S3,
 } from '@aws-sdk/client-s3';
 
-import type { FileStorageBaseArgs, FileStorageDirBaseArgs, FileStorageReadDirBaseArgs } from './file-storage.class';
+import type {
+  FileStorageDeleteDir,
+  FileStorageDeleteFile,
+  FileStorageDownloadFile,
+  FileStorageDownloadStream,
+  FileStorageFileExists,
+  FileStorageGetFileMeta,
+  FileStorageMoveFile,
+  FileStorageReadDir,
+  FileStorageUploadFile,
+  FileStorageUploadStream,
+} from './file-storage.types';
 
 /**
  * Either region or endpoint must be provided
@@ -33,40 +45,44 @@ export interface FileStorageS3Config {
   [key: string]: any;
 }
 
-export interface FileStorageS3FileExists extends FileStorageBaseArgs {
+export interface FileStorageS3FileExists extends FileStorageFileExists {
   options?: Omit<HeadObjectCommandInput, 'Bucket' | 'Key'>;
 }
 
-export interface FileStorageS3MoveFile extends FileStorageBaseArgs {
-  newFilePath: string;
+export interface FileStorageS3MoveFile extends FileStorageMoveFile {
   options?: Omit<DeleteObjectCommandInput, 'Bucket' | 'Key'>;
 }
 
-export interface FileStorageS3UploadFile extends FileStorageBaseArgs {
-  content: string | Uint8Array | Buffer;
+export interface FileStorageS3UploadFile extends FileStorageUploadFile {
   options?: Omit<PutObjectCommandInput, 'Body' | 'Bucket' | 'Key'>;
 }
 
-export interface FileStorageS3UploadStream extends FileStorageBaseArgs {
+export interface FileStorageS3UploadStream extends FileStorageUploadStream {
   options?: Omit<PutObjectCommandInput, 'Body' | 'Bucket' | 'Key'>;
 }
 
-export interface FileStorageS3DownloadFile extends FileStorageBaseArgs {
+export interface FileStorageS3DownloadFile extends FileStorageDownloadFile {
   options?: Omit<GetObjectCommandInput, 'Bucket' | 'Key'>;
 }
 
-export interface FileStorageS3DownloadStream extends FileStorageBaseArgs {
+export interface FileStorageS3DownloadStream extends FileStorageDownloadStream {
   options?: Omit<GetObjectCommandInput, 'Bucket' | 'Key'>;
 }
 
-export interface FileStorageS3DeleteFile extends FileStorageBaseArgs {
+export interface FileStorageS3DeleteFile extends FileStorageDeleteFile {
   options?: Omit<DeleteObjectCommandInput, 'Bucket' | 'Key'>;
 }
 
-export interface FileStorageS3DeleteDir extends FileStorageDirBaseArgs {
+export interface FileStorageS3GetFileMeta extends FileStorageGetFileMeta {
+  options?: Omit<HeadObjectCommandInput, 'Bucket' | 'Key'>;
+}
+
+export type FileStorageS3GetFileMetaOutput = HeadObjectCommandOutput;
+
+export interface FileStorageS3DeleteDir extends FileStorageDeleteDir {
   options?: Omit<DeleteObjectsCommandInput, 'Bucket' | 'Delete'>;
 }
 
-export interface FileStorageS3ReadDir<R = string[]> extends FileStorageReadDirBaseArgs<R, ListObjectsCommandOutput> {
+export interface FileStorageS3ReadDir<R = string[]> extends FileStorageReadDir<R, ListObjectsCommandOutput> {
   options?: Omit<ListObjectsCommandInput, 'Bucket' | 'Delimiter'>;
 }

@@ -8,11 +8,11 @@ import { PatchedLockService } from './patched-lock.service.mock';
 describe('Lock Service', () => {
   let lockService: LockService;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const redis = getRedisClientConfig(mockConfigService as any);
     lockService = new PatchedLockService({ redis, lock: { retryCount: 0 } });
-    lockService.onModuleInit();
+    await lockService.onModuleInit();
   });
 
   afterAll(async () => {
@@ -53,11 +53,11 @@ describe('Lock Service - unlocking with id', () => {
   let lockService: LockService;
   let lockId: string;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const redis = getRedisClientConfig(mockConfigService as any);
     lockService = new PatchedLockService({ redis, lock: { retryCount: 0 } });
-    lockService.onModuleInit();
+    await lockService.onModuleInit();
   });
 
   afterAll(async () => {

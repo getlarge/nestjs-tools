@@ -1,7 +1,8 @@
 import IORedisMock from 'ioredis-mock';
 import Redlock from 'redlock';
 
-import { LockService, LockServiceOptions } from '../src';
+import { LockService } from '../src';
+import { LockServiceOptions } from '../src/lib/types';
 
 export class PatchedLockService extends LockService {
   constructor(options: LockServiceOptions) {
@@ -14,5 +15,11 @@ export class PatchedLockService extends LockService {
       ...super['defaultLockOptions'],
       ...(this.options.lock || {}),
     });
+    /**
+     * Emulate the delay of the connection to test waitUntilInitialized
+     */
+    setTimeout(() => {
+      this['redis'].status = 'ready';
+    }, 200);
   }
 }

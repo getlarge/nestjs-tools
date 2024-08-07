@@ -5,6 +5,7 @@ import type {
   DownloadOptions,
   FileOptions,
   GetFilesOptions,
+  GetFilesResponse,
   MoveOptions,
   SaveOptions,
   Storage,
@@ -18,6 +19,7 @@ export interface FileStorageGoogleSetup {
   maxPayloadSize: number;
   projectId?: string;
   bucketName: string;
+  keyFilename?: string;
 }
 
 export interface FileStorageGoogleConfig {
@@ -61,6 +63,6 @@ export interface FileStorageGoogleDeleteDir extends FileStorageDirBaseArgs {
   options?: Omit<DeleteFilesOptions, 'prefix'> & FileOptions;
 }
 
-export interface FileStorageGoogleReadDir<R = string> extends FileStorageReadDirBaseArgs<R> {
+export interface FileStorageGoogleReadDir<R = string[]> extends FileStorageReadDirBaseArgs<R, GetFilesResponse> {
   options?: Omit<GetFilesOptions, 'prefix'> & FileOptions;
 }

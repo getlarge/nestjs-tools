@@ -196,24 +196,24 @@ export class FileStorageS3 implements FileStorage {
     }
   }
 
-  async readDir<R = string>(args: FileStorageS3ReadDir<R>): Promise<R[]> {
+  async readDir<R = string[]>(args: FileStorageS3ReadDir<R>): Promise<R> {
     const defaultSerializer = (list: ListObjectsCommandOutput) => {
       const { CommonPrefixes, Contents, Prefix } = list;
-      const filesAndFilders: R[] = [];
+      const filesAndFilders: string[] = [];
       //  add nested folders, CommonPrefixes contains <prefix>/<next nested dir>
       if (CommonPrefixes?.length) {
         const folders = CommonPrefixes.map((prefixObject) => {
           const prefix = removeTrailingForwardSlash(prefixObject.Prefix) ?? '';
           const key = listParams['Prefix'];
           // If key exists, we are looking for a nested folder
-          return (key ? prefix.slice(key.length) : prefix) as R;
+          return (key ? prefix.slice(key.length) : prefix) as string;
         });
         filesAndFilders.push(...folders);
       }
 
       // adds filenames
       if (Contents?.length && Prefix) {
-        const files = Contents.filter((file) => !!file.Key).map((file) => file.Key?.replace(Prefix, '') as R);
+        const files = Contents.filter((file) => !!file.Key).map((file) => file.Key?.replace(Prefix, '') as string);
         filesAndFilders.push(...files);
       }
       return filesAndFilders;
@@ -232,6 +232,6 @@ export class FileStorageS3 implements FileStorage {
       listParams.Prefix = addTrailingForwardSlash(Key);
     }
     const listedObjects = await s3.listObjects(listParams);
-    return serializer(listedObjects);
+    return serializer(listedObjects) as R;
   }
 }

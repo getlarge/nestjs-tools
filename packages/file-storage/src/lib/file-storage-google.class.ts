@@ -1,4 +1,4 @@
-import type { File } from '@google-cloud/storage';
+import type { File, GetFilesResponse } from '@google-cloud/storage';
 import { Injectable } from '@nestjs/common';
 import { finished, type Readable } from 'node:stream';
 
@@ -20,11 +20,12 @@ import { loadPackage } from './helpers';
 import { FileStorageWritable, MethodTypes } from './types';
 
 function config(setup: FileStorageGoogleSetup) {
-  const { bucketName, maxPayloadSize, projectId } = setup;
+  const { bucketName, keyFilename, maxPayloadSize, projectId } = setup;
   const loaderFn = (): { Storage: typeof import('@google-cloud/storage').Storage } => require('@google-cloud/storage');
   const { Storage } = loadPackage('@google-cloud/storage', FileStorageGoogle.name, loaderFn);
   const storage = new Storage({
     ...(projectId ? { projectId } : {}),
+    ...(keyFilename ? { keyFilename } : {}),
   });
 
   const filePath = (options: { request?: Request; fileName: string }): string => {
@@ -132,16 +133,16 @@ export class FileStorageGoogle implements FileStorage {
   }
 
   // TODO: make default serializer compliant with the other readDir implementations
-  async readDir<R = string>(args: FileStorageGoogleReadDir<R>): Promise<R[]> {
-    const defaultSerializer = (files: File[]) =>
-      files.map((f) => (prefix ? (f.name.replace(prefix, '').replace('/', '') as R) : (f.name as R)));
-
+  async readDir<R = string[]>(args: FileStorageGoogleReadDir<R>): Promise<R> {
+    const defaultSerializer = (res: GetFilesResponse) => {
+      return res[0].map((file: File) => file.name) as R;
+    };
     const { storage, bucket } = this.config;
     const { dirPath, request, serializer = defaultSerializer, options = {} } = args;
     const prefix = await this.transformFilePath(dirPath, MethodTypes.READ, request, options);
-    const [files] = await storage
+    const response = await storage
       .bucket(bucket)
       .getFiles({ includeTrailingDelimiter: false, includeFoldersAsPrefixes: false, ...options, prefix });
-    return serializer(files);
+    return serializer(response) as R;
   }
 }

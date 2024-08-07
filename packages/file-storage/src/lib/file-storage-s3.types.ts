@@ -4,6 +4,7 @@ import type {
   GetObjectCommandInput,
   HeadObjectCommandInput,
   ListObjectsCommandInput,
+  ListObjectsCommandOutput,
   PutObjectCommandInput,
   S3,
 } from '@aws-sdk/client-s3';
@@ -66,6 +67,6 @@ export interface FileStorageS3DeleteDir extends FileStorageDirBaseArgs {
   options?: Omit<DeleteObjectsCommandInput, 'Bucket' | 'Delete'>;
 }
 
-export interface FileStorageS3ReadDir<R = string> extends FileStorageReadDirBaseArgs<R> {
+export interface FileStorageS3ReadDir<R = string[]> extends FileStorageReadDirBaseArgs<R, ListObjectsCommandOutput> {
   options?: Omit<ListObjectsCommandInput, 'Bucket' | 'Delimiter'>;
 }

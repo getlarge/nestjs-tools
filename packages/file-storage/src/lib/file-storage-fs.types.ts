@@ -1,4 +1,4 @@
-import type { BigIntOptions, ObjectEncodingOptions, StatOptions, WriteFileOptions } from 'node:fs';
+import type { BigIntOptions, Dirent, ObjectEncodingOptions, StatOptions, WriteFileOptions } from 'node:fs';
 
 import type { FileStorageBaseArgs, FileStorageDirBaseArgs, FileStorageReadDirBaseArgs } from './file-storage.class';
 
@@ -56,6 +56,8 @@ export interface FileStorageLocalDeleteDir extends FileStorageDirBaseArgs {
   options?: { recursive?: boolean; force?: boolean };
 }
 
-export interface FileStorageLocalReadDir<R = string> extends FileStorageReadDirBaseArgs<R> {
+export type ReadDirOutput = string[] | Buffer[] | Dirent[];
+
+export interface FileStorageLocalReadDir<R = string[], T = ReadDirOutput> extends FileStorageReadDirBaseArgs<R, T> {
   options?: { encoding: BufferEncoding; withFileTypes?: boolean; recursive?: boolean } | BufferEncoding;
 }

@@ -18,6 +18,7 @@ import type {
   FileStorageLocalSetup,
   FileStorageLocalUploadFile,
   FileStorageLocalUploadStream,
+  ReadDirOutput,
 } from './file-storage-fs.types';
 import { FileStorageWritable, MethodTypes, Request } from './types';
 
@@ -136,25 +137,25 @@ export class FileStorageLocal implements FileStorage {
     return rm(dirName, options);
   }
 
-  async readDir<R = string>(args: FileStorageLocalReadDir<R>): Promise<R[]> {
-    type RawOutput = string[] | Buffer[] | Dirent[];
-    const defaultSerializer = (v: RawOutput) =>
+  async readDir<R = string[]>(args: FileStorageLocalReadDir<R>): Promise<R> {
+    const defaultSerializer = (v: ReadDirOutput) =>
       v.map((val) => {
         if (val instanceof Buffer) {
-          return val.toString() as unknown as R;
+          return val.toString();
         } else if (val instanceof Dirent) {
-          return val.name as unknown as R;
+          return val.name;
         }
-        return val as unknown as R;
+        return val;
       });
     const { dirPath, request, serializer = defaultSerializer, options = {} } = args;
     try {
       const transformedDirPath = await this.transformFilePath(dirPath, MethodTypes.READ, request);
-      const result = (await readdir(transformedDirPath, options)) as string[] | Buffer[] | Dirent[];
-      return serializer(result);
+      const result = await readdir(transformedDirPath, options);
+      return serializer(result) as R;
     } catch (err) {
       if (err && typeof err === 'object' && 'code' in err && err['code'] === 'ENOENT') {
-        return [];
+        // ? return undefined or null?
+        return [] as R;
       }
       throw err;
     }

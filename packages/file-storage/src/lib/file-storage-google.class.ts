@@ -146,7 +146,7 @@ export class FileStorageGoogle implements FileStorage {
   // TODO: make default serializer compliant with the other readDir implementations
   async readDir<R = string[]>(args: FileStorageGoogleReadDir<R>): Promise<R> {
     const defaultSerializer = (res: GetFilesResponse) => {
-      return res[0].map((file: File) => file.name) as R;
+      return res[0].map((file: File) => (prefix ? file.name.replace(`${prefix}/`, '') : file.name)) as R;
     };
     const { storage, bucket } = this.config;
     const { dirPath, request, serializer = defaultSerializer, options = {} } = args;

@@ -6,14 +6,14 @@ import { mkdir, rm } from 'node:fs/promises';
 import { once, Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 
-import { FileStorage, FileStorageModule } from '../src';
+import { FileStorageModule, FileStorageService, StorageType } from '../src';
 import { FILE_STORAGE_STRATEGY_TOKEN } from '../src/lib/constants';
 import { createDummyFile, fsStoragePath, testMap } from './file-storage-cases';
 
 const { description, storageType, options } = testMap[0];
 
 describe(description, () => {
-  let fileStorage: FileStorage;
+  let fileStorage: FileStorageService<StorageType.FS>;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -135,6 +135,14 @@ describe(description, () => {
     } finally {
       await fileStorage.deleteDir({ dirPath: nestedDir });
     }
+  });
+
+  it('getFileMeta returns file metadata', async () => {
+    await using file = await createDummyFile(fileStorage);
+    //
+    const meta = await fileStorage.getFileMeta({ filePath: file.filePath });
+    //
+    expect(meta.size).toBe(file.content.length);
   });
 
   it('readDir returns an array of files and folders in a directory', async () => {

@@ -56,14 +56,13 @@ export interface FileStorageLocalUploadStream extends FileStorageUploadStream {
 }
 
 export interface FileStorageLocalDownloadFile extends FileStorageDownloadFile {
-  options:
+  options?:
     | { encoding?: null; flag?: string }
     | { encoding: BufferEncoding; flag?: string }
     | BufferEncoding
     | (ObjectEncodingOptions & { flag?: string })
     | undefined
     | null;
-  // options?: Record<string, any> | BufferEncoding | null;
 }
 
 export interface FileStorageLocalDownloadStream extends FileStorageDownloadStream {

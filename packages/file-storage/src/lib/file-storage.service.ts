@@ -54,7 +54,7 @@ import type {
   FileStorageS3UploadStream,
 } from './file-storage-s3.types';
 import { InjectFileStorageStrategy } from './inject-file-storage.decorator';
-import type { FileStorageWritable, StorageType } from './types';
+import type { FileStorageWritable, MethodTypes, StorageType } from './types';
 
 type FileExistsArgs<S extends StorageType> = S extends StorageType.S3
   ? FileStorageS3FileExists
@@ -145,8 +145,13 @@ type DeleteDirArgs<S extends StorageType> = S extends StorageType.S3
       : FileStorageDeleteDir;
 
 @Injectable()
-export class FileStorageService<S extends StorageType = StorageType> implements Omit<FileStorage, 'transformFilePath'> {
+export class FileStorageService<S extends StorageType = StorageType> implements FileStorage {
   constructor(@InjectFileStorageStrategy() private readonly fileStorage: FileStorage) {}
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  transformFilePath(fileName: string, methodType: MethodTypes, request?: any, options?: any): string | Promise<string> {
+    return this.fileStorage.transformFilePath(fileName, methodType, request, options);
+  }
 
   fileExists(args: FileExistsArgs<S>): Promise<boolean> {
     return this.fileStorage.fileExists(args);

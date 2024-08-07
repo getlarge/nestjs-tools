@@ -23,6 +23,7 @@ declare global {
       GC_BUCKET: string;
       GC_PROJECT_ID?: string;
       CI?: string;
+      PREFIX?: string;
     }
   }
 }

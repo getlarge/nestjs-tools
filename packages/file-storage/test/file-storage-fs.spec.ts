@@ -7,7 +7,6 @@ import { once, Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 
 import { FileStorageModule, FileStorageService, StorageType } from '../src';
-import { FILE_STORAGE_STRATEGY_TOKEN } from '../src/lib/constants';
 import { createDummyFile, fsStoragePath, testMap } from './file-storage-cases';
 
 const { description, storageType, options } = testMap[0];
@@ -20,7 +19,7 @@ describe(description, () => {
       imports: [FileStorageModule.forRoot(storageType, options)],
     }).compile();
 
-    fileStorage = module.get(FILE_STORAGE_STRATEGY_TOKEN);
+    fileStorage = module.get(FileStorageService);
     await mkdir(fsStoragePath, { recursive: true });
   });
 

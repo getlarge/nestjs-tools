@@ -6,7 +6,6 @@ import { once, Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 
 import { FileStorageModule, FileStorageService, StorageType } from '../src';
-import { FILE_STORAGE_STRATEGY_TOKEN } from '../src/lib/constants';
 import { createDummyFile, delay, fileExists, readDir, testMap } from './file-storage-cases';
 
 const { description, storageType, options } = testMap[2];
@@ -19,8 +18,12 @@ describe(description, () => {
       imports: [FileStorageModule.forRoot(storageType, options)],
     }).compile();
 
-    fileStorage = module.get(FILE_STORAGE_STRATEGY_TOKEN);
-
+    fileStorage = module.get(FileStorageService);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    fileStorage['fileStorage'].config!.filePath = (options: { request?: Request; fileName: string }): string => {
+      const { fileName } = options;
+      return process.env.PREFIX ? `${process.env.PREFIX}/${fileName}` : fileName;
+    };
     await fileStorage.deleteDir({ dirPath: '' });
   });
 
@@ -148,7 +151,7 @@ describe(description, () => {
     const content = randomBytes(1024);
     await fileStorage.uploadFile({ filePath, content });
     await fileStorage.uploadFile({ filePath: nestedFilePath, content });
-    await delay(1500);
+    await delay(500);
     //
     const result = await fileStorage.readDir({ dirPath });
     //

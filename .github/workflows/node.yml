@@ -124,6 +124,7 @@ jobs:
           S3_REGION: ${{ env.S3_REGION }}
           GC_BUCKET: ${{ env.GC_BUCKET }}
           GC_PROJECT_ID: ${{ env.GC_PROJECT_ID }}
+          PREFIX: ${{ matrix.node-version }}
         run: npx nx affected -t lint,test,build --parallel=2
 
       - name: Upload coverage

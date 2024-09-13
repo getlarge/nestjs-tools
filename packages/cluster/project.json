@@ -18,13 +18,7 @@
       }
     },
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
-      "dependsOn": ["build"],
-      "options": {
-        "jestConfig": "packages/cluster/jest.config.ts",
-        "codeCoverage": true
-      }
+      "dependsOn": ["build"]
     }
   }
 }

@@ -15,10 +15,10 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@getlarge/eslint-plugin-nestjs-tools": ["packages/eslint-plugin/src/index.ts"],
       "@getlarge/nestjs-tools-amqp-transport": ["packages/amqp-transport/src/index.ts"],
       "@getlarge/nestjs-tools-async-local-storage": ["packages/async-local-storage/src/index.ts"],
       "@getlarge/nestjs-tools-cluster": ["packages/cluster/src/index.ts"],
-      "@getlarge/eslint-plugin-nestjs-tools": ["packages/eslint-plugin/src/index.ts"],
       "@getlarge/nestjs-tools-fastify-upload": ["packages/fastify-upload/src/index.ts"],
       "@getlarge/nestjs-tools-file-storage": ["packages/file-storage/src/index.ts"],
       "@getlarge/nestjs-tools-lock": ["packages/lock/src/index.ts"],

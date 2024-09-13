@@ -1,5 +1,5 @@
 {
-  "name": "eslint-rules",
+  "name": "nestjs-tools-eslint-rules",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/eslint-rules/src",
   "projectType": "library",

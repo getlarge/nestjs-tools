@@ -9,10 +9,18 @@ const { name, version } = require('../package.json') as {
   version: string;
 };
 
-export default {
+export = {
   meta: {
     name,
     version,
   },
   rules: { [returnClassInstanceName]: returnClassInstance },
+  configs: {
+    recommended: {
+      parser: '@typescript-eslint/parser',
+      rules: {
+        [`${name}/${returnClassInstanceName}`]: 'error',
+      },
+    },
+  },
 } satisfies Linter.Plugin;

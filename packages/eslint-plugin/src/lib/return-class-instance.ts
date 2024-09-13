@@ -1,7 +1,7 @@
 /* eslint-disable max-lines-per-function */
 import { ESLintUtils } from '@typescript-eslint/utils';
 
-export const RULE_NAME = '@getlarge/eslint-plugin-nestjs-tools/return-class-instance';
+export const RULE_NAME = 'return-class-instance';
 
 const getTypeNameFromReturnType = (rawReturnType: string) => {
   return rawReturnType.replaceAll(/Promise<([^<>]*)>/g, '$1').replace(': ', '');

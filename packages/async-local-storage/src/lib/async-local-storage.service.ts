@@ -118,7 +118,7 @@ export class AsyncLocalStorageService extends Map<K, T[K]> {
     return this.instance.getStore();
   }
 
-  private isStoreInitialized(x: unknown): x is StoreMap {
+  isStoreInitialized(x: unknown): x is StoreMap {
     return !!x && typeof x === 'object' && x instanceof Map;
   }
 

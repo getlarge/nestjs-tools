@@ -31,7 +31,7 @@ export const rule = ESLintUtils.RuleCreator(() => __filename)({
   meta: {
     type: 'problem',
     docs: {
-      description: 'Ensure service methods return class instances',
+      description: 'enforce service methods return class instances',
     },
     schema: [],
     messages: {

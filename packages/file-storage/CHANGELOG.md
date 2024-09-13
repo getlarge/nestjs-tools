@@ -1,3 +1,15 @@
+## 1.4.1 (2024-09-13)
+
+
+### 🩹 Fixes
+
+- **nestjs-tools-file-storage:** improve directory handling in write method ([1659eca](https://github.com/getlarge/nestjs-tools/commit/1659eca))
+
+
+### ❤️  Thank You
+
+- getlarge
+
 ## 1.4.0 (2024-08-07)
 
 

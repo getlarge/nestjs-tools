@@ -9,7 +9,7 @@ import {
   unlink,
 } from 'node:fs';
 import { access, mkdir, readdir, readFile, rename, rm, stat as statPromise, writeFile } from 'node:fs/promises';
-import { normalize, resolve as resolvePath, sep } from 'node:path';
+import { dirname, normalize, resolve as resolvePath, sep } from 'node:path';
 import { finished, Readable } from 'node:stream';
 
 import type { FileStorage } from './file-storage.class';
@@ -41,10 +41,13 @@ function config(setup: FileStorageLocalSetup) {
     }
 
     if (methodType === MethodTypes.WRITE) {
-      const storageExists = await access(storagePath).catch(() => false);
-      !storageExists && (await mkdir(storagePath, { recursive: true }));
+      const storageDir = dirname(fullPath);
+      const storageExists = await access(storageDir)
+        .then(() => true)
+        .catch(() => false);
+      !storageExists && (await mkdir(storageDir, { recursive: true }));
     }
-    return Promise.resolve(resolvePath(storagePath, fileName));
+    return Promise.resolve(fullPath);
   };
   const limits = { fileSize: maxPayloadSize * 1024 * 1024 };
   return { filePath, limits };

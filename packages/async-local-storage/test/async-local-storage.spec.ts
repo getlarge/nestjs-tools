@@ -1,10 +1,9 @@
 /* eslint-disable max-lines-per-function */
-import { INestApplication, Provider } from '@nestjs/common';
+import { Provider } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { FastifyAdapter } from '@nestjs/platform-fastify';
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AsyncLocalStorage } from 'async_hooks';
-import * as request from 'supertest';
 
 import {
   AsyncLocalStorageGuard,
@@ -22,18 +21,21 @@ declare module '../src/lib/async-local-storage.interfaces' {
   }
 }
 
-const moduleFactory = async (options: AsyncLocalStorageModuleOptions, providers: Provider[] = []) => {
-  const module: TestingModule = await Test.createTestingModule({
+const moduleFactory = async (
+  options: AsyncLocalStorageModuleOptions,
+  providers: Provider[] = [],
+): Promise<NestFastifyApplication> => {
+  const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [AsyncLocalStorageModule.forRoot(options)],
     providers: [ExampleService, ...providers],
     controllers: [ExampleController],
   }).compile();
 
-  return module.createNestApplication(new FastifyAdapter());
+  return moduleFixture.createNestApplication(new FastifyAdapter()) as NestFastifyApplication;
 };
 
 describe('AsyncLocalStorageModule', () => {
-  let app: INestApplication;
+  let app: NestFastifyApplication;
   const route = '/Example';
   const expectedResponse = { type: 'http' };
 
@@ -50,7 +52,12 @@ describe('AsyncLocalStorageModule', () => {
       [{ provide: APP_GUARD, useClass: AsyncLocalStorageGuard }],
     ).then((app) => app.init());
     //
-    const { body } = await request(app.getHttpServer()).get(route);
+    const { payload } = await app.inject({
+      method: 'GET',
+      url: route,
+    });
+
+    const body = JSON.parse(payload);
     expect(body).toEqual(expectedResponse);
   });
 
@@ -61,7 +68,12 @@ describe('AsyncLocalStorageModule', () => {
       useGuard: true,
     }).then((app) => app.init());
     //
-    const { body } = await request(app.getHttpServer()).get(route);
+    const { payload } = await app.inject({
+      method: 'GET',
+      url: route,
+    });
+
+    const body = JSON.parse(payload);
     expect(body).toEqual(expectedResponse);
   });
 
@@ -74,7 +86,12 @@ describe('AsyncLocalStorageModule', () => {
       [{ provide: APP_INTERCEPTOR, useClass: AsyncLocalStorageInterceptor }],
     ).then((app) => app.init());
     //
-    const { body } = await request(app.getHttpServer()).get(route);
+    const { payload } = await app.inject({
+      method: 'GET',
+      url: route,
+    });
+
+    const body = JSON.parse(payload);
     expect(body).toEqual(expectedResponse);
   });
 
@@ -85,7 +102,12 @@ describe('AsyncLocalStorageModule', () => {
       useInterceptor: true,
     }).then((app) => app.init());
     //
-    const { body } = await request(app.getHttpServer()).get(route);
+    const { payload } = await app.inject({
+      method: 'GET',
+      url: route,
+    });
+
+    const body = JSON.parse(payload);
     expect(body).toEqual(expectedResponse);
   });
 

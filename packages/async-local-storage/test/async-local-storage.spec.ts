@@ -1,6 +1,7 @@
 /* eslint-disable max-lines-per-function */
 import { INestApplication, Provider } from '@nestjs/common';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { FastifyAdapter } from '@nestjs/platform-fastify';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AsyncLocalStorage } from 'async_hooks';
 import * as request from 'supertest';
@@ -28,7 +29,7 @@ const moduleFactory = async (options: AsyncLocalStorageModuleOptions, providers:
     controllers: [ExampleController],
   }).compile();
 
-  return module.createNestApplication();
+  return module.createNestApplication(new FastifyAdapter());
 };
 
 describe('AsyncLocalStorageModule', () => {

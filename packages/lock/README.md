@@ -11,7 +11,7 @@ It is based on [Redlock](https://www.npmjs.com/package/redlock) module.
 ## Installation
 
 ```bash
-$ npm install --save @getlarge/nestjs-tools-lock
+npm install --save @getlarge/nestjs-tools-lock
 ```
 
 ## Usage

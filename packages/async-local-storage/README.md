@@ -8,7 +8,7 @@
 ## Installation
 
 ```bash
-$ npm install --save @getlarge/nestjs-tools-async-local-storage
+npm install --save @getlarge/nestjs-tools-async-local-storage
 ```
 
 ## Usage

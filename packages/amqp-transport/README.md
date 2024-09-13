@@ -12,6 +12,12 @@ A custom AMQP strategy for Nest microservice transport, which extends NestJS AMQ
 
 By enabling exchanges you can broadcast messages to multiple queues, and by asserting reply queue you can ensure that reply queue with static name exists.
 
+## Installation
+
+```bash
+npm install --save @getlarge/nestjs-tools-amqp-transport
+```
+
 ## Example
 
 The integration tests contain an [example consumer](./test/dummy-consumer.controller.mock.ts) and [example producer](./test/dummy-producer.service.mock.ts) that demonstrate how to use this library.

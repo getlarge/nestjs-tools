@@ -11,7 +11,7 @@ The `ClusterService` class is a wrapper around the native `cluster` module and p
 ## Installation
 
 ```bash
-$ npm install --save @getlarge/nestjs-tools-cluster
+npm install --save @getlarge/nestjs-tools-cluster
 ```
 
 ## Example

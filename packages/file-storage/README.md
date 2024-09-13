@@ -16,7 +16,7 @@ Supoorted backends:
 ## Installation
 
 ```bash
-$ npm install --save @getlarge/nestjs-tools-file-storage
+npm install --save @getlarge/nestjs-tools-file-storage
 ```
 
 ## Example
@@ -122,7 +122,7 @@ The recommended approach is to setup [Application Default Credentials](https://c
 
 If, after upgrading, you get the following error:
 
-```
+```sh
 /usr/local/bin/node[57897]: ../src/node_http_parser.cc:517:static void node::(anonymous namespace)::Parser::Execute(const FunctionCallbackInfo<v8::Value> &): Assertion `parser->current_buffer_.IsEmpty()' failed.
 ```
 

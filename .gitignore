@@ -114,3 +114,4 @@ junit.xml
 #Nx
 .tmp/
 .nx/cache
+.nx/workspace-data

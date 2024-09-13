@@ -23,7 +23,7 @@ The purpose of this rule is to ensure you return class instances instead of plai
 ```json
 {
   "rules": {
-    "@getlarge/nestjs-tools-eslint-rules/return-class-instance": "error",
+    "@getlarge/nestjs-tools-eslint-rules/return-class-instance": "error"
   }
 }
 ```

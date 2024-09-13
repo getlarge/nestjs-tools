@@ -15,7 +15,7 @@ Read [this issue](https://github.com/getlarge/nestjs-tools/issues/71) to underst
 ## Installation
 
 ```bash
-$ npm install --save @getlarge/nestjs-tools-fastify-upload
+npm install --save @getlarge/nestjs-tools-fastify-upload
 ```
 
 ## Usage

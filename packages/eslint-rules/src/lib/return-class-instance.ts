@@ -18,7 +18,7 @@
 import { ESLintUtils } from '@typescript-eslint/utils';
 
 // NOTE: The rule will be available in ESLint configs as "@nx/workspace/return-class-instance"
-export const RULE_NAME = 'return-class-instance';
+export const RULE_NAME = '@getlarge/nestjs-tools-eslint-rules/return-class-instance';
 
 const getTypeNameFromReturnType = (rawReturnType: string) => {
   return rawReturnType.replaceAll(/Promise<([^<>]*)>/g, '$1').replace(': ', '');

@@ -1,0 +1,23 @@
+{
+  "name": "@getlarge/nestjs-tools-eslint-rules",
+  "version": "0.0.0",
+  "description": "ESLint rules for NestJS applications",
+  "keywords": [
+    "eslint",
+    "nestjs",
+    "rules",
+    "typescript",
+    "lint",
+    "style"
+  ],
+  "license": "Apache-2.0",
+  "author": "Edouard Maleix <ed@getlarge.eu>",
+  "homepage": "https://github.com/getlarge/nestjs-tools/tree/main/packages/eslint-rules",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {},
+  "type": "commonjs",
+  "main": "./src/index.js",
+  "typings": "./src/index.d.ts"
+}

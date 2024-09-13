@@ -1,3 +1,15 @@
+## 0.1.3 (2024-09-13)
+
+
+### 🩹 Fixes
+
+- **eslint-plugin-nestjs-tools:** use correct rule name and add recommended config ([2084ba1](https://github.com/getlarge/nestjs-tools/commit/2084ba1))
+
+
+### ❤️  Thank You
+
+- getlarge
+
 ## 0.1.2 (2024-09-13)
 
 

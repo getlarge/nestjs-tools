@@ -68,7 +68,7 @@ export const rule = ESLintUtils.RuleCreator(() => __filename)({
             (decorator) =>
               decorator.expression.type === 'CallExpression' &&
               decorator.expression.callee.type === 'Identifier' &&
-              decorator.expression.callee?.name === 'Injectable',
+              decorator.expression.callee.name === 'Injectable',
           )
         ) {
           const returnType = node.value.returnType;
@@ -100,7 +100,7 @@ export const rule = ESLintUtils.RuleCreator(() => __filename)({
                   returnArgument.callee?.type === 'Identifier'
                     ? returnArgument.callee.name
                     : returnArgument.callee.type === 'MemberExpression' &&
-                        returnArgument.callee.property?.type === 'Identifier'
+                        returnArgument.callee.property.type === 'Identifier'
                       ? returnArgument.callee.property.name
                       : '';
 

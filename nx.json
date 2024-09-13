@@ -60,7 +60,7 @@
         "packageRoot": "dist/{projectRoot}",
         "registry": "https://registry.npmjs.org/"
       },
-      "dependsOn": ["build"]
+      "dependsOn": ["lint", "build"]
     }
   },
   "plugins": [

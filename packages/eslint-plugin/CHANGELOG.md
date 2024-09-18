@@ -1,3 +1,17 @@
+## 0.1.4 (2024-09-18)
+
+
+### 🩹 Fixes
+
+- **eslint-plugin-nestjs-tools:** refine return-class-instance checks ([6a6d0be](https://github.com/getlarge/nestjs-tools/commit/6a6d0be))
+
+- **eslint-plugin-nestjs-tools:** use correct config for recommended ([d4e785b](https://github.com/getlarge/nestjs-tools/commit/d4e785b))
+
+
+### ❤️  Thank You
+
+- getlarge
+
 ## 0.1.3 (2024-09-13)
 
 

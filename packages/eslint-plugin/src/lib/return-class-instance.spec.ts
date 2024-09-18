@@ -22,6 +22,20 @@ ruleTester.run(RULE_NAME, rule, {
         return new Test({ message: 'Hello API' });
       }
     }`,
+    // return an array of class instances
+    `import { Injectable } from '@nestjs/common';
+      class Test {
+        constructor(params) {
+          Object.assign(this, params);
+        }
+        message: string;
+      }
+      @Injectable()
+      export class AppService {
+        getData(): Test[] {
+          return [new Test({ message: 'Hello API' })]
+        }
+      }`,
     // promise test case
     `import { Injectable } from '@nestjs/common';
     class Test {
@@ -155,6 +169,23 @@ ruleTester.run(RULE_NAME, rule, {
           export class AppService {
             getData(): Test {
               return { message: 'Hello API' };
+            }
+          }`,
+    },
+    {
+      errors: [{ messageId: 'returnClassInstance' }],
+      code: `
+          import { Injectable } from '@nestjs/common';
+          class Test {
+            constructor(params) {
+              Object.assign(this, params);
+            }
+            message: string;
+          }
+          @Injectable()
+          export class AppService {
+            getData(): Test {
+              return new Test().toJSON();
             }
           }`,
     },

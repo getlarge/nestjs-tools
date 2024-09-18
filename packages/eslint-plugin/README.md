@@ -20,10 +20,14 @@ npm install --save @getlarge/eslint-plugin-nestjs-tools
 This rule enforces that all public Service methods return a class instance of the same return type.
 The purpose of this rule is to ensure you return class instances instead of plain objects, which is essentials when using the [`ClassSerializerInterceptor`](https://docs.nestjs.com/techniques/serialization#class-serializer-interceptor).
 
+In order to use this rule, add it to your ESLint configuration file:
+
 ```json
 {
+  "files": ["*.ts", "*.tsx"],
+  "plugins": ["@getlarge/nestjs-tools"],
   "rules": {
-    "@getlarge/eslint-plugin-nestjs-tools/return-class-instance": "error"
+    "@getlarge/nestjs-tools/return-class-instance": "error"
   }
 }
 ```

@@ -18,8 +18,9 @@ export = {
   configs: {
     recommended: {
       parser: '@typescript-eslint/parser',
+      plugins: ['@getlarge/nestjs-tools'],
       rules: {
-        [`${name}/${returnClassInstanceName}`]: 'error',
+        [`@getlarge/nestjs-tools/${returnClassInstanceName}`]: 'error',
       },
     },
   },

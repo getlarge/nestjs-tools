@@ -6,38 +6,54 @@ const ruleTester = new TSESLint.RuleTester({
   parser: require.resolve('@typescript-eslint/parser'),
 });
 
-ruleTester.run(RULE_NAME, rule, {
-  valid: [
-    // basic test case
-    `import { Injectable } from '@nestjs/common';
-    class Test {
-      constructor(params) {
-        Object.assign(this, params);
-      }
-      message: string;
-    }
-    @Injectable()
-    export class AppService {
-      getData(): Test {
-        return new Test({ message: 'Hello API' });
-      }
-    }`,
-    // return an array of class instances
-    `import { Injectable } from '@nestjs/common';
-      class Test {
-        constructor(params) {
-          Object.assign(this, params);
-        }
-        message: string;
-      }
-      @Injectable()
-      export class AppService {
-        getData(): Test[] {
-          return [new Test({ message: 'Hello API' })]
-        }
-      }`,
-    // promise test case
-    `import { Injectable } from '@nestjs/common';
+const basicTestCase = `
+import { Injectable } from '@nestjs/common';
+class Test {
+  constructor(params) {
+    Object.assign(this, params);
+  }
+  message: string;
+}
+@Injectable()
+export class AppService {
+  getData(): Test {
+    return new Test({ message: 'Hello API' });
+  }
+}`;
+
+const arrayTestCase1 = `
+import { Injectable } from '@nestjs/common';
+class Test {
+  constructor(params) {
+    Object.assign(this, params);
+  }
+  message: string;
+}
+@Injectable()
+export class AppService {
+  getData(): Test[] {
+    return [new Test({ message: 'Hello API' })]
+  }
+}`;
+
+const arrayTestCase2 = `
+import { Injectable } from '@nestjs/common';
+class Test {
+  constructor(params) {
+    Object.assign(this, params);
+  }
+  message: string;
+}
+@Injectable()
+export class AppService {
+  getData(): Test[] {
+    const tests = { message: 'Hello API' };
+    return tests.map(t => new Test(t));
+  }
+}`;
+
+const promiseTestCase = `
+import { Injectable } from '@nestjs/common';
     class Test {
       constructor(params) {
         Object.assign(this, params);
@@ -49,15 +65,15 @@ ruleTester.run(RULE_NAME, rule, {
       getData(): Promise<Test> {
         return Promise.resolve(new Test({ message: 'Hello API' }));
       }
-    }`,
-    // constructor are not checked
-    `import { Injectable } from '@nestjs/common';
+    }`;
+
+const constructorTestCase = `import { Injectable } from '@nestjs/common';
     @Injectable()
     export class AppService {
       constructor() {}
-    }`,
-    // check when return statement is coming from another service method
-    `import { Injectable } from '@nestjs/common';
+    }`;
+
+const memberMethodTestCase = `import { Injectable } from '@nestjs/common';
     class Test {
       constructor(params) {
         Object.assign(this, params);
@@ -76,41 +92,57 @@ ruleTester.run(RULE_NAME, rule, {
       getData(): Test {
         return this.internalService.getData();
       }
-    }`,
-    // lifecycle methods are ignored
-    `import { Injectable } from '@nestjs/common';
+    }`;
+
+const lifecycleMethodTestCase = `import { Injectable } from '@nestjs/common';
     @Injectable()
     export class AppService {
       onModuleInit() {
         console.log('Module initialized.');
       }
-    }`,
-    // getter return type
-    `import { Injectable } from '@nestjs/common';
+    }`;
+
+const getterTestCase = `import { Injectable } from '@nestjs/common';
     @Injectable()
     export class AppService {
       get data() {
         return { message: 'Hello API' };
       }
-    }`,
-    // primitive return type
-    `import { Injectable } from '@nestjs/common';
+    }`;
+
+const primnitveReturnType = `import { Injectable } from '@nestjs/common';
     @Injectable()
     export class AppService {
       getData(): string {
         return 'Hello API';
       }
-    }`,
-    // primitive union return type
-    `import { Injectable } from '@nestjs/common';
+    }`;
+
+const bufferReturnType = `import { Injectable } from '@nestjs/common';
+    @Injectable()
+    export class AppService {
+      getData(): Buffer {
+        return Buffer.from('Hello API');
+      }
+    }`;
+
+const primitiveUnionReturnType = `import { Injectable } from '@nestjs/common';
     @Injectable()
     export class AppService {
       getData(): 'OK' | 'ERROR' {
         return 'OK';
       }
-    }`,
-    // union with null return type
-    `import { Injectable } from '@nestjs/common';
+    }`;
+
+const primitiveUnionResolvedReturnType = `import { Injectable } from '@nestjs/common';
+    @Injectable()
+    export class AppService {
+      getData(): Promise<'OK' | 'ERROR'> {
+        return Promise.resolve('OK');
+      }
+    }`;
+
+const unionWithNullReturnType = `import { Injectable } from '@nestjs/common';
     class Test {
       constructor(params) {
         Object.assign(this, params);
@@ -125,23 +157,41 @@ ruleTester.run(RULE_NAME, rule, {
         }
         return null;
       }
-    }`,
-    // TODO: class instance is modified before being returned
-    // `import { Injectable } from '@nestjs/common';
-    // class Test {
-    //   constructor(params) {
-    //     Object.assign(this, params);
-    //   }
-    //   message: string;
-    // }
-    // @Injectable()
-    // export class AppService {
-    //   getData(): Test {
-    //     const test = new Test({ message: 'Hello API' });
-    //     test.message = 'Hello API';
-    //     return test;
-    //   }
-    // }`,
+    }`;
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const modifiedClassInstance = `import { Injectable } from '@nestjs/common';
+      class Test {
+        constructor(params) {
+          Object.assign(this, params);
+        }
+        message: string;
+      }
+      @Injectable()
+      export class AppService {
+        getData(): Test {
+          const test = new Test({ message: 'Hello API' });
+          test.message = 'Hello API';
+          return test;
+        }
+      }`;
+
+ruleTester.run(RULE_NAME, rule, {
+  valid: [
+    basicTestCase,
+    arrayTestCase1,
+    arrayTestCase2,
+    promiseTestCase,
+    constructorTestCase,
+    memberMethodTestCase,
+    lifecycleMethodTestCase,
+    getterTestCase,
+    primnitveReturnType,
+    bufferReturnType,
+    primitiveUnionReturnType,
+    primitiveUnionResolvedReturnType,
+    unionWithNullReturnType,
+    // TODO: modifiedClassInstance
   ],
   invalid: [
     {

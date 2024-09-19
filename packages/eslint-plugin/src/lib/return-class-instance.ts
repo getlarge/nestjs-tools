@@ -1,4 +1,3 @@
-/* eslint-disable max-lines-per-function */
 import { ESLintUtils, TSESTree } from '@typescript-eslint/utils';
 
 export const RULE_NAME = 'return-class-instance';
@@ -63,62 +62,92 @@ const extractUnionTypes = (typeName: string) => typeName.split('|').map((type) =
 const isValidReturnType = (type: string) =>
   isPrimitive(type) || isVoid(type) || isLiteralType(type) || isNullable(type) || isBuffer(type);
 
+const getClassName = (expression: TSESTree.Expression): string | null => {
+  if (expression.type === 'NewExpression' && expression.callee?.type === 'Identifier') {
+    return expression.callee.name;
+  }
+  return null;
+};
+
+const getClassNameFromArray = (expression: TSESTree.Expression): string | null => {
+  if (
+    expression.type === 'ArrayExpression' &&
+    expression.elements[0]?.type === 'NewExpression' &&
+    expression.elements[0].callee?.type === 'Identifier'
+  ) {
+    return expression.elements[0].callee.name;
+  }
+  return null;
+};
+
+const getClassNameFromMap = (expression: TSESTree.Expression): string | null => {
+  if (
+    expression.type === 'CallExpression' &&
+    expression.callee?.type === 'MemberExpression' &&
+    expression.callee.property.type === 'Identifier' &&
+    expression.callee.property.name === 'map' &&
+    expression.arguments[0]?.type === 'ArrowFunctionExpression' &&
+    expression.arguments[0].body.type === 'NewExpression' &&
+    expression.arguments[0].body.callee?.type === 'Identifier'
+  ) {
+    return expression.arguments[0].body.callee.name;
+  }
+  return null;
+};
+
+const getClassNameFromPromiseResolve = (expression: TSESTree.Expression): string | null => {
+  if (
+    expression.type === 'CallExpression' &&
+    expression.callee.type === 'MemberExpression' &&
+    expression.callee.object.type === 'Identifier' &&
+    expression.callee.object.name === 'Promise' &&
+    expression.callee.property.type === 'Identifier' &&
+    expression.callee.property.name === 'resolve' &&
+    expression.arguments[0].type === 'NewExpression' &&
+    expression.arguments[0].callee?.type === 'Identifier'
+  ) {
+    return expression.arguments[0].callee.name;
+  }
+  return null;
+};
+
+const getClassNameFromThisServiceMethod = (expression: TSESTree.Expression): string | null => {
+  if (
+    expression.type === 'CallExpression' &&
+    expression.callee.type === 'MemberExpression' &&
+    expression.callee.object.type === 'MemberExpression' &&
+    expression.callee.object.object.type === 'ThisExpression' &&
+    expression.callee.object.property.type === 'Identifier'
+  ) {
+    return expression.callee.object.property.name;
+  }
+  return null;
+};
+
 // eslint-disable-next-line complexity
-const isReturnClassInstance = (
-  returnStatement: TSESTree.ReturnStatement,
-  typeName: string,
-  extractedTypes: string[],
-) => {
-  const returnArgument = returnStatement.argument;
-
+const doesReturnClassInstance = (expression: TSESTree.Expression, typeName: string, extractedTypes: string[]) => {
   // Handle class instance
-  if (returnArgument?.type === 'NewExpression' && returnArgument.callee?.type === 'Identifier') {
-    return returnArgument.callee.name === typeName;
+  if (getClassName(expression) === typeName) {
+    return true;
   }
-
   // Handle array of class instances
-  if (returnArgument?.type === 'ArrayExpression' && returnArgument.elements[0]?.type === 'NewExpression') {
-    return (
-      returnArgument.elements[0].callee?.type === 'Identifier' && returnArgument.elements[0].callee.name === typeName
-    );
+  if (getClassNameFromArray(expression) === typeName) {
+    return true;
+  }
+  if (getClassNameFromMap(expression) === typeName) {
+    return true;
+  }
+  if (getClassNameFromPromiseResolve(expression) === typeName) {
+    return true;
+  }
+  if (getClassNameFromThisServiceMethod(expression)) {
+    return true;
   }
 
-  if (returnArgument?.type === 'CallExpression') {
-    const calleeName =
-      returnArgument.callee?.type === 'Identifier'
-        ? returnArgument.callee.name
-        : returnArgument.callee.type === 'MemberExpression' && returnArgument.callee.object.type === 'Identifier'
-          ? returnArgument.callee.object.name
-          : '';
-
-    // Handle Promise.resolve cases
-    if (
-      calleeName === 'Promise' &&
-      returnArgument.callee.type === 'MemberExpression' &&
-      returnArgument.callee.property.type === 'Identifier' &&
-      returnArgument.callee.property.name === 'resolve' &&
-      returnArgument.arguments[0].type === 'NewExpression' &&
-      returnArgument.arguments[0].callee?.type === 'Identifier'
-    ) {
-      return returnArgument.arguments[0].callee.name === typeName;
-    }
-
-    // Handle this.service.method() cases
-    if (
-      returnArgument.callee?.type === 'MemberExpression' &&
-      returnArgument.callee.object.type === 'MemberExpression' &&
-      returnArgument.callee.object.object.type === 'ThisExpression' &&
-      returnArgument.callee.object.property.type === 'Identifier'
-    ) {
-      return true;
-    }
-
-    return false;
-  }
   // Handle literal types and null/undefined
-  if (returnArgument?.type === 'Literal' || returnArgument === null) {
-    return returnArgument?.value?.toString()
-      ? extractedTypes.includes(returnArgument.value.toString())
+  if (expression?.type === 'Literal' || expression === null) {
+    return expression?.value?.toString()
+      ? extractedTypes.includes(expression.value.toString())
       : extractedTypes.includes('null');
   }
   return false;
@@ -161,11 +190,12 @@ export const rule = ESLintUtils.RuleCreator(() => __filename)({
             return;
           }
           const returnStatements = node.value?.body?.body?.filter((node) => node.type === 'ReturnStatement') ?? [];
-
-          const returnClassInstance = returnStatements.every((returnStatement) =>
-            isReturnClassInstance(returnStatement, typeName, extractedTypes),
+          const methodReturnsClassInstance = returnStatements.every((returnStatement) =>
+            returnStatement.argument
+              ? doesReturnClassInstance(returnStatement.argument, typeName, extractedTypes)
+              : false,
           );
-          if (!returnClassInstance) {
+          if (!methodReturnsClassInstance) {
             context.report({
               node,
               messageId: 'returnClassInstance',

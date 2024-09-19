@@ -1,3 +1,15 @@
+## 0.1.5 (2024-09-19)
+
+
+### 🩹 Fixes
+
+- **eslint-plugin-nestjs-tools:** improve ambiguous condition ([6821758](https://github.com/getlarge/nestjs-tools/commit/6821758))
+
+
+### ❤️  Thank You
+
+- getlarge
+
 ## 0.1.4 (2024-09-18)
 
 

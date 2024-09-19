@@ -189,12 +189,16 @@ export const rule = ESLintUtils.RuleCreator(() => __filename)({
           if (extractedTypes.every(isValidReturnType)) {
             return;
           }
-          const returnStatements = node.value?.body?.body?.filter((node) => node.type === 'ReturnStatement') ?? [];
-          const methodReturnsClassInstance = returnStatements.every((returnStatement) =>
-            returnStatement.argument
-              ? doesReturnClassInstance(returnStatement.argument, typeName, extractedTypes)
-              : false,
-          );
+
+          const returnStatements = node.value?.body?.body?.filter((node) => node.type === 'ReturnStatement');
+          const methodReturnsClassInstance = returnStatements
+            ? returnStatements.every((returnStatement) =>
+                returnStatement.argument
+                  ? doesReturnClassInstance(returnStatement.argument, typeName, extractedTypes)
+                  : false,
+              )
+            : false;
+
           if (!methodReturnsClassInstance) {
             context.report({
               node,

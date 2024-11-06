@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { createReadStream, createWriteStream } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -23,11 +24,13 @@ const temporaryFileOutput = (filename: string) => {
 export class StreamStorage extends Storage<StreamStorageFile> {
   async handleFile(file: MultipartFile): Promise<StreamStorageFile> {
     const { encoding, mimetype, fieldname } = file;
+    // looks like the file.filename type is incorrect, file.filename could be undefined
+    const filename = file.filename ?? randomBytes(16).toString('hex');
     /**
      * force the stream to be consumed as required by Fastify and Busboy
      * @see https://github.com/fastify/fastify-multipart?tab=readme-ov-file#usage
-     *  */
-    const output = temporaryFileOutput(file.filename);
+     **/
+    const output = temporaryFileOutput(filename);
     await pipeline(file.file, createWriteStream(output));
     const stream = createReadStream(output);
     return Promise.resolve({
@@ -36,7 +39,7 @@ export class StreamStorage extends Storage<StreamStorageFile> {
       encoding,
       mimetype,
       fieldname,
-      originalFilename: file.filename,
+      originalFilename: filename,
     });
   }
 

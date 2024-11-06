@@ -1,3 +1,19 @@
+## 0.1.5 (2024-11-06)
+
+
+### 🩹 Fixes
+
+- **eslint-plugin-nestjs-tools:** follow eslint plugin recommendations ([45dc0a0](https://github.com/getlarge/nestjs-tools/commit/45dc0a0))
+
+- **nestjs-tools-fastify-upload:** implement temporary file handling and improve stream processing ([07c2684](https://github.com/getlarge/nestjs-tools/commit/07c2684))
+
+- **nestjs-tools-fastify-upload:** handle undefined filename by generating a random one ([b076fd9](https://github.com/getlarge/nestjs-tools/commit/b076fd9))
+
+
+### ❤️  Thank You
+
+- getlarge
+
 ## 0.1.4 (2024-08-03)
 
 

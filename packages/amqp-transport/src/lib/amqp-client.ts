@@ -34,7 +34,7 @@ export interface ConsumeMessageEvent extends EventHandlers {
   [correlationId: string]: (event: { content: Buffer; options: Record<string, unknown> }) => Promise<void> | void;
 }
 
-export class AmqpClient extends ClientProxy<RmqEvents, RmqStatus> {
+export class AmqpClient extends ClientProxy<RmqEvents, string> {
   protected readonly logger = new Logger(ClientProxy.name);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected connection$!: ReplaySubject<any>;

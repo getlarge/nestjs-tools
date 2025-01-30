@@ -23,7 +23,7 @@
     "@aws-sdk/client-s3": "3",
     "@aws-sdk/lib-storage": "3",
     "@google-cloud/storage": "7",
-    "@nestjs/common": "10"
+    "@nestjs/common": "^10 || ^11"
   },
   "peerDependenciesMeta": {
     "@aws-sdk/client-s3": {

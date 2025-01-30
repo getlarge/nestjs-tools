@@ -18,10 +18,10 @@
     "tslib": "^2.3.0"
   },
   "peerDependencies": {
-    "@nestjs/common": "10",
-    "fastify": "4",
+    "@nestjs/common": "^10 || ^11",
+    "fastify": "^4 || ^5",
     "@fastify/busboy": "^2.0.0 || ^3.0.0",
-    "@fastify/multipart": "8",
+    "@fastify/multipart": "^8 || ^9",
     "rxjs": "7"
   },
   "type": "commonjs",

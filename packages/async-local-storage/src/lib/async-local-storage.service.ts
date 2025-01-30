@@ -156,19 +156,19 @@ export class AsyncLocalStorageService extends Map<K, T[K]> {
     return this.safeStore.size;
   }
 
-  get [Symbol.toStringTag]() {
+  override get [Symbol.toStringTag]() {
     return this.safeStore[Symbol.toStringTag];
   }
 
-  override keys(): IterableIterator<K> {
+  override keys() {
     return this.safeStore.keys();
   }
 
-  override values(): IterableIterator<T[keyof T]> {
+  override values() {
     return this.safeStore.values();
   }
 
-  override entries(): IterableIterator<[K, T[K]]> {
+  override entries() {
     return this.safeStore.entries();
   }
 
@@ -176,7 +176,7 @@ export class AsyncLocalStorageService extends Map<K, T[K]> {
     return this.safeStore.forEach(callbackfn, thisArg);
   }
 
-  [Symbol.iterator](): IterableIterator<[K, T[K]]> {
+  override [Symbol.iterator]() {
     return this.safeStore[Symbol.iterator]();
   }
 

@@ -25,7 +25,9 @@ export const on = <
   eventName: K,
   options?: StaticEventEmitterOptions,
 ): AsyncIterableIterator<Parameters<Emitter extends TypedEventEmitter<infer X> ? X[K] : never>> =>
-  originalOn(emitter, eventName, options);
+  originalOn(emitter, eventName, options) as AsyncIterableIterator<
+    Parameters<Emitter extends TypedEventEmitter<infer X> ? X[K] : never>
+  >;
 
 export class TypedEventEmitter<TEvents extends EventHandlers> extends EventEmitter {
   private untypedOn = this.on;
@@ -42,7 +44,7 @@ export class TypedEventEmitter<TEvents extends EventHandlers> extends EventEmitt
     event: K,
     options?: StaticEventEmitterOptions,
   ): AsyncIterableIterator<Parameters<TEvents[K]>> {
-    return originalOn(this, event, options);
+    return originalOn(this, event, options) as AsyncIterableIterator<Parameters<TEvents[K]>>;
   }
   override on = <K extends keyof TEvents>(event: K, listener: TEvents[K]): this => this.untypedOn(event, listener);
 

@@ -23,8 +23,8 @@
     "tslib": "^2.3.0"
   },
   "peerDependencies": {
-    "@nestjs/common": "10",
-    "@nestjs/microservices": "10",
+    "@nestjs/common": "^10 || ^11",
+    "@nestjs/microservices": "^10 || ^11",
     "amqp-connection-manager": "4",
     "amqplib": "0.10",
     "promise-breaker": "6.0.0",

@@ -47,7 +47,7 @@ describe('Fastify File Upload', () => {
   it('should upload multiple files', async () => {
     const form = new FormData();
     form.append('file', createReadStream(join(process.cwd(), 'package.json')));
-    form.append('file', createReadStream(join(process.cwd(), '.eslintrc.json')));
+    form.append('file', createReadStream(join(process.cwd(), '.eslint.config.mjs')));
     form.append('nonFile', 'Hello World!');
     //
     const response = await app.inject({
@@ -95,7 +95,7 @@ describe('Fastify File Upload', () => {
   it('should upload multiple file fields', async () => {
     const form = new FormData();
     form.append('profile', createReadStream(join(process.cwd(), 'package.json')));
-    form.append('avatar', createReadStream(join(process.cwd(), '.eslintrc.json')));
+    form.append('avatar', createReadStream(join(process.cwd(), '.eslint.config.mjs')));
     //
     const response = await app.inject({
       method: 'POST',

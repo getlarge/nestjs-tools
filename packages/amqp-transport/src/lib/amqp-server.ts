@@ -283,7 +283,7 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
     }
     const response$ = this.transformToObservable(await handler(packet.data, rmqContext));
     const publish = <T>(data: T) => this.sendMessage(data, properties.replyTo, properties.correlationId);
-    response$ && this.send(response$, publish);
+    if (response$) this.send(response$, publish);
   }
 
   sendMessage<T = OutgoingResponse>(message: T, replyTo: string, correlationId: string): void {

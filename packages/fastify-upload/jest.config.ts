@@ -1,4 +1,3 @@
-/* eslint-disable */
 export default {
   displayName: 'nestjs-tools-fastify-upload',
   preset: '../../jest.preset.js',

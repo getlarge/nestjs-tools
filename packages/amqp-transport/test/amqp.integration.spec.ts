@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-/* eslint-disable max-nested-callbacks */
+
 /* eslint-disable max-lines-per-function */
 import { DynamicModule, INestMicroservice } from '@nestjs/common/interfaces';
 import { ClientsModule } from '@nestjs/microservices';

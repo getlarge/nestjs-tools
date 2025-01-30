@@ -13,7 +13,8 @@
       "default",
       "!{projectRoot}/test/**",
       "!{projectRoot}/**/*.{spec,test}.ts",
-      "!{projectRoot}/node_modules/**"
+      "!{projectRoot}/node_modules/**",
+      "!{projectRoot}/eslint.config.mjs"
     ]
   },
   "release": {

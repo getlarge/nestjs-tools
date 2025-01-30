@@ -24,6 +24,7 @@ import { FileStorageWritable, MethodTypes } from './types';
 
 function config(setup: FileStorageGoogleSetup) {
   const { bucketName, keyFilename, maxPayloadSize, projectId } = setup;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const loaderFn = (): { Storage: typeof import('@google-cloud/storage').Storage } => require('@google-cloud/storage');
   const { Storage } = loadPackage('@google-cloud/storage', FileStorageGoogle.name, loaderFn);
   const storage = new Storage({
@@ -123,7 +124,7 @@ export class FileStorageGoogle implements FileStorage {
       const filePath = await this.transformFilePath(args.filePath, MethodTypes.DELETE, request, options);
       await storage.bucket(bucket).file(filePath).delete(options);
       return true;
-    } catch (error) {
+    } catch {
       return false;
     }
   }

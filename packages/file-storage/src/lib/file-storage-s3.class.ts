@@ -28,6 +28,7 @@ function config(setup: FileStorageS3Setup) {
   if (!region) {
     throw new Error('AWS region is missing');
   }
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const loaderFn = (): { S3: typeof import('@aws-sdk/client-s3').S3 } => require('@aws-sdk/client-s3');
   const { S3 } = loadPackage('@aws-sdk/client-s3', FileStorageS3.name, loaderFn);
   const s3 = new S3({
@@ -93,7 +94,7 @@ export class FileStorageS3 implements FileStorage {
     try {
       await s3.headObject({ ...options, Key, Bucket });
       return true;
-    } catch (e) {
+    } catch {
       return false;
     }
   }

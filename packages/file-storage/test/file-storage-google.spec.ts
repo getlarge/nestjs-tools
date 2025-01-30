@@ -1,4 +1,3 @@
-/* eslint-disable max-nested-callbacks */
 /* eslint-disable max-lines-per-function */
 import { Test, TestingModule } from '@nestjs/testing';
 import { randomBytes, randomUUID } from 'node:crypto';

@@ -1,4 +1,3 @@
-/* eslint-disable */
 export default {
   displayName: 'typed-event-emitter',
   preset: '../../jest.preset.js',

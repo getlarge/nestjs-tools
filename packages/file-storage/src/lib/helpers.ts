@@ -8,8 +8,9 @@ export function loadPackage<T = unknown, R = T | Promise<T>>(
   loaderFn?: () => R,
 ): R {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     return loaderFn ? loaderFn() : require(packageName);
-  } catch (e) {
+  } catch {
     logger.error(
       `The "${packageName}" package is missing. Please, make sure to install it to take advantage of ${context}.`,
     );

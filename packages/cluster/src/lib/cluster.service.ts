@@ -86,7 +86,7 @@ export class ClusterService extends TypedEventEmitter<ClusterServiceEmissions> {
   }
 
   log(message: unknown): void {
-    this.showLogs && this.logger.log(message);
+    if (this.showLogs) this.logger.log(message);
   }
 
   async fork(): Promise<void> {
@@ -154,7 +154,7 @@ export class ClusterService extends TypedEventEmitter<ClusterServiceEmissions> {
     }
     this.removeAllListeners();
     this.log('Kill process');
-    killProcess && process.exit(0);
+    if (killProcess) process.exit(0);
   }
 
   kill(workerId: number): void {

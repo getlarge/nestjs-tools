@@ -45,7 +45,9 @@ function config(setup: FileStorageLocalSetup) {
       const storageExists = await access(storageDir)
         .then(() => true)
         .catch(() => false);
-      !storageExists && (await mkdir(storageDir, { recursive: true }));
+      if (!storageExists) {
+        await mkdir(storageDir, { recursive: true });
+      }
     }
     return Promise.resolve(fullPath);
   };

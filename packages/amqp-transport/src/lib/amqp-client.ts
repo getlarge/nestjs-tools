@@ -1,5 +1,7 @@
+/* eslint-disable max-lines */
 import { EventHandlers, TypedEventEmitter } from '@getlarge/typed-event-emitter';
 import { Logger } from '@nestjs/common/services/logger.service';
+import { isFunction } from '@nestjs/common/utils/shared.utils';
 import {
   ClientProxy,
   type ReadPacket,
@@ -8,10 +10,7 @@ import {
   type WritePacket,
 } from '@nestjs/microservices';
 import {
-  CONNECT_EVENT,
-  DISCONNECT_EVENT,
   DISCONNECTED_RMQ_MESSAGE,
-  ERROR_EVENT,
   RQM_DEFAULT_NO_ASSERT,
   RQM_DEFAULT_NOACK,
   RQM_DEFAULT_PERSISTENT,
@@ -21,31 +20,25 @@ import {
 } from '@nestjs/microservices/constants';
 import type { RmqUrl } from '@nestjs/microservices/external/rmq-url.interface';
 import { AmqpConnectionManager, Channel, ChannelWrapper, connect } from 'amqp-connection-manager';
-import { Connection, ConsumeMessage, Options } from 'amqplib';
+import type { Connection, Options } from 'amqplib';
 import type PromiseBreaker from 'promise-breaker';
 import { EmptyError, firstValueFrom, fromEvent, merge, Observable, ReplaySubject } from 'rxjs';
 import { first, map, retryWhen, scan, skip, switchMap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 
-import {
-  AMQP_DEFAULT_EXCHANGE_OPTIONS,
-  AMQP_DEFAULT_EXCHANGE_TYPE,
-  CONNECT_FAILED_EVENT,
-  CONNECT_FAILED_EVENT_MSG,
-} from './amqp.constants';
-import { AmqpOptions } from './amqp.interfaces';
+import { AMQP_DEFAULT_EXCHANGE_OPTIONS, AMQP_DEFAULT_EXCHANGE_TYPE } from './amqp.constants';
+import { AmqpOptions, RmqEvents, RmqStatus } from './amqp.interfaces';
 import { AmqpRecordSerializer } from './amqp-record.serializer';
 
 export interface ConsumeMessageEvent extends EventHandlers {
-  [correlationId: string]: (msg: ConsumeMessage) => Promise<void> | void;
+  [correlationId: string]: (event: { content: Buffer; options: Record<string, unknown> }) => Promise<void> | void;
 }
 
-export class AmqpClient extends ClientProxy {
+export class AmqpClient extends ClientProxy<RmqEvents, RmqStatus> {
   protected readonly logger = new Logger(ClientProxy.name);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   protected connection$!: ReplaySubject<any>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  protected connection!: Promise<any>;
+  protected connection!: Promise<void>;
   protected client: AmqpConnectionManager | null = null;
   protected channel: ChannelWrapper | null = null;
   protected urls: string[] | RmqUrl[];
@@ -58,11 +51,17 @@ export class AmqpClient extends ClientProxy {
   protected exchangeType: string;
   protected exchangeOptions?: Options.AssertExchange;
   protected prefetchCount: number;
+  protected isGlobalPrefetchCount: boolean;
   protected noAssert: boolean;
   protected noQueueAssert: boolean;
   protected noReplyQueueAssert: boolean;
   protected noExchangeAssert: boolean;
   protected responseEmitter!: TypedEventEmitter<ConsumeMessageEvent>;
+  protected pendingEventListeners: Array<{
+    event: keyof RmqEvents;
+    callback: RmqEvents[keyof RmqEvents];
+  }> = [];
+  protected isInitialConnect = true;
 
   constructor(protected readonly options: AmqpOptions) {
     super();
@@ -77,6 +76,7 @@ export class AmqpClient extends ClientProxy {
     this.exchangeType = this.getOptionsProp(this.options, 'exchangeType') || AMQP_DEFAULT_EXCHANGE_TYPE;
     this.exchangeOptions = this.getOptionsProp(this.options, 'exchangeOptions') || AMQP_DEFAULT_EXCHANGE_OPTIONS;
     this.prefetchCount = this.getOptionsProp(this.options, 'prefetchCount') || RQM_DEFAULT_PREFETCH_COUNT;
+    this.isGlobalPrefetchCount = this.getOptionsProp(this.options, 'isGlobalPrefetchCount') || false;
     this.noAssert = this.getOptionsProp(this.options, 'noAssert') || RQM_DEFAULT_NO_ASSERT;
     this.noQueueAssert = this.getOptionsProp(this.options, 'noQueueAssert') || RQM_DEFAULT_NO_ASSERT;
     this.noReplyQueueAssert = this.getOptionsProp(this.options, 'noReplyQueueAssert') || RQM_DEFAULT_NO_ASSERT;
@@ -105,6 +105,7 @@ export class AmqpClient extends ClientProxy {
     this.client?.close();
     this.channel = null;
     this.client = null;
+    this.pendingEventListeners = [];
   }
 
   connect() {
@@ -112,8 +113,12 @@ export class AmqpClient extends ClientProxy {
       return this.convertConnectionToPromise();
     }
     this.client = this.createClient();
-    this.handleError(this.client);
-    this.handleDisconnectError(this.client);
+
+    this.registerErrorListener(this.client);
+    this.registerDisconnectListener(this.client);
+    this.registerConnectListener(this.client);
+    this.pendingEventListeners.forEach(({ event, callback }) => this.client?.on(event, callback));
+    this.pendingEventListeners = [];
 
     this.responseEmitter = new TypedEventEmitter();
     this.responseEmitter.setMaxListeners(0);
@@ -125,7 +130,7 @@ export class AmqpClient extends ClientProxy {
 
     const withReconnect$ = fromEvent<{ connection: Connection; url: string }>(
       this.client,
-      CONNECT_EVENT,
+      'connect',
       ({ connection, url }) => ({
         connection,
         url,
@@ -135,8 +140,8 @@ export class AmqpClient extends ClientProxy {
 
     this.connection$ = new ReplaySubject(1);
     source$.subscribe(this.connection$);
-
-    return this.convertConnectionToPromise();
+    this.connection = this.convertConnectionToPromise();
+    return this.connection;
   }
 
   async convertConnectionToPromise() {
@@ -155,20 +160,41 @@ export class AmqpClient extends ClientProxy {
     return connect(this.urls, { connectionOptions: socketOptions });
   }
 
-  handleError(client: AmqpConnectionManager): void {
-    client.addListener(ERROR_EVENT, (err) => this.logger.error(err));
+  public registerErrorListener(client: AmqpConnectionManager): void {
+    client.addListener('error', (err) => this.logger.error(err));
   }
 
-  handleDisconnectError(client: AmqpConnectionManager): void {
-    client.addListener(DISCONNECT_EVENT, (err) => {
+  public registerDisconnectListener(client: AmqpConnectionManager): void {
+    client.addListener('disconnect', (err) => {
+      this._status$.next(RmqStatus.DISCONNECTED);
+
+      if (!this.isInitialConnect) {
+        this.connection = Promise.reject('Error: Connection lost. Trying to reconnect...');
+        // Prevent unhandled promise rejection
+        this.connection.catch(() => {
+          //
+        });
+      }
+
       this.logger.error(DISCONNECTED_RMQ_MESSAGE);
-      this.logger.error(err.err);
-      this.close();
+      this.logger.error(err);
     });
-    client.addListener(CONNECT_FAILED_EVENT, (err) => {
-      this.logger.error(CONNECT_FAILED_EVENT_MSG);
-      this.logger.error(err.err);
-      this.close();
+  }
+
+  private registerConnectListener(client: AmqpConnectionManager): void {
+    client.addListener('connect', () => {
+      this._status$.next(RmqStatus.CONNECTED);
+      this.logger.log('Successfully connected to RMQ broker');
+
+      if (this.isInitialConnect) {
+        this.isInitialConnect = false;
+
+        if (!this.channel) {
+          this.connection = this.createChannel();
+        }
+      } else {
+        this.connection = Promise.resolve();
+      }
     });
   }
 
@@ -194,7 +220,7 @@ export class AmqpClient extends ClientProxy {
           channel
             .consume(this.replyQueue, (msg) => this.responseEmitter.emit(msg.properties.correlationId, msg), {
               noAck,
-              prefetch: this.prefetchCount,
+              // prefetch: this.prefetchCount,
             })
             .then(() => resolve())
             .catch((e) => reject(e));
@@ -212,9 +238,10 @@ export class AmqpClient extends ClientProxy {
           throw err;
         }),
       );
-    const disconnect$ = eventToError(DISCONNECT_EVENT);
+    const disconnect$ = eventToError('disconnect');
     const urls = this.getOptionsProp(this.options, 'urls', []) as string[];
-    const connectFailed$ = eventToError(CONNECT_FAILED_EVENT).pipe(
+    const connectFailedEventKey = 'connectFailed';
+    const connectFailed$ = eventToError(connectFailedEventKey).pipe(
       retryWhen((e) =>
         e.pipe(
           scan((errorCount, error) => {
@@ -245,6 +272,25 @@ export class AmqpClient extends ClientProxy {
       await channel.assertQueue(this.queue, this.queueOptions);
     }
     await this.setReplyQueue(channel);
+    await channel.prefetch(this.prefetchCount, this.isGlobalPrefetchCount);
+  }
+
+  override on<
+    EventKey extends keyof RmqEvents = keyof RmqEvents,
+    EventCallback extends RmqEvents[EventKey] = RmqEvents[EventKey],
+  >(event: EventKey, callback: EventCallback) {
+    if (this.client) {
+      this.client.addListener(event, callback);
+    } else {
+      this.pendingEventListeners.push({ event, callback });
+    }
+  }
+
+  public unwrap<T>(): T {
+    if (!this.client) {
+      throw new Error('Not initialized. Please call the "connect" method first.');
+    }
+    return this.client as T;
   }
 
   protected parseMessageContent(content: Buffer) {
@@ -256,10 +302,25 @@ export class AmqpClient extends ClientProxy {
     }
   }
 
-  async handleMessage(msg: ConsumeMessage, callback: (packet: WritePacket) => unknown): Promise<void> {
-    // TODO: retrieve deserialize options from msg
-    const packet = this.parseMessageContent(msg.content);
-    const { err, response, isDisposed } = await this.deserializer.deserialize(packet, msg.properties);
+  public async handleMessage(packet: unknown, callback: (packet: WritePacket) => unknown): Promise<void>;
+  public async handleMessage(
+    packet: unknown,
+    options: Record<string, unknown>,
+    callback: (packet: WritePacket) => unknown,
+  ): Promise<void>;
+  public async handleMessage(
+    packet: unknown,
+    options: Record<string, unknown> | ((packet: WritePacket) => unknown) | undefined,
+    callback?: (packet: WritePacket) => unknown,
+  ): Promise<void> {
+    if (isFunction(options)) {
+      // eslint-disable-next-line no-param-reassign
+      callback = options as (packet: WritePacket) => unknown;
+      // eslint-disable-next-line no-param-reassign
+      options = undefined;
+    }
+
+    const { err, response, isDisposed } = await this.deserializer.deserialize(packet, options);
     // TODO: if (this.replyQueueOptions.exclusive) {
     //   await this.channel.cancel(msg.fields.consumerTag);
     // }
@@ -284,7 +345,9 @@ export class AmqpClient extends ClientProxy {
   protected publish(message: ReadPacket, callback: (packet: WritePacket) => unknown): () => void {
     try {
       const correlationId: string = uuid();
-      const listener = (msg: ConsumeMessage) => this.handleMessage(msg, callback);
+
+      const listener = (event: { content: Buffer; options: Record<string, unknown> }) =>
+        this.handleMessage(this.parseMessageContent(event.content), event.options, callback);
       this.responseEmitter.on(correlationId, listener);
 
       Object.assign(message, { id: correlationId });
@@ -298,9 +361,11 @@ export class AmqpClient extends ClientProxy {
         correlationId,
       };
       if (this.exchange) {
-        this.channel?.publish(this.exchange, message.pattern, content, publishOptions);
+        this.channel
+          ?.publish(this.exchange, message.pattern, content, publishOptions)
+          .catch((err) => callback({ err }));
       } else if (this.queue) {
-        this.channel?.sendToQueue(this.queue, content, publishOptions);
+        this.channel?.sendToQueue(this.queue, content, publishOptions).catch((err) => callback({ err }));
       }
       return () => this.responseEmitter.removeListener(correlationId, listener);
     } catch (err) {

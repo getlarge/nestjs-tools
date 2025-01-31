@@ -43,7 +43,7 @@ const excecuteStorageHandler = (
 const pathExists = async (path: string): Promise<boolean> => {
   try {
     await stat(path);
-  } catch (err) {
+  } catch {
     return false;
   }
 

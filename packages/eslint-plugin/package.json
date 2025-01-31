@@ -19,7 +19,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@typescript-eslint/utils": "8.5.0",
+    "@typescript-eslint/utils": "^8.13.0",
     "tslib": "^2.3.0"
   },
   "peerDependencies": {},

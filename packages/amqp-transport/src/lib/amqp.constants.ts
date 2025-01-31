@@ -11,3 +11,8 @@ export const RMQ_DEFAULT_REPLY_QUEUE_OPTIONS = {
   /* default reply queue is named “”, so a new one will be generated at channel setup */
   autoDelete: false,
 };
+
+export const RQM_NO_EVENT_HANDLER = (text: TemplateStringsArray, pattern: string) =>
+  `An unsupported event was received. It has been negative acknowledged, so it will not be re-delivered. Pattern: ${pattern}`;
+export const RQM_NO_MESSAGE_HANDLER = (text: TemplateStringsArray, pattern: string) =>
+  `An unsupported message was received. It has been negative acknowledged, so it will not be re-delivered. Pattern: ${pattern}`;

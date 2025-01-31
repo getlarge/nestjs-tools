@@ -1,4 +1,3 @@
-/* eslint-disable */
 export default {
   displayName: 'nestjs-tools-async-local-storage',
   preset: '../../jest.preset.js',

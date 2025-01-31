@@ -6,12 +6,12 @@ import {
   MessageHandler,
   OutgoingResponse,
   RmqContext,
+  RmqEvents,
+  RmqStatus,
   Server,
   Transport,
 } from '@nestjs/microservices';
 import {
-  CONNECT_EVENT,
-  DISCONNECT_EVENT,
   DISCONNECTED_RMQ_MESSAGE,
   NO_MESSAGE_HANDLER,
   RQM_DEFAULT_IS_GLOBAL_PREFETCH_COUNT,
@@ -20,7 +20,6 @@ import {
   RQM_DEFAULT_PREFETCH_COUNT,
   RQM_DEFAULT_QUEUE_OPTIONS,
   RQM_DEFAULT_URL,
-  RQM_NO_EVENT_HANDLER,
 } from '@nestjs/microservices/constants';
 import type { RmqUrl } from '@nestjs/microservices/external/rmq-url.interface';
 import { AmqpConnectionManager, ChannelWrapper, connect } from 'amqp-connection-manager';
@@ -30,8 +29,9 @@ import {
   AMQP_DEFAULT_EXCHANGE_OPTIONS,
   AMQP_DEFAULT_EXCHANGE_TYPE,
   AMQP_SEPARATOR,
-  CONNECT_FAILED_EVENT,
   CONNECT_FAILED_EVENT_MSG,
+  RQM_NO_EVENT_HANDLER,
+  RQM_NO_MESSAGE_HANDLER,
 } from './amqp.constants';
 import { AmqpOptions } from './amqp.interfaces';
 import { AmqpRecordConsumerDeserializer, AmqpRecordSerializer } from './amqp-record.serializer';
@@ -43,8 +43,8 @@ export enum AmqpWildcard {
 
 const INFINITE_CONNECTION_ATTEMPTS = -1;
 
-export class AmqpServer extends Server implements CustomTransportStrategy {
-  readonly transportId?: Transport;
+export class AmqpServer extends Server<RmqEvents, RmqStatus> implements CustomTransportStrategy {
+  override readonly transportId?: Transport;
   private channel: ChannelWrapper | null = null;
   private server: AmqpConnectionManager | null = null;
   private connectionAttempts = 0;
@@ -62,6 +62,11 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
   private noQueueAssert: boolean;
   private noExchangeAssert: boolean;
   private deleteChannelOnFailure: boolean;
+
+  protected pendingEventListeners: Array<{
+    event: keyof RmqEvents;
+    callback: RmqEvents[keyof RmqEvents];
+  }> = [];
 
   constructor(
     private options: AmqpOptions,
@@ -109,17 +114,17 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
   close(): void {
     this.channel?.close();
     this.server?.close();
-    this.channel = null;
-    this.server = null;
+    this.pendingEventListeners = [];
   }
 
   async start(callback?: (error?: unknown) => void): Promise<void> {
     const server = this.createClient();
     this.server = server;
-    server.on(CONNECT_EVENT, () => {
+    server.once('connect', () => {
       if (this.channel) {
         return;
       }
+      this._status$.next(RmqStatus.CONNECTED);
       this.channel = server.createChannel({
         json: false,
         setup: (channel: Channel) => this.setupChannel(channel, callback),
@@ -132,11 +137,15 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
       INFINITE_CONNECTION_ATTEMPTS,
     );
 
-    this.server.on(DISCONNECT_EVENT, (err) => {
-      this.logger.error(DISCONNECTED_RMQ_MESSAGE);
-      this.logger.error(err);
-    });
-    this.server.on(CONNECT_FAILED_EVENT, (error) => {
+    this.registerConnectListener();
+    this.registerDisconnectListener();
+    this.pendingEventListeners.forEach(({ event, callback }) => this.server?.on(event, callback));
+    this.pendingEventListeners = [];
+
+    const connectFailedEvent = 'connectFailed';
+
+    this.server.on(connectFailedEvent, (error) => {
+      this._status$.next(RmqStatus.DISCONNECTED);
       this.logger.error(CONNECT_FAILED_EVENT_MSG);
       if (error['err']) {
         this.logger.error(error['err']);
@@ -158,6 +167,20 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
       connectionOptions: socketOptions,
       heartbeatIntervalInSeconds: socketOptions?.heartbeatIntervalInSeconds,
       reconnectTimeInSeconds: socketOptions?.reconnectTimeInSeconds,
+    });
+  }
+
+  private registerConnectListener() {
+    this.server?.on('connect', () => {
+      this._status$.next(RmqStatus.CONNECTED);
+    });
+  }
+
+  private registerDisconnectListener() {
+    this.server?.on('disconnect', (err) => {
+      this._status$.next(RmqStatus.DISCONNECTED);
+      this.logger.error(DISCONNECTED_RMQ_MESSAGE);
+      this.logger.error(err);
     });
   }
 
@@ -194,6 +217,7 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
       await channel.prefetch(this.prefetchCount, this.isGlobalPrefetchCount);
       channel.consume(queue, (msg) => this.handleMessage(msg, channel), {
         noAck: this.noAck,
+        consumerTag: this.getOptionsProp(this.options, 'consumerTag', undefined),
       });
       callback?.();
     } catch (e) {
@@ -273,6 +297,10 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
     }
     const handler = this.getHandlerByPattern(pattern);
     if (!handler) {
+      if (!this.noAck) {
+        this.logger.warn(RQM_NO_MESSAGE_HANDLER`${pattern}`);
+        this.channel?.nack(rmqContext.getMessage() as Message, false, false);
+      }
       const status = 'error';
       const noHandlerPacket: OutgoingResponse = {
         id: (packet as IncomingRequest).id,
@@ -283,16 +311,34 @@ export class AmqpServer extends Server implements CustomTransportStrategy {
     }
     const response$ = this.transformToObservable(await handler(packet.data, rmqContext));
     const publish = <T>(data: T) => this.sendMessage(data, properties.replyTo, properties.correlationId);
-    response$ && this.send(response$, publish);
+    if (response$) this.send(response$, publish);
   }
 
   sendMessage<T = OutgoingResponse>(message: T, replyTo: string, correlationId: string): void {
     const outgoingResponse = this.serializer.serialize(message as unknown as OutgoingResponse);
-    const options = outgoingResponse.options;
-    delete outgoingResponse.options;
-
-    const buffer = Buffer.from(JSON.stringify(outgoingResponse));
+    const { options, ...rest } = outgoingResponse;
+    const buffer = Buffer.from(JSON.stringify(rest));
     this.channel?.sendToQueue(replyTo, buffer, { correlationId, ...options });
+  }
+
+  public unwrap<T>(): T {
+    if (!this.server) {
+      throw new Error(
+        'Not initialized. Please call the "listen"/"startAllMicroservices" method before accessing the server.',
+      );
+    }
+    return this.server as T;
+  }
+
+  public on<
+    EventKey extends keyof RmqEvents = keyof RmqEvents,
+    EventCallback extends RmqEvents[EventKey] = RmqEvents[EventKey],
+  >(event: EventKey, callback: EventCallback) {
+    if (this.server) {
+      this.server.addListener(event, callback);
+    } else {
+      this.pendingEventListeners.push({ event, callback });
+    }
   }
 
   protected override initializeSerializer(options: AmqpOptions) {

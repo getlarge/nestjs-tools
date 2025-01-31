@@ -46,11 +46,11 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
+        node-version: [20.x, 22.x]
 
     services:
       rabbitmq:
-        image: rabbitmq:3.13-management-alpine
+        image: rabbitmq:4-management-alpine
         options: >-
           --health-cmd "rabbitmq-diagnostics status"
           --health-interval 10s
@@ -142,7 +142,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [22.x]
 
     steps:
       - name: Check out repository code
@@ -166,10 +166,10 @@ jobs:
           path: ./coverage
 
       - name: SonarCloud Scan
-        uses: sonarsource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@v4.2.1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
         with:
           args: >
             -Dsonar.projectVersion=${{ steps.package-version.outputs.current-version }}

@@ -1,4 +1,3 @@
-/* eslint-disable */
 export default {
   displayName: 'nestjs-tools-amqp-transport',
   preset: '../../jest.preset.js',

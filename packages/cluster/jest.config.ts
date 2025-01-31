@@ -1,4 +1,3 @@
-/* eslint-disable */
 export default {
   displayName: 'nestjs-tools-cluster',
   preset: '../../jest.preset.js',

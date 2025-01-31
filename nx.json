@@ -13,7 +13,8 @@
       "default",
       "!{projectRoot}/test/**",
       "!{projectRoot}/**/*.{spec,test}.ts",
-      "!{projectRoot}/node_modules/**"
+      "!{projectRoot}/node_modules/**",
+      "!{projectRoot}/eslint.config.mjs"
     ]
   },
   "release": {
@@ -77,5 +78,6 @@
       }
     }
   ],
-  "nxCloudAccessToken": "OGYyNDIzN2ItNDZmZC00NjFmLTg3MDgtYzc0Nzc0NzdkMDk3fHJlYWQtd3JpdGU="
+  "nxCloudAccessToken": "OGYyNDIzN2ItNDZmZC00NjFmLTg3MDgtYzc0Nzc0NzdkMDk3fHJlYWQtd3JpdGU=",
+  "useLegacyCache": false
 }

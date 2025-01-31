@@ -1,4 +1,3 @@
-/* eslint-disable */
 export default {
   displayName: 'nestjs-tools-lock',
   preset: '../../jest.preset.js',

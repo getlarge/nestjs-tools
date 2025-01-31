@@ -1,6 +1,6 @@
 {
   "name": "@getlarge/nestjs-tools-amqp-transport",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Custom Nest Transport classes for AMQP",
   "keywords": [
     "amqp",
@@ -18,7 +18,7 @@
   "main": "./src/index.js",
   "typings": "./src/index.d.ts",
   "dependencies": {
-    "@getlarge/typed-event-emitter": "0.2.0",
+    "@getlarge/typed-event-emitter": "0.2.1",
     "uuid": "^9.0.1",
     "tslib": "^2.3.0"
   },

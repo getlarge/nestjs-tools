@@ -32,7 +32,7 @@ Check the README of each package for more details.
 Check out the following projects for examples of using these packages:
 
 - The [ticketing repository](https://github.com/getlarge/ticketing) is a real-world example of AMQP-Transport, File-Storage, Lock
-- The [cat fostering repository](https://github.com/getlarge/catfostering) uses Fastify-Upload
+- The [cat fostering repository](https://github.com/getlarge/cat-fostering) uses Fastify-Upload
 
 [AMQPlib]: https://amqp-node.github.io/amqplib/
 [AsyncLocalStorage]: https://nodejs.org/api/async_context.html#class-asynclocalstorage

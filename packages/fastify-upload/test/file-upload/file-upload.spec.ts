@@ -141,4 +141,86 @@ describe('Fastify File Upload', () => {
       filepath: expect.any(String),
     });
   });
+
+  it('should upload single file with body fields', async () => {
+    const form = new FormData();
+    form.append('file', await readFile(join(process.cwd(), 'package.json')), {
+      contentType: 'application/json',
+      filename: 'package.json',
+    });
+    form.append('fontMeta', JSON.stringify({ foo: 'bar' }));
+    //
+    const response = await app.inject({
+      method: 'POST',
+      url: '/single-with-body',
+      body: form.getBuffer(),
+      headers: form.getHeaders(),
+    });
+    //
+    expect(response.statusCode).toBe(201);
+    const result = response.json();
+    expect(result.success).toBe(true);
+    expect(result.body).toEqual({ fontMeta: '{"foo":"bar"}' });
+  });
+
+  it('should upload single file when body fields come first', async () => {
+    const form = new FormData();
+    form.append('metadata', 'some-value');
+    form.append('file', await readFile(join(process.cwd(), 'package.json')), {
+      contentType: 'application/json',
+      filename: 'package.json',
+    });
+    //
+    const response = await app.inject({
+      method: 'POST',
+      url: '/single-with-body',
+      body: form.getBuffer(),
+      headers: form.getHeaders(),
+    });
+    //
+    expect(response.statusCode).toBe(201);
+    const result = response.json();
+    expect(result.success).toBe(true);
+    expect(result.body).toEqual({ metadata: 'some-value' });
+  });
+
+  it('should reject multiple files on same field', async () => {
+    const form = new FormData();
+    form.append('file', await readFile(join(process.cwd(), 'package.json')), {
+      contentType: 'application/json',
+      filename: 'package.json',
+    });
+    form.append('file', await readFile(join(process.cwd(), 'package.json')), {
+      contentType: 'application/json',
+      filename: 'package2.json',
+    });
+    //
+    const response = await app.inject({
+      method: 'POST',
+      url: '/single',
+      body: form.getBuffer(),
+      headers: form.getHeaders(),
+    });
+    //
+    expect(response.statusCode).toBe(400);
+    expect(response.json().message).toContain('accepts only one file');
+  });
+
+  it('should reject file with wrong fieldname', async () => {
+    const form = new FormData();
+    form.append('wrongField', await readFile(join(process.cwd(), 'package.json')), {
+      contentType: 'application/json',
+      filename: 'package.json',
+    });
+    //
+    const response = await app.inject({
+      method: 'POST',
+      url: '/single',
+      body: form.getBuffer(),
+      headers: form.getHeaders(),
+    });
+    //
+    expect(response.statusCode).toBe(400);
+    expect(response.json().message).toContain("doesn't accept file");
+  });
 });

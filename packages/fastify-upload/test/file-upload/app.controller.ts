@@ -1,4 +1,4 @@
-import { Controller, Post, StreamableFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Post, StreamableFile, UseInterceptors } from '@nestjs/common';
 import { join } from 'node:path';
 
 import {
@@ -28,6 +28,22 @@ export class AppController {
     success: boolean;
   } {
     return { success: !!file };
+  }
+
+  @Post('single-with-body')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: new MemoryStorage(),
+    }),
+  )
+  uploadSingleFileWithBody(
+    @UploadedFile() file: MemoryStorageFile,
+    @Body() body: Record<string, unknown>,
+  ): {
+    success: boolean;
+    body: Record<string, unknown>;
+  } {
+    return { success: !!file, body };
   }
 
   @Post('multiple')

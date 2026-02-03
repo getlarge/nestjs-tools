@@ -115,3 +115,6 @@ junit.xml
 .tmp/
 .nx/cache
 .nx/workspace-data
+
+# Git worktrees
+.worktrees/

@@ -31,6 +31,7 @@ function config(setup: FileStorageS3Setup) {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const loaderFn = (): { S3: typeof import('@aws-sdk/client-s3').S3 } => require('@aws-sdk/client-s3');
   const { S3 } = loadPackage('@aws-sdk/client-s3', FileStorageS3.name, loaderFn);
+
   const s3 = new S3({
     /**
      * We cannot really make calls without credentials unless we use a workaround
@@ -38,6 +39,13 @@ function config(setup: FileStorageS3Setup) {
      */
     ...(credentials ? { credentials } : {}),
     region,
+    // Add endpoint configuration for DigitalOcean Spaces and other S3-compatible services
+    ...(endpoint
+      ? {
+          endpoint,
+          forcePathStyle: false, // Use virtual-hosted-style URLs (required for DigitalOcean Spaces)
+        }
+      : {}),
     ...(logger ? { logger } : {}),
   });
 
@@ -71,8 +79,19 @@ export class FileStorageS3 implements FileStorage {
   }
 
   static extractRegionFromEndpoint(endpoint: string): string | null {
-    const match = endpoint?.match(/(?<=\.)[^.]+(?=\.amazonaws\.com)/);
-    return match?.length ? match[0] : null;
+    // Handle AWS S3 endpoints
+    const awsMatch = endpoint?.match(/(?<=\.)[^.]+(?=\.amazonaws\.com)/);
+    if (awsMatch?.length) {
+      return awsMatch[0];
+    }
+
+    // Handle DigitalOcean Spaces endpoints (e.g., nyc3.digitaloceanspaces.com)
+    const doMatch = endpoint?.match(/^https?:\/\/([^.]+)\.digitaloceanspaces\.com/);
+    if (doMatch && doMatch?.length > 1) {
+      return doMatch[1];
+    }
+
+    return null;
   }
 
   transformFilePath(

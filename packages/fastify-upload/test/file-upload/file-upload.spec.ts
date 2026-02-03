@@ -223,4 +223,49 @@ describe('Fastify File Upload', () => {
     expect(response.statusCode).toBe(400);
     expect(response.json().message).toContain("doesn't accept file");
   });
+
+  it('should accumulate duplicate non-file fields into array', async () => {
+    const form = new FormData();
+    form.append('file', await readFile(join(process.cwd(), 'package.json')), {
+      contentType: 'application/json',
+      filename: 'package.json',
+    });
+    form.append('_owners', '66fd50bd17e6f4cd32155180');
+    form.append('_owners', '62e2811173380ab36ef0f240');
+    //
+    const response = await app.inject({
+      method: 'POST',
+      url: '/single-with-body',
+      body: form.getBuffer(),
+      headers: form.getHeaders(),
+    });
+    //
+    expect(response.statusCode).toBe(201);
+    const data = response.json();
+    expect(data.success).toBe(true);
+    expect(data.body._owners).toEqual(['66fd50bd17e6f4cd32155180', '62e2811173380ab36ef0f240']);
+  });
+
+  it('should accumulate three duplicate fields into array', async () => {
+    const form = new FormData();
+    form.append('file', await readFile(join(process.cwd(), 'package.json')), {
+      contentType: 'application/json',
+      filename: 'package.json',
+    });
+    form.append('tags', 'tag1');
+    form.append('tags', 'tag2');
+    form.append('tags', 'tag3');
+    //
+    const response = await app.inject({
+      method: 'POST',
+      url: '/single-with-body',
+      body: form.getBuffer(),
+      headers: form.getHeaders(),
+    });
+    //
+    expect(response.statusCode).toBe(201);
+    const data = response.json();
+    expect(data.success).toBe(true);
+    expect(data.body.tags).toEqual(['tag1', 'tag2', 'tag3']);
+  });
 });

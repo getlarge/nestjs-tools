@@ -6,6 +6,7 @@ import type { Storage, StorageFile } from '../../storage';
 import { filterUpload } from '../filter';
 import type { TransformedUploadOptions } from '../options';
 import { getParts } from '../request';
+import { accumulateField } from './body-accumulator';
 import { HandlerResponse } from './types';
 
 const removeFiles = async (storage: Storage, file?: StorageFile, error?: boolean): Promise<void> => {
@@ -38,7 +39,7 @@ export const handleMultipartSingleFile = async <
           file = _file;
         }
       } else {
-        body[part.fieldname] = part.value;
+        accumulateField(body, part.fieldname, part.value);
       }
     }
   } catch (error) {

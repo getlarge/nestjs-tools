@@ -7,6 +7,7 @@ import { removeStorageFiles } from '../file';
 import { filterUpload } from '../filter';
 import type { TransformedUploadOptions } from '../options';
 import { getParts } from '../request';
+import { accumulateField } from './body-accumulator';
 import { HandlerResponse } from './types';
 
 export interface UploadField {
@@ -65,7 +66,7 @@ export const handleMultipartFileFields = async <
           files[part.fieldname].push(file);
         }
       } else {
-        body[part.fieldname] = part.value;
+        accumulateField(body, part.fieldname, part.value);
       }
     }
   } catch (error) {

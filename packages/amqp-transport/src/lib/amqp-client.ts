@@ -20,7 +20,7 @@ import {
 } from '@nestjs/microservices/constants';
 import type { RmqUrl } from '@nestjs/microservices/external/rmq-url.interface';
 import { AmqpConnectionManager, Channel, ChannelWrapper, connect } from 'amqp-connection-manager';
-import type { Connection, Options } from 'amqplib';
+import type { Connection, ConsumeMessage, Options } from 'amqplib';
 import type PromiseBreaker from 'promise-breaker';
 import { EmptyError, firstValueFrom, fromEvent, merge, Observable, ReplaySubject } from 'rxjs';
 import { first, map, retryWhen, scan, skip, switchMap } from 'rxjs/operators';
@@ -33,6 +33,8 @@ import { AmqpRecordSerializer } from './amqp-record.serializer';
 export interface ConsumeMessageEvent extends EventHandlers {
   [correlationId: string]: (event: { content: Buffer; options: Record<string, unknown> }) => Promise<void> | void;
 }
+
+const REPLY_QUEUE = 'amq.rabbitmq.reply-to';
 
 export class AmqpClient extends ClientProxy<RmqEvents, string> {
   protected readonly logger = new Logger(ClientProxy.name);
@@ -68,7 +70,7 @@ export class AmqpClient extends ClientProxy<RmqEvents, string> {
     this.urls = this.getOptionsProp(this.options, 'urls') || [RQM_DEFAULT_URL];
     this.queue = this.getOptionsProp(this.options, 'queue') || undefined;
     this.queueOptions = this.getOptionsProp(this.options, 'queueOptions') || RQM_DEFAULT_QUEUE_OPTIONS;
-    this.replyQueue = this.getOptionsProp(this.options, 'replyQueue') || '';
+    this.replyQueue = this.getOptionsProp(this.options, 'replyQueue') || REPLY_QUEUE;
     //? use RMQ_DEFAULT_REPLY_QUEUE_OPTIONS
     this.replyQueueOptions = this.getOptionsProp(this.options, 'replyQueueOptions') || RQM_DEFAULT_QUEUE_OPTIONS;
     this.persistent = this.getOptionsProp(this.options, 'persistent') || RQM_DEFAULT_PERSISTENT;
@@ -131,10 +133,7 @@ export class AmqpClient extends ClientProxy<RmqEvents, string> {
     const withReconnect$ = fromEvent<{ connection: Connection; url: string }>(
       this.client,
       'connect',
-      ({ connection, url }) => ({
-        connection,
-        url,
-      }),
+      (event) => event,
     ).pipe(skip(1));
     const source$ = merge(withDisconnect$, withReconnect$);
 
@@ -198,36 +197,35 @@ export class AmqpClient extends ClientProxy<RmqEvents, string> {
     });
   }
 
-  async createChannel(): Promise<void> {
-    const noAck = this.getOptionsProp(this.options, 'noAck', RQM_DEFAULT_NOACK);
-    if (!this.client) {
-      throw new Error('No client found');
-    }
-    const channel = this.client.createChannel({
-      json: false,
-      setup: (channel: Channel) => this.setupChannel(channel),
-    });
-    this.channel = channel;
-
+  createChannel(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      channel
-        .once('connect', () => {
-          // at this time `setReplyQueue` should have ben called to assert the reply queue
-          // if replyQueue is still undefined it means that we don't need a reply queue for this client
-          if (!this.replyQueue) {
-            return resolve();
-          }
-          channel
-            .consume(this.replyQueue, (msg) => this.responseEmitter.emit(msg.properties.correlationId, msg), {
-              noAck,
-              // prefetch: this.prefetchCount,
-            })
-            .then(() => resolve())
-            .catch((e) => reject(e));
-        })
-        .once('error', (err) => {
-          reject(err);
-        });
+      if (!this.client) {
+        return reject(new Error('No client found'));
+      }
+      this.channel =
+        this.client?.createChannel({
+          json: false,
+          setup: (channel: Channel) => this.setupChannel(channel, resolve),
+        }) || null;
+
+      // this.channel
+      //   ?.once('connect', () => {
+      //     // at this time `setReplyQueue` should have ben called to assert the reply queue
+      //     // if replyQueue is still undefined it means that we don't need a reply queue for this client
+      //     if (!this.replyQueue) {
+      //       return resolve();
+      //     }
+      //     this.channel
+      //       ?.consume(this.replyQueue, (msg) => this.responseEmitter.emit(msg.properties.correlationId, msg), {
+      //         noAck,
+      //         // prefetch: this.prefetchCount,
+      //       })
+      //       .then(() => resolve())
+      //       .catch((e) => reject(e));
+      //   })
+      //   .once('error', (err) => {
+      //     reject(err);
+      //   });
     });
   }
 
@@ -264,7 +262,18 @@ export class AmqpClient extends ClientProxy<RmqEvents, string> {
     }
   }
 
-  async setupChannel(channel: Channel): Promise<void> {
+  public async consumeChannel(channel: Channel) {
+    const noAck = this.getOptionsProp(this.options, 'noAck', RQM_DEFAULT_NOACK);
+    await channel.consume(
+      this.replyQueue,
+      (msg: ConsumeMessage | null) => (msg ? this.responseEmitter.emit(msg.properties.correlationId, msg) : void 0),
+      {
+        noAck,
+      },
+    );
+  }
+
+  async setupChannel(channel: Channel, resolve: (value: void | PromiseLike<void>) => void): Promise<void> {
     if (this.exchange && !this.skipExchangeAssert) {
       await channel.assertExchange(this.exchange, this.exchangeType, this.exchangeOptions);
     }
@@ -273,6 +282,8 @@ export class AmqpClient extends ClientProxy<RmqEvents, string> {
     }
     await this.setReplyQueue(channel);
     await channel.prefetch(this.prefetchCount, this.isGlobalPrefetchCount);
+    await this.consumeChannel(channel);
+    resolve();
   }
 
   override on<

@@ -43,6 +43,14 @@ const isPrimitive = (value: string) => {
   return value === 'string' || value === 'number' || value === 'boolean';
 };
 
+// const isUndefined = (value: string) => {
+//   return value === 'undefined';
+// };
+
+// const isNull = (value: string) => {
+//   return value === 'null';
+// };
+
 const isBuffer = (value: string) => {
   return value === 'Buffer';
 };
@@ -124,7 +132,6 @@ const getClassNameFromThisServiceMethod = (expression: TSESTree.Expression): str
   return null;
 };
 
-// eslint-disable-next-line complexity
 const doesReturnClassInstance = (expression: TSESTree.Expression, typeName: string, extractedTypes: string[]) => {
   // Handle class instance
   if (getClassName(expression) === typeName) {

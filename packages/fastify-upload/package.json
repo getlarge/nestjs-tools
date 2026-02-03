@@ -1,6 +1,6 @@
 {
   "name": "@getlarge/nestjs-tools-fastify-upload",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Fastify Upload utilies for NestJS",
   "keywords": [
     "fastify",

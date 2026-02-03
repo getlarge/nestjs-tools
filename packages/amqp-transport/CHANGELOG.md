@@ -1,3 +1,17 @@
+## 0.7.1 (2026-02-03)
+
+### 🩹 Fixes
+
+- **nestjs-tools-amqp-transport:** warn when using amq.rabbitmq.reply-to with noAck=false ([8f14f15](https://github.com/getlarge/nestjs-tools/commit/8f14f15))
+- **nestjs-tools-amqp-transport:** force noAck=true for amq.rabbitmq.reply-to in RabbitMQ 4 ([746b5f4](https://github.com/getlarge/nestjs-tools/commit/746b5f4))
+- **nestjs-tools-fastify-upload:** accumulate duplicate multipart field names into arrays ([360a3f5](https://github.com/getlarge/nestjs-tools/commit/360a3f5))
+- **nestjs-tools-amqp-transport:** upgrade amqplib to 0.10.9 for RabbitMQ 4 compatibility ([4c889ce](https://github.com/getlarge/nestjs-tools/commit/4c889ce))
+- **nestjs-tools-fastify-upload:** file interceptor should process all multipart fields ([0f54b45](https://github.com/getlarge/nestjs-tools/commit/0f54b45))
+
+### ❤️ Thank You
+
+- getlarge
+
 ## 0.7.0 (2025-01-31)
 
 ### 🚀 Features

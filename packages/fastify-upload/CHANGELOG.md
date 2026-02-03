@@ -1,3 +1,15 @@
+## 0.1.7 (2026-02-03)
+
+### 🩹 Fixes
+
+- **nestjs-tools-fastify-upload:** accumulate duplicate multipart field names into arrays ([360a3f5](https://github.com/getlarge/nestjs-tools/commit/360a3f5))
+- **nestjs-tools-amqp-transport:** upgrade amqplib to 0.10.9 for RabbitMQ 4 compatibility ([4c889ce](https://github.com/getlarge/nestjs-tools/commit/4c889ce))
+- **nestjs-tools-fastify-upload:** file interceptor should process all multipart fields ([0f54b45](https://github.com/getlarge/nestjs-tools/commit/0f54b45))
+
+### ❤️ Thank You
+
+- getlarge
+
 ## 0.1.6 (2025-01-31)
 
 ### 🩹 Fixes

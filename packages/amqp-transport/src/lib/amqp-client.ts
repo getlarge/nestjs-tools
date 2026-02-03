@@ -266,6 +266,14 @@ export class AmqpClient extends ClientProxy<RmqEvents, string> {
     const noAck = this.getOptionsProp(this.options, 'noAck', RQM_DEFAULT_NOACK);
     // RabbitMQ 4.x requires noAck=true for the special amq.rabbitmq.reply-to pseudo-queue
     const isDirectReplyTo = this.replyQueue === REPLY_QUEUE;
+
+    if (isDirectReplyTo && !noAck) {
+      this.logger.error(
+        `Configuration error: replyQueue '${REPLY_QUEUE}' requires noAck=true in RabbitMQ 4.x. ` +
+          'Either set noAck=true or use a custom reply queue name. Forcing noAck=true.',
+      );
+    }
+
     await channel.consume(
       this.replyQueue,
       (msg: ConsumeMessage | null) => (msg ? this.responseEmitter.emit(msg.properties.correlationId, msg) : void 0),

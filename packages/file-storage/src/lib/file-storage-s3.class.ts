@@ -88,19 +88,16 @@ export class FileStorageS3 implements FileStorage {
   static extractRegionFromEndpoint(endpoint: string): string | null {
     if (!endpoint) return null;
     const host = endpoint.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
-    const patterns: RegExp[] = [
-      // AWS: s3.<region>.amazonaws.com  |  <bucket>.s3.<region>.amazonaws.com
-      /(?:^|\.)s3[.-]([^.]+)\.amazonaws\.com$/,
-      // OVH: s3.<region>.(perf.)?cloud.ovh.net
-      /^s3\.([^.]+)\.(?:perf\.)?cloud\.ovh\.net$/,
-      // DigitalOcean Spaces: <region>.digitaloceanspaces.com
-      /^([^.]+)\.digitaloceanspaces\.com$/,
-    ];
-    for (const re of patterns) {
-      const m = host.match(re);
-      if (m) return m[1];
-    }
-    return null;
+    // OVH: s3.<region>.(perf.)?cloud.ovh.net
+    const ovh = host.match(/^s3\.([^.]+)\.(?:perf\.)?cloud\.ovh\.net$/);
+    if (ovh) return ovh[1];
+    // DigitalOcean Spaces: <region>.digitaloceanspaces.com
+    const doSpaces = host.match(/^([^.]+)\.digitaloceanspaces\.com$/);
+    if (doSpaces) return doSpaces[1];
+    // AWS: last dotted segment before `.amazonaws.com` across all variants
+    // (s3, s3-fips, s3.dualstack, s3-control, s3-accesspoint, virtual-hosted, etc.)
+    const aws = host.match(/(?<=\.)[^.]+(?=\.amazonaws\.com$)/);
+    return aws?.length ? aws[0] : null;
   }
 
   transformFilePath(

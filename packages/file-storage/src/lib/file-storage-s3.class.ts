@@ -23,10 +23,12 @@ import { loadPackage } from './helpers';
 import { FileStorageWritable, MethodTypes, Request } from './types';
 
 function config(setup: FileStorageS3Setup) {
-  const { bucket, maxPayloadSize, credentials, endpoint, logger } = setup;
+  const { bucket, maxPayloadSize, credentials, endpoint, forcePathStyle, logger } = setup;
   const region = setup.region ?? FileStorageS3.extractRegionFromEndpoint(endpoint ?? '');
   if (!region) {
-    throw new Error('AWS region is missing');
+    throw new Error(
+      'AWS region is missing: pass `region` explicitly or use an endpoint whose region can be auto-extracted',
+    );
   }
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const loaderFn = (): { S3: typeof import('@aws-sdk/client-s3').S3 } => require('@aws-sdk/client-s3');
@@ -38,6 +40,8 @@ function config(setup: FileStorageS3Setup) {
      */
     ...(credentials ? { credentials } : {}),
     region,
+    ...(endpoint ? { endpoint } : {}),
+    ...(forcePathStyle !== undefined ? { forcePathStyle } : {}),
     ...(logger ? { logger } : {}),
   });
 
@@ -70,9 +74,33 @@ export class FileStorageS3 implements FileStorage {
     this.config = typeof factory === 'function' ? factory(setup) : config(setup);
   }
 
+  /**
+   * Auto-extracts the region from well-known S3-compatible endpoint shapes.
+   *
+   * Supported providers:
+   * - AWS S3: `s3.<region>.amazonaws.com` and `<bucket>.s3.<region>.amazonaws.com`
+   * - OVH Object Storage: `s3.<region>.cloud.ovh.net` and `s3.<region>.perf.cloud.ovh.net`
+   * - DigitalOcean Spaces: `<region>.digitaloceanspaces.com`
+   *
+   * Returns `null` if the endpoint does not match any known shape — in that case
+   * callers must pass `region` explicitly alongside `endpoint`.
+   */
   static extractRegionFromEndpoint(endpoint: string): string | null {
-    const match = endpoint?.match(/(?<=\.)[^.]+(?=\.amazonaws\.com)/);
-    return match?.length ? match[0] : null;
+    if (!endpoint) return null;
+    const host = endpoint.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+    const patterns: RegExp[] = [
+      // AWS: s3.<region>.amazonaws.com  |  <bucket>.s3.<region>.amazonaws.com
+      /(?:^|\.)s3[.-]([^.]+)\.amazonaws\.com$/,
+      // OVH: s3.<region>.(perf.)?cloud.ovh.net
+      /^s3\.([^.]+)\.(?:perf\.)?cloud\.ovh\.net$/,
+      // DigitalOcean Spaces: <region>.digitaloceanspaces.com
+      /^([^.]+)\.digitaloceanspaces\.com$/,
+    ];
+    for (const re of patterns) {
+      const m = host.match(re);
+      if (m) return m[1];
+    }
+    return null;
   }
 
   transformFilePath(

@@ -24,11 +24,24 @@ import type {
 } from './file-storage.types';
 
 /**
- * Either region or endpoint must be provided
+ * At least one of `region` or `endpoint` must be provided.
+ *
+ * - `region` alone targets AWS S3 in that region.
+ * - `endpoint` alone targets an S3-compatible provider; the region is auto-extracted
+ *   from well-known endpoint shapes (AWS, OVH, DigitalOcean Spaces). If extraction
+ *   fails, pass `region` explicitly alongside `endpoint`.
+ * - Both together are valid and required for most S3-compatible providers, since
+ *   SigV4 signing always needs a region regardless of endpoint.
+ *
+ * `forcePathStyle` is forwarded to the underlying S3 client — enable it for
+ * providers that do not support virtual-hosted style addressing (e.g. MinIO).
  */
 export type FileStorageS3Setup = {
   bucket: string;
   maxPayloadSize: number;
+  region?: string;
+  endpoint?: string;
+  forcePathStyle?: boolean;
   credentials?: {
     accessKeyId: string;
     secretAccessKey: string;
@@ -36,7 +49,7 @@ export type FileStorageS3Setup = {
   };
   logger?: S3['config']['logger'];
   [key: string]: unknown;
-} & ({ region: string; endpoint?: never } | { endpoint: string; region?: never });
+} & ({ region: string } | { endpoint: string });
 
 export interface FileStorageS3Config {
   s3: S3;

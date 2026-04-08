@@ -87,7 +87,15 @@ export class FileStorageS3 implements FileStorage {
    */
   static extractRegionFromEndpoint(endpoint: string): string | null {
     if (!endpoint) return null;
-    const host = endpoint.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+    // Parse with URL when a scheme is present; fall back to the raw string
+    // (treated as a host) otherwise. Avoids regex-based stripping that
+    // CodeQL flags as a polynomial ReDoS risk.
+    let host: string;
+    try {
+      host = new URL(endpoint.includes('://') ? endpoint : `https://${endpoint}`).hostname;
+    } catch {
+      return null;
+    }
     // OVH: s3.<region>.(perf.)?cloud.ovh.net
     const ovh = host.match(/^s3\.([^.]+)\.(?:perf\.)?cloud\.ovh\.net$/);
     if (ovh) return ovh[1];

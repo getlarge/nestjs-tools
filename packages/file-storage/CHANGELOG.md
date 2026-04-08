@@ -1,3 +1,18 @@
+## 1.4.3 (2026-04-08)
+
+### 🩹 Fixes
+
+- **nestjs-tools-file-storage:** parse endpoint with URL to avoid ReDoS warning ([ffc9b2c](https://github.com/getlarge/nestjs-tools/commit/ffc9b2c))
+- **nestjs-tools-file-storage:** preserve AWS endpoint variants in region extraction ([6292d16](https://github.com/getlarge/nestjs-tools/commit/6292d16))
+- **nestjs-tools-file-storage:** forward endpoint to S3 client and extend region extraction ([0f32ab9](https://github.com/getlarge/nestjs-tools/commit/0f32ab9))
+- **nestjs-tools-fastify-upload:** accumulate duplicate multipart field names into arrays ([360a3f5](https://github.com/getlarge/nestjs-tools/commit/360a3f5))
+- **nestjs-tools-amqp-transport:** upgrade amqplib to 0.10.9 for RabbitMQ 4 compatibility ([4c889ce](https://github.com/getlarge/nestjs-tools/commit/4c889ce))
+- **nestjs-tools-fastify-upload:** file interceptor should process all multipart fields ([0f54b45](https://github.com/getlarge/nestjs-tools/commit/0f54b45))
+
+### ❤️ Thank You
+
+- getlarge
+
 ## 1.4.2 (2025-01-31)
 
 ### 🩹 Fixes

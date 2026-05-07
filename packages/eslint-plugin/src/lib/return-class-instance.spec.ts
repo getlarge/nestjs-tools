@@ -165,6 +165,28 @@ const unionWithNullReturnType = `import { Injectable } from '@nestjs/common';
       }
     }`;
 
+const classUnionReturnType = `import { Injectable } from '@nestjs/common';
+    class A { constructor(p) { Object.assign(this, p); } }
+    class B { constructor(p) { Object.assign(this, p); } }
+    @Injectable()
+    export class AppService {
+      getData(flag: boolean): A | B {
+        if (flag) return new A({});
+        return new B({});
+      }
+    }`;
+
+const classUnionPromiseArrayReturnType = `import { Injectable } from '@nestjs/common';
+    class A { constructor(p) { Object.assign(this, p); } }
+    class B { constructor(p) { Object.assign(this, p); } }
+    @Injectable()
+    export class AppService {
+      async getAll(exportConfig: boolean): Promise<A[] | B[]> {
+        const items = [{}];
+        return items.map((x) => exportConfig ? new A(x) : new B(x));
+      }
+    }`;
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const modifiedClassInstance = `import { Injectable } from '@nestjs/common';
       class Test {
@@ -197,6 +219,8 @@ ruleTester.run(RULE_NAME, rule, {
     primitiveUnionReturnType,
     primitiveUnionResolvedReturnType,
     unionWithNullReturnType,
+    classUnionReturnType,
+    classUnionPromiseArrayReturnType,
     // TODO: modifiedClassInstance
   ],
   invalid: [
@@ -242,6 +266,21 @@ ruleTester.run(RULE_NAME, rule, {
           export class AppService {
             getData(): Test {
               return new Test().toJSON();
+            }
+          }`,
+    },
+    {
+      errors: [{ messageId: 'returnClassInstance' }],
+      code: `
+          import { Injectable } from '@nestjs/common';
+          class A { constructor(p) { Object.assign(this, p); } }
+          class B { constructor(p) { Object.assign(this, p); } }
+          class C { constructor(p) { Object.assign(this, p); } }
+          @Injectable()
+          export class AppService {
+            getData(flag: boolean): A | B {
+              if (flag) return new A({});
+              return new C({});
             }
           }`,
     },

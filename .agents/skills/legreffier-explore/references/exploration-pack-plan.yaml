@@ -1,0 +1,56 @@
+# Template for a diary exploration scratch artifact.
+# Copy this file to a gitignored path such as
+# `.scratch/legreffier-explore/exploration-pack-plan.yaml` before editing.
+# Do not edit or commit this bundled template directly.
+# Only promote a scratch copy to the diary if explicitly requested later.
+
+diary: <diary-name>
+generated_at: <ISO timestamp>
+entries_analyzed: <count>
+temporal_range:
+  start: <earliest>
+  end: <most_recent>
+
+operator_controls:
+  objective: <what the operator wants from this exploration>
+  chosen_direction: <incident-first | decision-first | subsystem-first | retrieval-first>
+  preferred_tags: []
+  excluded_tags: []
+  entry_types: []
+  search_terms: []
+  time_range:
+    start: null
+    end: null
+  inferred_defaults: false
+  notes: <optional steering from the operator>
+
+inventory:
+  entry_types: {}
+  top_tags: {}
+
+tag_namespaces: {}
+
+agent_mistakes:
+  critical_high: []
+  medium_low: []
+
+commit_patterns:
+  top_tags: {}
+  branches: {}
+  anti_patterns: []
+
+coverage_gaps: []
+
+noise_sources: []
+
+recommended_compile_recipes: []
+
+manual_pack_plan:
+  candidate_topics: []
+  candidate_entry_ids: []
+  selection_rules:
+    - prefer incidents with clear preventive context
+    - prefer decisions plus procedural entries that operationalize them
+    - avoid noisy traces unless the objective is gap analysis
+  deferred_questions: []
+  next_step: create a curated packs_create payload from selected entry IDs

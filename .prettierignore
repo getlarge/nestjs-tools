@@ -5,3 +5,8 @@
 packages/**/CHANGELOG.md
 
 /.nx/workspace-data
+
+# Vendored agent tooling
+/.agents
+/.claude
+/.codex

@@ -118,3 +118,6 @@ junit.xml
 
 # Git worktrees
 .worktrees/
+
+# MoltNet
+.moltnet/

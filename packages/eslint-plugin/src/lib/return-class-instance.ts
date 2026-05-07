@@ -103,6 +103,29 @@ const getClassNameFromMap = (expression: TSESTree.Expression): string | null => 
   return null;
 };
 
+const getClassNamesFromMap = (expression: TSESTree.Expression): string[] => {
+  if (
+    expression.type !== 'CallExpression' ||
+    expression.callee?.type !== 'MemberExpression' ||
+    expression.callee.property.type !== 'Identifier' ||
+    expression.callee.property.name !== 'map' ||
+    expression.arguments[0]?.type !== 'ArrowFunctionExpression'
+  ) {
+    return [];
+  }
+  const body = expression.arguments[0].body;
+  const collect = (node: TSESTree.Node): string[] => {
+    if (node.type === 'NewExpression' && node.callee?.type === 'Identifier') {
+      return [node.callee.name];
+    }
+    if (node.type === 'ConditionalExpression') {
+      return [...collect(node.consequent), ...collect(node.alternate)];
+    }
+    return [];
+  };
+  return collect(body);
+};
+
 const getClassNameFromPromiseResolve = (expression: TSESTree.Expression): string | null => {
   if (
     expression.type === 'CallExpression' &&
@@ -132,19 +155,32 @@ const getClassNameFromThisServiceMethod = (expression: TSESTree.Expression): str
   return null;
 };
 
-const doesReturnClassInstance = (expression: TSESTree.Expression, typeName: string, extractedTypes: string[]) => {
-  // Handle class instance
-  if (getClassName(expression) === typeName) {
+const doesReturnClassInstance = (
+  expression: TSESTree.Expression,
+  classNames: Set<string>,
+  extractedTypes: string[],
+) => {
+  // Handle class instance — any class name in the union is acceptable
+  const directClass = getClassName(expression);
+  if (directClass && classNames.has(directClass)) {
     return true;
   }
   // Handle array of class instances
-  if (getClassNameFromArray(expression) === typeName) {
+  const arrayClass = getClassNameFromArray(expression);
+  if (arrayClass && classNames.has(arrayClass)) {
     return true;
   }
-  if (getClassNameFromMap(expression) === typeName) {
+  const mapClass = getClassNameFromMap(expression);
+  if (mapClass && classNames.has(mapClass)) {
     return true;
   }
-  if (getClassNameFromPromiseResolve(expression) === typeName) {
+  // Conditional / multi-class .map() body — every produced class must be in the union
+  const mapClasses = getClassNamesFromMap(expression);
+  if (mapClasses.length > 0 && mapClasses.every((name) => classNames.has(name))) {
+    return true;
+  }
+  const promiseClass = getClassNameFromPromiseResolve(expression);
+  if (promiseClass && classNames.has(promiseClass)) {
     return true;
   }
   if (getClassNameFromThisServiceMethod(expression)) {
@@ -189,7 +225,6 @@ export const rule = ESLintUtils.RuleCreator(() => __filename)({
           });
         } else {
           const returnTypeText = context.sourceCode.getText(returnType);
-          const typeName = getTypeNameFromReturnType(returnTypeText);
           const extractedTypes = extractUnionTypes(getTypeNameFromReturnType(returnTypeText));
 
           // If all union types are primitive, void, or literals, we return early
@@ -197,11 +232,15 @@ export const rule = ESLintUtils.RuleCreator(() => __filename)({
             return;
           }
 
+          // Class names accepted for return-statement matching: every union member
+          // that isn't a primitive/literal/null/void/Buffer is treated as a class name.
+          const classNames = new Set(extractedTypes.filter((t) => !isValidReturnType(t)));
+
           const returnStatements = node.value?.body?.body?.filter((node) => node.type === 'ReturnStatement');
           const methodReturnsClassInstance = returnStatements
             ? returnStatements.every((returnStatement) =>
                 returnStatement.argument
-                  ? doesReturnClassInstance(returnStatement.argument, typeName, extractedTypes)
+                  ? doesReturnClassInstance(returnStatement.argument, classNames, extractedTypes)
                   : false,
               )
             : false;

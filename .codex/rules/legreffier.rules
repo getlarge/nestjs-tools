@@ -1,0 +1,102 @@
+# Codex sandbox rules for LeGreffier
+#
+# Allow the commands that the legreffier skill needs to run.
+# GH_TOKEN is injected inline; see $legreffier skill for details.
+
+# Read-only git commands (session activation & commit workflow)
+prefix_rule(
+    pattern = ["git", "config"],
+    decision = "allow",
+)
+prefix_rule(
+    pattern = ["git", "diff"],
+    decision = "allow",
+)
+prefix_rule(
+    pattern = ["git", "log"],
+    decision = "allow",
+)
+prefix_rule(
+    pattern = ["git", "rev-parse"],
+    decision = "allow",
+)
+prefix_rule(
+    pattern = ["git", "worktree", "list"],
+    decision = "allow",
+)
+
+# MoltNet CLI — signing, diary, & token generation
+prefix_rule(
+    pattern = ["npx", "@themoltnet/cli", "sign"],
+    decision = "allow",
+)
+prefix_rule(
+    pattern = ["npx", "@themoltnet/cli", "diary", "commit"],
+    decision = "allow",
+)
+prefix_rule(
+    pattern = ["npx", "@themoltnet/cli", "diary", "create-signed"],
+    decision = "allow",
+)
+prefix_rule(
+    pattern = ["npx", "@themoltnet/cli", "diary", "verify"],
+    decision = "allow",
+)
+prefix_rule(
+    pattern = ["npx", "@themoltnet/cli", "github", "token"],
+    decision = "allow",
+)
+prefix_rule(
+    pattern = ["moltnet", "sign"],
+    decision = "allow",
+)
+prefix_rule(
+    pattern = ["moltnet", "diary", "commit"],
+    decision = "allow",
+)
+prefix_rule(
+    pattern = ["moltnet", "diary", "create-signed"],
+    decision = "allow",
+)
+prefix_rule(
+    pattern = ["moltnet", "diary", "verify"],
+    decision = "allow",
+)
+prefix_rule(
+    pattern = ["moltnet", "github", "token"],
+    decision = "allow",
+)
+
+# GitHub CLI — read-only subcommands (write ops prompt the user)
+prefix_rule(
+    pattern = ["gh", "pr", "view"],
+    decision = "allow",
+)
+prefix_rule(
+    pattern = ["gh", "pr", "list"],
+    decision = "allow",
+)
+prefix_rule(
+    pattern = ["gh", "issue", "view"],
+    decision = "allow",
+)
+prefix_rule(
+    pattern = ["gh", "issue", "list"],
+    decision = "allow",
+)
+prefix_rule(
+    pattern = ["gh", "repo", "view"],
+    decision = "allow",
+)
+
+# Worktree symlink creation
+prefix_rule(
+    pattern = ["ln", "-s"],
+    decision = "allow",
+)
+
+# Session activation env export
+prefix_rule(
+    pattern = ["echo"],
+    decision = "allow",
+)

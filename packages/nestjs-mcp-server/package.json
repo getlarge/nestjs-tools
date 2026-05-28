@@ -22,7 +22,8 @@
     "tslib": "^2.3.0"
   },
   "peerDependencies": {
-    "@nestjs/common": "^10 || ^11"
+    "@nestjs/common": "^10 || ^11",
+    "reflect-metadata": "^0.1.13 || ^0.2.0"
   },
   "type": "commonjs",
   "main": "./src/index.js",

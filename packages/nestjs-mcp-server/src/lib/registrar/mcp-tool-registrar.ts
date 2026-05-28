@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { ZodObject, ZodRawShape } from 'zod';
 
+import {
+  MCP_APP_METADATA,
+  McpAppMetadata,
+} from '../decorators/mcp-app.decorator';
 import { McpDiscoveryService } from '../discovery/mcp-discovery.service';
 import { McpRequestContext } from '../execution/mcp-execution-context';
 import {
@@ -57,10 +61,39 @@ export class McpToolRegistrar {
             instance: descriptor.instance,
             request,
           });
-          return this.toToolResult(result);
+          return this.applyAppMeta(
+            this.toToolResult(result),
+            this.readAppMetadata(descriptor.providerClass, descriptor.methodName)
+          );
         }
       );
     }
+  }
+
+  private readAppMetadata(
+    providerClass: { prototype?: Record<string, unknown> },
+    methodName: string
+  ): McpAppMetadata | undefined {
+    const proto = providerClass.prototype;
+    if (!proto) return undefined;
+    return Reflect.getMetadata(MCP_APP_METADATA, proto, methodName) as
+      | McpAppMetadata
+      | undefined;
+  }
+
+  private applyAppMeta(
+    result: ReturnType<McpToolRegistrar['toToolResult']>,
+    app: McpAppMetadata | undefined
+  ): typeof result & { _meta?: Record<string, unknown> } {
+    if (!app) return result;
+    const enriched = { ...result } as typeof result & {
+      _meta?: Record<string, unknown>;
+    };
+    enriched._meta = {
+      ...(enriched._meta ?? {}),
+      'mcp/ui': { uri: app.uri },
+    };
+    return enriched;
   }
 
   private unwrapShape(

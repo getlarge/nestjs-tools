@@ -45,6 +45,7 @@
     "@eslint/eslintrc": "^2.1.1",
     "@eslint/js": "~8.57.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
+    "@nestjs/platform-express": "^11.1.24",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.6",
     "@nx/eslint": "20.4.0",

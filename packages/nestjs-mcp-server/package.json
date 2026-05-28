@@ -24,7 +24,8 @@
   "peerDependencies": {
     "@nestjs/common": "^10 || ^11",
     "@nestjs/core": "^10 || ^11",
-    "reflect-metadata": "^0.1.13 || ^0.2.0"
+    "reflect-metadata": "^0.1.13 || ^0.2.0",
+    "rxjs": "7"
   },
   "type": "commonjs",
   "main": "./src/index.js",

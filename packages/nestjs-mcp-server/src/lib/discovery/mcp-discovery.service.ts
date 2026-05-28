@@ -3,6 +3,14 @@ import { DiscoveryService, MetadataScanner } from '@nestjs/core';
 import { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 
 import {
+  MCP_PROMPT_METADATA,
+  McpPromptMetadata,
+} from '../decorators/mcp-prompt.decorator';
+import {
+  MCP_RESOURCE_METADATA,
+  McpResourceMetadata,
+} from '../decorators/mcp-resource.decorator';
+import {
   MCP_TOOL_METADATA,
   McpToolMetadata,
 } from '../decorators/mcp-tool.decorator';
@@ -16,6 +24,8 @@ export interface McpDecoratedMethod<TMetadata> {
 }
 
 export type McpToolDescriptor = McpDecoratedMethod<McpToolMetadata>;
+export type McpResourceDescriptor = McpDecoratedMethod<McpResourceMetadata>;
+export type McpPromptDescriptor = McpDecoratedMethod<McpPromptMetadata>;
 
 @Injectable()
 export class McpDiscoveryService {
@@ -26,6 +36,14 @@ export class McpDiscoveryService {
 
   discoverTools(): McpToolDescriptor[] {
     return this.scan<McpToolMetadata>(MCP_TOOL_METADATA);
+  }
+
+  discoverResources(): McpResourceDescriptor[] {
+    return this.scan<McpResourceMetadata>(MCP_RESOURCE_METADATA);
+  }
+
+  discoverPrompts(): McpPromptDescriptor[] {
+    return this.scan<McpPromptMetadata>(MCP_PROMPT_METADATA);
   }
 
   private scan<TMetadata>(

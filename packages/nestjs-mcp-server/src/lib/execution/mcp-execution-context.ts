@@ -26,6 +26,7 @@ export interface McpRequestContext {
 export interface McpExecutionContextInit {
   handler: (...args: unknown[]) => unknown;
   providerClass: Type;
+  methodName?: string;
   instance: object;
   request: McpRequestContext;
 }
@@ -43,6 +44,23 @@ export class McpExecutionContext implements ExecutionContext, ArgumentsHost {
 
   getHandler(): (...args: unknown[]) => unknown {
     return this.init.handler;
+  }
+
+  getMethodName(): string | undefined {
+    return this.init.methodName;
+  }
+
+  getOriginalMethod():
+    | ((...args: unknown[]) => unknown)
+    | undefined {
+    if (!this.init.methodName) return undefined;
+    const proto = this.init.providerClass.prototype as
+      | Record<string, unknown>
+      | undefined;
+    const method = proto?.[this.init.methodName];
+    return typeof method === 'function'
+      ? (method as (...args: unknown[]) => unknown)
+      : undefined;
   }
 
   getClass<T = unknown>(): Type<T> {

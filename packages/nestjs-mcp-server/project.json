@@ -1,0 +1,20 @@
+{
+  "name": "nestjs-mcp-server",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/nestjs-mcp-server/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/nestjs-mcp-server",
+        "tsConfig": "packages/nestjs-mcp-server/tsconfig.lib.json",
+        "packageJson": "packages/nestjs-mcp-server/package.json",
+        "main": "packages/nestjs-mcp-server/src/index.ts",
+        "assets": ["packages/nestjs-mcp-server/*.md"]
+      }
+    }
+  }
+}

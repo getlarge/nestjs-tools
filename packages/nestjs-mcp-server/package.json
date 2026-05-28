@@ -1,0 +1,30 @@
+{
+  "name": "@getlarge/nestjs-mcp-server",
+  "version": "0.1.0",
+  "description": "Build Model Context Protocol (MCP) servers idiomatically with NestJS",
+  "keywords": [
+    "nestjs",
+    "mcp",
+    "model-context-protocol",
+    "llm",
+    "tools",
+    "oauth2",
+    "fastify",
+    "express"
+  ],
+  "license": "Apache-2.0",
+  "author": "Edouard Maleix <ed@getlarge.eu>",
+  "homepage": "https://github.com/getlarge/nestjs-tools/tree/main/packages/nestjs-mcp-server",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^10 || ^11"
+  },
+  "type": "commonjs",
+  "main": "./src/index.js",
+  "typings": "./src/index.d.ts"
+}

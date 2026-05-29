@@ -54,10 +54,10 @@ class WildcardController {
 const baseOptions: AmqpOptions = {
   urls: [RMQ_URL],
   queue: QUEUE,
-  queueOptions: { durable: false, autoDelete: true },
+  queueOptions: { durable: true, autoDelete: true },
   exchange: EXCHANGE,
   exchangeType: 'topic',
-  exchangeOptions: { durable: false, autoDelete: true },
+  exchangeOptions: { durable: true, autoDelete: true },
   prefetchCount: RQM_DEFAULT_PREFETCH_COUNT,
   noAck: RQM_DEFAULT_NOACK,
 };

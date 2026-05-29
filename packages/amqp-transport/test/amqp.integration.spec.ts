@@ -36,12 +36,12 @@ const buildClientModule = (opts: BuildClientModuleOptions = {}): DynamicModule =
     urls: [opts.brokerUrl || RMQ_URL],
     queue: opts.queue || DUMMY_QUEUE,
     queueOptions: opts.queueOptions || {
-      durable: false,
+      durable: true,
       autoDelete: true,
     },
     replyQueue: opts.replyQueue || '',
     replyQueueOptions: opts.replyQueueOptions || {
-      durable: false,
+      durable: true,
       autoDelete: true,
     },
     prefetchCount: opts.prefetchCount || RQM_DEFAULT_PREFETCH_COUNT,
@@ -61,7 +61,7 @@ const createNestMicroserviceOptions = (options: AmqpOptions = {}) => {
     urls: [RMQ_URL],
     queue: DUMMY_QUEUE,
     queueOptions: {
-      durable: false,
+      durable: true,
       autoDelete: true,
     },
     // persistent: true,

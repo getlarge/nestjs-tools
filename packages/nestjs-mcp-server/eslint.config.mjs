@@ -11,7 +11,9 @@ const compat = new FlatCompat({
 
 export default [
   {
-    ignores: ['**/dist'],
+    // Example projects are standalone demos, not part of the published library.
+    // They use a more relaxed style (console.* for stdout logging, ad-hoc setup).
+    ignores: ['**/dist', 'examples/**'],
   },
   ...baseConfig,
   {

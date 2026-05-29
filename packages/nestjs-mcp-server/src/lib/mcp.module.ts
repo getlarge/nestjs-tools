@@ -4,7 +4,7 @@ import {
   Inject,
   Injectable,
   Module,
-  OnApplicationBootstrap,
+  NestModule,
   Provider,
 } from '@nestjs/common';
 import { DiscoveryModule, HttpAdapterHost } from '@nestjs/core';
@@ -24,9 +24,14 @@ import {
   McpResourceRegistrar,
   McpToolRegistrar,
 } from './registrar';
-import { mountWellKnownRoutes, resolveMcpHttpAdapter } from './transport';
+import {
+  mountStreamableHttp,
+  mountWellKnownRoutes,
+  resolveMcpHttpAdapter,
+} from './transport';
 
 export const MCP_SERVER = Symbol.for('nestjs-mcp-server:server');
+export const MCP_SERVER_FACTORY = Symbol.for('nestjs-mcp-server:server-factory');
 export const MCP_MODULE_OPTIONS = Symbol.for('nestjs-mcp-server:options');
 
 export interface McpServerInfo {
@@ -47,42 +52,53 @@ export interface McpModuleOptions {
   tokenValidator?: TokenValidator;
 }
 
+export type McpServerFactory = () => McpServer;
+
 @Injectable()
-class McpBootstrap implements OnApplicationBootstrap {
+class McpServerBuilder {
   constructor(
+    @Inject(MCP_MODULE_OPTIONS) private readonly options: McpModuleOptions,
     private readonly tools: McpToolRegistrar,
     private readonly resources: McpResourceRegistrar,
     private readonly prompts: McpPromptRegistrar,
-    private readonly apps: McpAppRegistrar,
-    private readonly httpAdapterHost: HttpAdapterHost,
-    @Inject(MCP_MODULE_OPTIONS) private readonly options: McpModuleOptions,
-    @Inject(MCP_SERVER) private readonly server: McpServer
+    private readonly apps: McpAppRegistrar
   ) {}
 
-  onApplicationBootstrap(): void {
-    this.tools.registerAll(this.server as never);
-    this.resources.registerAll(this.server as never);
-    this.prompts.registerAll(this.server as never);
-    this.apps.registerAll(this.server as never);
-    if (this.options.authorization?.enabled) {
-      const adapter = this.httpAdapterHost.httpAdapter;
-      if (adapter) {
-        const http = resolveMcpHttpAdapter(adapter);
-        mountWellKnownRoutes(http, this.options.authorization);
-      }
-    }
+  build(): McpServer {
+    const server = new McpServer(this.options.serverInfo);
+    this.tools.registerAll(server as never);
+    this.resources.registerAll(server as never);
+    this.prompts.registerAll(server as never);
+    this.apps.registerAll(server as never);
+    return server;
   }
 }
 
 @Module({})
-export class McpModule {
+export class McpModule implements NestModule {
+  constructor(
+    private readonly builder: McpServerBuilder,
+    private readonly httpAdapterHost: HttpAdapterHost,
+    @Inject(MCP_MODULE_OPTIONS) private readonly options: McpModuleOptions
+  ) {}
+
+  configure(): void {
+    const adapter = this.httpAdapterHost.httpAdapter;
+    if (!adapter) return;
+    const http = resolveMcpHttpAdapter(adapter);
+    if (this.options.authorization?.enabled) {
+      mountWellKnownRoutes(http, this.options.authorization);
+    }
+    mountStreamableHttp(http, {
+      path: this.options.transport.path ?? '/mcp',
+      stateless: this.options.transport.stateless ?? false,
+      buildServer: () => this.builder.build(),
+    });
+  }
+
   static forRoot(options: McpModuleOptions): DynamicModule {
     const providers: Provider[] = [
       { provide: MCP_MODULE_OPTIONS, useValue: options },
-      {
-        provide: MCP_SERVER,
-        useFactory: (): McpServer => new McpServer(options.serverInfo),
-      },
       McpDiscoveryService,
       McpPipelineRunner,
       McpToolRegistrar,
@@ -90,7 +106,18 @@ export class McpModule {
       McpPromptRegistrar,
       McpAppRegistrar,
       McpAuthGuard,
-      McpBootstrap,
+      McpServerBuilder,
+      {
+        provide: MCP_SERVER_FACTORY,
+        useFactory: (builder: McpServerBuilder): McpServerFactory => () =>
+          builder.build(),
+        inject: [McpServerBuilder],
+      },
+      {
+        provide: MCP_SERVER,
+        useFactory: (builder: McpServerBuilder): McpServer => builder.build(),
+        inject: [McpServerBuilder],
+      },
     ];
     if (options.authorization) {
       providers.push({
@@ -108,7 +135,7 @@ export class McpModule {
       module: McpModule,
       imports: [DiscoveryModule],
       providers,
-      exports: [MCP_SERVER, McpAuthGuard],
+      exports: [MCP_SERVER, MCP_SERVER_FACTORY, McpAuthGuard],
       global: true,
     };
   }

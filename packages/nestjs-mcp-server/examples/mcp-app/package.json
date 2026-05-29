@@ -1,0 +1,28 @@
+{
+  "name": "@getlarge/nestjs-mcp-server-example-mcp-app",
+  "version": "0.0.0",
+  "private": true,
+  "description": "nestjs-mcp-server example showing @McpApp: a tool whose result is rendered as an interactive UI by compatible MCP hosts.",
+  "type": "commonjs",
+  "scripts": {
+    "start": "ts-node --transpile-only src/main.ts",
+    "client": "ts-node --transpile-only src/client.ts"
+  },
+  "dependencies": {
+    "@getlarge/nestjs-mcp-server": "*",
+    "@modelcontextprotocol/sdk": "^1",
+    "@nestjs/common": "^11",
+    "@nestjs/core": "^11",
+    "@nestjs/platform-fastify": "^11",
+    "cacheable": "^2",
+    "fastify": "^5",
+    "reflect-metadata": "^0.2",
+    "rxjs": "7",
+    "zod": "^3.23"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "ts-node": "^10",
+    "typescript": "^5"
+  }
+}

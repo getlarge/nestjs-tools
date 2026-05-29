@@ -8,6 +8,7 @@ import {
   Provider,
 } from '@nestjs/common';
 import { DiscoveryModule, HttpAdapterHost } from '@nestjs/core';
+import { Cacheable } from 'cacheable';
 
 import {
   AuthorizationConfig,
@@ -25,6 +26,8 @@ import {
   McpToolRegistrar,
 } from './registrar';
 import {
+  CacheableSessionStore,
+  McpSessionStore,
   mountStreamableHttp,
   mountWellKnownRoutes,
   resolveMcpHttpAdapter,
@@ -42,7 +45,17 @@ export interface McpServerInfo {
 export interface McpHttpTransportOptions {
   type: 'http';
   path?: string;
+  /**
+   * Defaults to false (stateful). Set true for serverless deployments that
+   * cannot retain per-session state between requests.
+   */
   stateless?: boolean;
+  /**
+   * Optional persistent session metadata store. Default is in-memory
+   * Cacheable. Pass a Cacheable with a Redis (or other Keyv) secondary for
+   * distributed deployments.
+   */
+  sessionStore?: McpSessionStore;
 }
 
 export interface McpModuleOptions {
@@ -92,6 +105,9 @@ export class McpModule implements NestModule {
     mountStreamableHttp(http, {
       path: this.options.transport.path ?? '/mcp',
       stateless: this.options.transport.stateless ?? false,
+      sessionStore:
+        this.options.transport.sessionStore ??
+        new CacheableSessionStore(new Cacheable()),
       buildServer: () => this.builder.build(),
     });
   }

@@ -36,6 +36,11 @@ export default [
           checkMissingDependencies: true,
           checkObsoleteDependencies: true,
           checkVersionMismatches: true,
+          // cacheable is ESM-only ("type": "module"); the nx 20.4 dependency
+          // analyzer doesn't always detect ESM imports through TS sources,
+          // so we declare it as an ignored entry to keep the peer dep in
+          // package.json without lint failures.
+          ignoredDependencies: ['cacheable'],
         },
       ],
     },

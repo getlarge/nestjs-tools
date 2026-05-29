@@ -3,6 +3,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { IncomingMessage, ServerResponse } from 'node:http';
 
 import { McpHttpAdapter } from './mcp-http-adapter';
+import { McpSessionStore } from './session-store';
 
 export interface McpStreamableMountOptions {
   path: string;
@@ -12,6 +13,12 @@ export interface McpStreamableMountOptions {
    * undefined sessionId and is expected to return a fresh server each call.
    */
   buildServer: (sessionId: string | undefined) => McpServer;
+  /**
+   * Pluggable persistent session metadata store. In-memory by default; users
+   * can pass a Cacheable instance backed by Redis or any Keyv store for
+   * distributed deployments.
+   */
+  sessionStore?: McpSessionStore;
 }
 
 interface FastifyLike {
@@ -21,16 +28,6 @@ interface FastifyLike {
       request: { raw: IncomingMessage; body: unknown },
       reply: { raw: ServerResponse; hijack(): void }
     ) => unknown
-  ): unknown;
-  removeAllContentTypeParsers?(): unknown;
-  addContentTypeParser?(
-    type: string,
-    options: { parseAs: 'string' },
-    handler: (
-      _req: unknown,
-      body: string,
-      done: (err: Error | null, value?: unknown) => void
-    ) => void
   ): unknown;
 }
 
@@ -45,70 +42,151 @@ interface ExpressLike {
   ): unknown;
 }
 
+const SESSION_HEADER = 'mcp-session-id';
+
+interface ActiveTransport {
+  transport: StreamableHTTPServerTransport;
+  server: McpServer;
+}
+
+class TransportRegistry {
+  private readonly transports = new Map<string, ActiveTransport>();
+
+  get(id: string): ActiveTransport | undefined {
+    return this.transports.get(id);
+  }
+
+  set(id: string, entry: ActiveTransport): void {
+    this.transports.set(id, entry);
+  }
+
+  delete(id: string): void {
+    this.transports.delete(id);
+  }
+}
+
 export function mountStreamableHttp(
   http: McpHttpAdapter,
   options: McpStreamableMountOptions
 ): void {
+  const registry = new TransportRegistry();
   if (http.kind === 'fastify') {
-    mountFastify(http.adapter.getInstance() as FastifyLike, options);
+    mountFastify(http.adapter.getInstance() as FastifyLike, options, registry);
     return;
   }
   if (http.kind === 'express') {
-    mountExpress(http.adapter.getInstance() as ExpressLike, options);
+    mountExpress(http.adapter.getInstance() as ExpressLike, options, registry);
   }
+}
+
+interface DispatchContext {
+  options: McpStreamableMountOptions;
+  registry: TransportRegistry;
 }
 
 function mountFastify(
   instance: FastifyLike,
-  options: McpStreamableMountOptions
+  options: McpStreamableMountOptions,
+  registry: TransportRegistry
 ): void {
-  // Ensure JSON arrives as a parsed object on Fastify.
+  const ctx: DispatchContext = { options, registry };
   instance.all(options.path, async (request, reply) => {
     reply.hijack();
-    const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: options.stateless ? undefined : () => randomId(),
-      enableJsonResponse: true,
-    });
-    const server = options.buildServer(transport.sessionId);
-    await server.connect(transport);
-    const reqWithAuth = attachAuth(request.raw);
-    await transport.handleRequest(
-      reqWithAuth as Parameters<typeof transport.handleRequest>[0],
-      reply.raw,
-      request.body
-    );
-    transport.onclose = (): void => {
-      void server.close();
-    };
+    await dispatch(ctx, request.raw, reply.raw, request.body);
   });
 }
 
 function mountExpress(
   instance: ExpressLike,
-  options: McpStreamableMountOptions
+  options: McpStreamableMountOptions,
+  registry: TransportRegistry
 ): void {
+  const ctx: DispatchContext = { options, registry };
   instance.all(options.path, async (req, res, next) => {
     try {
       const body = await readJsonBody(req);
-      const transport = new StreamableHTTPServerTransport({
-        sessionIdGenerator: options.stateless ? undefined : () => randomId(),
-        enableJsonResponse: true,
-      });
-      const server = options.buildServer(transport.sessionId);
-      await server.connect(transport);
-      const reqWithAuth = attachAuth(req);
-      await transport.handleRequest(
-        reqWithAuth as Parameters<typeof transport.handleRequest>[0],
-        res,
-        body
-      );
-      transport.onclose = (): void => {
-        void server.close();
-      };
+      await dispatch(ctx, req, res, body);
     } catch (err) {
       next(err);
     }
   });
+}
+
+async function dispatch(
+  ctx: DispatchContext,
+  rawReq: IncomingMessage,
+  rawRes: ServerResponse,
+  body: unknown
+): Promise<void> {
+  const req = attachAuth(rawReq);
+  const incomingSessionId = readSessionId(req);
+  if (incomingSessionId) {
+    const existing = ctx.registry.get(incomingSessionId);
+    if (existing) {
+      await ctx.options.sessionStore?.touch(incomingSessionId);
+      await existing.transport.handleRequest(
+        req as Parameters<typeof existing.transport.handleRequest>[0],
+        rawRes,
+        body
+      );
+      return;
+    }
+  }
+  await dispatchFreshTransport(ctx, req, rawRes, body);
+}
+
+async function dispatchFreshTransport(
+  ctx: DispatchContext,
+  req: IncomingMessage,
+  rawRes: ServerResponse,
+  body: unknown
+): Promise<void> {
+  const transport = buildTransport(ctx);
+  const server = ctx.options.buildServer(transport.sessionId);
+  await server.connect(transport);
+  transport.onclose = (): void => {
+    if (transport.sessionId) ctx.registry.delete(transport.sessionId);
+    void server.close();
+  };
+  await transport.handleRequest(
+    req as Parameters<typeof transport.handleRequest>[0],
+    rawRes,
+    body
+  );
+  if (!ctx.options.stateless && transport.sessionId) {
+    ctx.registry.set(transport.sessionId, { transport, server });
+  }
+}
+
+function buildTransport(
+  ctx: DispatchContext
+): StreamableHTTPServerTransport {
+  return new StreamableHTTPServerTransport({
+    sessionIdGenerator: ctx.options.stateless ? undefined : () => randomId(),
+    enableJsonResponse: true,
+    onsessioninitialized: ctx.options.stateless
+      ? undefined
+      : async (sessionId: string) => {
+          await ctx.options.sessionStore?.set({
+            id: sessionId,
+            createdAt: new Date(),
+            lastActivity: new Date(),
+          });
+        },
+    onsessionclosed: ctx.options.stateless
+      ? undefined
+      : async (sessionId: string) => {
+          ctx.registry.delete(sessionId);
+          await ctx.options.sessionStore?.delete(sessionId);
+        },
+  });
+}
+
+function readSessionId(req: IncomingMessage): string | undefined {
+  const value = req.headers?.[SESSION_HEADER];
+  if (!value) return undefined;
+  if (Array.isArray(value)) return value[0];
+  return value;
 }
 
 async function readJsonBody(
@@ -127,7 +205,9 @@ async function readJsonBody(
 }
 
 function attachAuth(
-  req: IncomingMessage & { auth?: { token: string; clientId: string; scopes: string[] } }
+  req: IncomingMessage & {
+    auth?: { token: string; clientId: string; scopes: string[] };
+  }
 ): IncomingMessage & {
   auth?: { token: string; clientId: string; scopes: string[] };
 } {

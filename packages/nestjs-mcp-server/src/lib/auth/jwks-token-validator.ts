@@ -1,10 +1,6 @@
 import { createVerifier } from 'fast-jwt';
 
-import {
-  AuthorizationConfig,
-  IntrospectionAuthConfig,
-  TokenValidationResult,
-} from './authorization-config';
+import { AuthorizationConfig, IntrospectionAuthConfig, TokenValidationResult } from './authorization-config';
 import { TokenValidator } from './token-validator';
 
 export interface JwksFetcher {
@@ -16,10 +12,7 @@ export interface JwksTokenValidatorDeps {
   fetch?: typeof fetch;
 }
 
-type EnabledAuthorizationConfig = Extract<
-  AuthorizationConfig,
-  { enabled: true }
->;
+type EnabledAuthorizationConfig = Extract<AuthorizationConfig, { enabled: true }>;
 
 export class JwksTokenValidator implements TokenValidator {
   private readonly config?: EnabledAuthorizationConfig;
@@ -35,12 +28,8 @@ export class JwksTokenValidator implements TokenValidator {
     }
   }
 
-  private buildVerifier(
-    getJwks: JwksFetcher
-  ): (token: string) => Promise<Record<string, unknown>> {
-    const getKey = async (
-      info: { header?: { kid?: string; alg?: string } } = {}
-    ): Promise<string> =>
+  private buildVerifier(getJwks: JwksFetcher): (token: string) => Promise<Record<string, unknown>> {
+    const getKey = async (info: { header?: { kid?: string; alg?: string } } = {}): Promise<string> =>
       getJwks.getPublicKey({
         kid: info.header?.kid,
         alg: info.header?.alg,
@@ -58,10 +47,7 @@ export class JwksTokenValidator implements TokenValidator {
     if (this.verifier) {
       try {
         const payload = await this.verifier(token);
-        if (
-          this.config.tokenValidation.validateAudience &&
-          !this.audienceMatches(payload)
-        ) {
+        if (this.config.tokenValidation.validateAudience && !this.audienceMatches(payload)) {
           return { valid: false, error: 'Invalid audience claim' };
         }
         return { valid: true, payload };
@@ -81,8 +67,7 @@ export class JwksTokenValidator implements TokenValidator {
     if (!this.config) return false;
     const claim = payload['aud'];
     const expected = this.config.resourceUri;
-    if (Array.isArray(claim))
-      return claim.some((aud) => typeof aud === 'string' && aud === expected);
+    if (Array.isArray(claim)) return claim.some((aud) => typeof aud === 'string' && aud === expected);
     return claim === expected;
   }
 
@@ -93,16 +78,14 @@ export class JwksTokenValidator implements TokenValidator {
     const headers = new Headers({
       'content-type': 'application/x-www-form-urlencoded',
     });
-    this.applyIntrospectionAuth(
-      headers,
-      this.config.tokenValidation.introspectionAuth
-    );
+    this.applyIntrospectionAuth(headers, this.config.tokenValidation.introspectionAuth);
     const body = new URLSearchParams({ token }).toString();
     try {
-      const response = await this.fetcher(
-        this.config.tokenValidation.introspectionEndpoint,
-        { method: 'POST', headers, body }
-      );
+      const response = await this.fetcher(this.config.tokenValidation.introspectionEndpoint, {
+        method: 'POST',
+        headers,
+        body,
+      });
       if (!response.ok) {
         return {
           valid: false,
@@ -119,19 +102,14 @@ export class JwksTokenValidator implements TokenValidator {
     }
   }
 
-  private applyIntrospectionAuth(
-    headers: Headers,
-    auth?: IntrospectionAuthConfig
-  ): void {
+  private applyIntrospectionAuth(headers: Headers, auth?: IntrospectionAuthConfig): void {
     if (!auth || auth.type === 'none') return;
     if (auth.type === 'bearer') {
       headers.set('authorization', `Bearer ${auth.token}`);
       return;
     }
     if (auth.type === 'basic') {
-      const encoded = Buffer.from(
-        `${auth.clientId}:${auth.clientSecret}`
-      ).toString('base64');
+      const encoded = Buffer.from(`${auth.clientId}:${auth.clientSecret}`).toString('base64');
       headers.set('authorization', `Basic ${encoded}`);
     }
   }

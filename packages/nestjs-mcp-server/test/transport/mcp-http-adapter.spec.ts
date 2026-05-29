@@ -3,11 +3,7 @@ import 'reflect-metadata';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import { FastifyAdapter } from '@nestjs/platform-fastify';
 
-import {
-  ExpressMcpAdapter,
-  FastifyMcpAdapter,
-  resolveMcpHttpAdapter,
-} from '../../src';
+import { ExpressMcpAdapter, FastifyMcpAdapter, resolveMcpHttpAdapter } from '../../src';
 
 describe('resolveMcpHttpAdapter', () => {
   it('returns the Fastify adapter when given a FastifyAdapter', () => {

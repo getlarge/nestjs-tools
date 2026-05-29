@@ -35,17 +35,13 @@ class FakeMcpServer {
     name: string,
     uri: string,
     config: Record<string, unknown>,
-    callback: RegisteredResource['callback']
+    callback: RegisteredResource['callback'],
   ): unknown {
     this.resources.push({ name, uri, config, callback });
     return { name };
   }
 
-  registerPrompt(
-    name: string,
-    config: Record<string, unknown>,
-    callback: RegisteredPrompt['callback']
-  ): unknown {
+  registerPrompt(name: string, config: Record<string, unknown>, callback: RegisteredPrompt['callback']): unknown {
     this.prompts.push({ name, config, callback });
     return { name };
   }
@@ -73,9 +69,7 @@ class Examples {
     messages: Array<{ role: string; content: { type: string; text: string } }>;
   } {
     return {
-      messages: [
-        { role: 'user', content: { type: 'text', text: `hi ${args.name}` } },
-      ],
+      messages: [{ role: 'user', content: { type: 'text', text: `hi ${args.name}` } }],
     };
   }
 }
@@ -88,14 +82,7 @@ let server: FakeMcpServer;
 beforeAll(async () => {
   moduleRef = await Test.createTestingModule({
     imports: [DiscoveryModule],
-    providers: [
-      Reflector,
-      McpDiscoveryService,
-      McpPipelineRunner,
-      McpResourceRegistrar,
-      McpPromptRegistrar,
-      Examples,
-    ],
+    providers: [Reflector, McpDiscoveryService, McpPipelineRunner, McpResourceRegistrar, McpPromptRegistrar, Examples],
   }).compile();
   resourceReg = moduleRef.get(McpResourceRegistrar);
   promptReg = moduleRef.get(McpPromptRegistrar);
@@ -108,9 +95,7 @@ afterAll(async () => {
 
 describe('McpResourceRegistrar', () => {
   it('registers @McpResource on the SDK server', async () => {
-    resourceReg.registerAll(
-      server as unknown as Parameters<McpResourceRegistrar['registerAll']>[0]
-    );
+    resourceReg.registerAll(server as unknown as Parameters<McpResourceRegistrar['registerAll']>[0]);
     expect(server.resources).toHaveLength(1);
     const [res] = server.resources;
     expect(res.uri).toBe('app:///docs/readme');
@@ -121,22 +106,17 @@ describe('McpResourceRegistrar', () => {
       contents: [{ uri: 'app:///docs/readme', text: '# Hello' }],
     });
   });
-
 });
 
 describe('McpPromptRegistrar', () => {
   it('registers @McpPrompt on the SDK server', async () => {
-    promptReg.registerAll(
-      server as unknown as Parameters<McpPromptRegistrar['registerAll']>[0]
-    );
+    promptReg.registerAll(server as unknown as Parameters<McpPromptRegistrar['registerAll']>[0]);
     expect(server.prompts).toHaveLength(1);
     const [prompt] = server.prompts;
     expect(prompt.name).toBe('greet');
     const out = await prompt.callback({ name: 'Ada' }, {});
     expect(out).toEqual({
-      messages: [
-        { role: 'user', content: { type: 'text', text: 'hi Ada' } },
-      ],
+      messages: [{ role: 'user', content: { type: 'text', text: 'hi Ada' } }],
     });
   });
 });

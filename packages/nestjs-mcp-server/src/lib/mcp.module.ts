@@ -1,30 +1,12 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import {
-  DynamicModule,
-  Inject,
-  Injectable,
-  Module,
-  NestModule,
-  Provider,
-} from '@nestjs/common';
+import { DynamicModule, Inject, Injectable, Module, NestModule, Provider } from '@nestjs/common';
 import { DiscoveryModule, HttpAdapterHost } from '@nestjs/core';
 import { Cacheable } from 'cacheable';
 
-import {
-  AuthorizationConfig,
-  MCP_AUTH_CONFIG,
-  MCP_TOKEN_VALIDATOR,
-  McpAuthGuard,
-  TokenValidator,
-} from './auth';
+import { AuthorizationConfig, MCP_AUTH_CONFIG, MCP_TOKEN_VALIDATOR, McpAuthGuard, TokenValidator } from './auth';
 import { McpDiscoveryService } from './discovery';
 import { McpPipelineRunner } from './execution';
-import {
-  McpAppRegistrar,
-  McpPromptRegistrar,
-  McpResourceRegistrar,
-  McpToolRegistrar,
-} from './registrar';
+import { McpAppRegistrar, McpPromptRegistrar, McpResourceRegistrar, McpToolRegistrar } from './registrar';
 import {
   CacheableSessionStore,
   McpSessionStore,
@@ -74,7 +56,7 @@ class McpServerBuilder {
     private readonly tools: McpToolRegistrar,
     private readonly resources: McpResourceRegistrar,
     private readonly prompts: McpPromptRegistrar,
-    private readonly apps: McpAppRegistrar
+    private readonly apps: McpAppRegistrar,
   ) {}
 
   build(): McpServer {
@@ -92,7 +74,7 @@ export class McpModule implements NestModule {
   constructor(
     private readonly builder: McpServerBuilder,
     private readonly httpAdapterHost: HttpAdapterHost,
-    @Inject(MCP_MODULE_OPTIONS) private readonly options: McpModuleOptions
+    @Inject(MCP_MODULE_OPTIONS) private readonly options: McpModuleOptions,
   ) {}
 
   configure(): void {
@@ -105,9 +87,7 @@ export class McpModule implements NestModule {
     mountStreamableHttp(http, {
       path: this.options.transport.path ?? '/mcp',
       stateless: this.options.transport.stateless ?? false,
-      sessionStore:
-        this.options.transport.sessionStore ??
-        new CacheableSessionStore(new Cacheable()),
+      sessionStore: this.options.transport.sessionStore ?? new CacheableSessionStore(new Cacheable()),
       buildServer: () => this.builder.build(),
     });
   }
@@ -125,8 +105,10 @@ export class McpModule implements NestModule {
       McpServerBuilder,
       {
         provide: MCP_SERVER_FACTORY,
-        useFactory: (builder: McpServerBuilder): McpServerFactory => () =>
-          builder.build(),
+        useFactory:
+          (builder: McpServerBuilder): McpServerFactory =>
+          () =>
+            builder.build(),
         inject: [McpServerBuilder],
       },
       {

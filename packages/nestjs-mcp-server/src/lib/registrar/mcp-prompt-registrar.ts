@@ -15,8 +15,8 @@ export interface McpPromptServerLike {
     },
     callback: (
       args: unknown,
-      extra: { authInfo?: Record<string, unknown>; sessionId?: string }
-    ) => Promise<unknown> | unknown
+      extra: { authInfo?: Record<string, unknown>; sessionId?: string },
+    ) => Promise<unknown> | unknown,
   ): unknown;
 }
 
@@ -24,7 +24,7 @@ export interface McpPromptServerLike {
 export class McpPromptRegistrar {
   constructor(
     private readonly discovery: McpDiscoveryService,
-    private readonly runner: McpPipelineRunner
+    private readonly runner: McpPipelineRunner,
   ) {}
 
   registerAll(server: McpPromptServerLike): void {
@@ -52,14 +52,12 @@ export class McpPromptRegistrar {
             instance: descriptor.instance,
             request,
           });
-        }
+        },
       );
     }
   }
 
-  private unwrapShape(
-    schema: unknown
-  ): ZodRawShape | Record<string, unknown> | undefined {
+  private unwrapShape(schema: unknown): ZodRawShape | Record<string, unknown> | undefined {
     if (!schema) return undefined;
     if (schema instanceof ZodObject) return schema.shape;
     return schema as Record<string, unknown>;

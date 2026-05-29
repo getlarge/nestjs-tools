@@ -5,11 +5,7 @@ import { DiscoveryModule } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import { z } from 'zod';
 
-import {
-  McpDiscoveryService,
-  McpTool,
-  McpToolDescriptor,
-} from '../../src';
+import { McpDiscoveryService, McpTool, McpToolDescriptor } from '../../src';
 
 const inputSchema = z.object({ city: z.string() });
 

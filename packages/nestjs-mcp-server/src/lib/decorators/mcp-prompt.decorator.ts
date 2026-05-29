@@ -18,11 +18,6 @@ export function McpPrompt(options: McpPromptOptions): MethodDecorator {
     throw new Error('@McpPrompt requires a non-empty name');
   }
   return (target, propertyKey) => {
-    Reflect.defineMetadata(
-      MCP_PROMPT_METADATA,
-      { ...options },
-      target,
-      propertyKey
-    );
+    Reflect.defineMetadata(MCP_PROMPT_METADATA, { ...options }, target, propertyKey);
   };
 }

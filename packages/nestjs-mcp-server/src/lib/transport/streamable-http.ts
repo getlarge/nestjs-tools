@@ -26,19 +26,15 @@ interface FastifyLike {
     path: string,
     handler: (
       request: { raw: IncomingMessage; body: unknown },
-      reply: { raw: ServerResponse; hijack(): void }
-    ) => unknown
+      reply: { raw: ServerResponse; hijack(): void },
+    ) => unknown,
   ): unknown;
 }
 
 interface ExpressLike {
   all(
     path: string,
-    handler: (
-      req: IncomingMessage & { body?: unknown },
-      res: ServerResponse,
-      next: (err?: unknown) => void
-    ) => unknown
+    handler: (req: IncomingMessage & { body?: unknown }, res: ServerResponse, next: (err?: unknown) => void) => unknown,
   ): unknown;
 }
 
@@ -65,10 +61,7 @@ class TransportRegistry {
   }
 }
 
-export function mountStreamableHttp(
-  http: McpHttpAdapter,
-  options: McpStreamableMountOptions
-): void {
+export function mountStreamableHttp(http: McpHttpAdapter, options: McpStreamableMountOptions): void {
   const registry = new TransportRegistry();
   if (http.kind === 'fastify') {
     mountFastify(http.adapter.getInstance() as FastifyLike, options, registry);
@@ -84,11 +77,7 @@ interface DispatchContext {
   registry: TransportRegistry;
 }
 
-function mountFastify(
-  instance: FastifyLike,
-  options: McpStreamableMountOptions,
-  registry: TransportRegistry
-): void {
+function mountFastify(instance: FastifyLike, options: McpStreamableMountOptions, registry: TransportRegistry): void {
   const ctx: DispatchContext = { options, registry };
   instance.all(options.path, async (request, reply) => {
     reply.hijack();
@@ -96,11 +85,7 @@ function mountFastify(
   });
 }
 
-function mountExpress(
-  instance: ExpressLike,
-  options: McpStreamableMountOptions,
-  registry: TransportRegistry
-): void {
+function mountExpress(instance: ExpressLike, options: McpStreamableMountOptions, registry: TransportRegistry): void {
   const ctx: DispatchContext = { options, registry };
   instance.all(options.path, async (req, res, next) => {
     try {
@@ -116,7 +101,7 @@ async function dispatch(
   ctx: DispatchContext,
   rawReq: IncomingMessage,
   rawRes: ServerResponse,
-  body: unknown
+  body: unknown,
 ): Promise<void> {
   const req = attachAuth(rawReq);
   const incomingSessionId = readSessionId(req);
@@ -127,7 +112,7 @@ async function dispatch(
       await existing.transport.handleRequest(
         req as Parameters<typeof existing.transport.handleRequest>[0],
         rawRes,
-        body
+        body,
       );
       return;
     }
@@ -139,7 +124,7 @@ async function dispatchFreshTransport(
   ctx: DispatchContext,
   req: IncomingMessage,
   rawRes: ServerResponse,
-  body: unknown
+  body: unknown,
 ): Promise<void> {
   const transport = buildTransport(ctx);
   const server = ctx.options.buildServer(transport.sessionId);
@@ -148,19 +133,13 @@ async function dispatchFreshTransport(
     if (transport.sessionId) ctx.registry.delete(transport.sessionId);
     void server.close();
   };
-  await transport.handleRequest(
-    req as Parameters<typeof transport.handleRequest>[0],
-    rawRes,
-    body
-  );
+  await transport.handleRequest(req as Parameters<typeof transport.handleRequest>[0], rawRes, body);
   if (!ctx.options.stateless && transport.sessionId) {
     ctx.registry.set(transport.sessionId, { transport, server });
   }
 }
 
-function buildTransport(
-  ctx: DispatchContext
-): StreamableHTTPServerTransport {
+function buildTransport(ctx: DispatchContext): StreamableHTTPServerTransport {
   return new StreamableHTTPServerTransport({
     sessionIdGenerator: ctx.options.stateless ? undefined : () => randomId(),
     enableJsonResponse: true,
@@ -189,9 +168,7 @@ function readSessionId(req: IncomingMessage): string | undefined {
   return value;
 }
 
-async function readJsonBody(
-  req: IncomingMessage & { body?: unknown }
-): Promise<unknown> {
+async function readJsonBody(req: IncomingMessage & { body?: unknown }): Promise<unknown> {
   if (req.body !== undefined && req.body !== null) return req.body;
   if (req.method && req.method.toUpperCase() === 'GET') return undefined;
   const chunks: Buffer[] = [];
@@ -207,7 +184,7 @@ async function readJsonBody(
 function attachAuth(
   req: IncomingMessage & {
     auth?: { token: string; clientId: string; scopes: string[] };
-  }
+  },
 ): IncomingMessage & {
   auth?: { token: string; clientId: string; scopes: string[] };
 } {
@@ -223,8 +200,5 @@ function attachAuth(
 }
 
 function randomId(): string {
-  return (
-    globalThis.crypto?.randomUUID?.() ??
-    Math.random().toString(36).slice(2) + Date.now().toString(36)
-  );
+  return globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2) + Date.now().toString(36);
 }

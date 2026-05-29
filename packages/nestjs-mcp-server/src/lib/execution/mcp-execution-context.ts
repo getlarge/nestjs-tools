@@ -50,17 +50,11 @@ export class McpExecutionContext implements ExecutionContext, ArgumentsHost {
     return this.init.methodName;
   }
 
-  getOriginalMethod():
-    | ((...args: unknown[]) => unknown)
-    | undefined {
+  getOriginalMethod(): ((...args: unknown[]) => unknown) | undefined {
     if (!this.init.methodName) return undefined;
-    const proto = this.init.providerClass.prototype as
-      | Record<string, unknown>
-      | undefined;
+    const proto = this.init.providerClass.prototype as Record<string, unknown> | undefined;
     const method = proto?.[this.init.methodName];
-    return typeof method === 'function'
-      ? (method as (...args: unknown[]) => unknown)
-      : undefined;
+    return typeof method === 'function' ? (method as (...args: unknown[]) => unknown) : undefined;
   }
 
   getClass<T = unknown>(): Type<T> {

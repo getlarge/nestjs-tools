@@ -16,8 +16,8 @@ export interface McpResourceServerLike {
     },
     callback: (
       uri: URL,
-      extra: { authInfo?: Record<string, unknown>; sessionId?: string }
-    ) => Promise<unknown> | unknown
+      extra: { authInfo?: Record<string, unknown>; sessionId?: string },
+    ) => Promise<unknown> | unknown,
   ): unknown;
 }
 
@@ -25,7 +25,7 @@ export interface McpResourceServerLike {
 export class McpResourceRegistrar {
   constructor(
     private readonly discovery: McpDiscoveryService,
-    private readonly runner: McpPipelineRunner
+    private readonly runner: McpPipelineRunner,
   ) {}
 
   registerAll(server: McpResourceServerLike): void {
@@ -54,7 +54,7 @@ export class McpResourceRegistrar {
             instance: descriptor.instance,
             request,
           });
-        }
+        },
       );
     }
   }

@@ -5,12 +5,7 @@ import { DiscoveryModule, Reflector } from '@nestjs/core';
 import { Test, TestingModule } from '@nestjs/testing';
 import { z } from 'zod';
 
-import {
-  McpDiscoveryService,
-  McpPipelineRunner,
-  McpTool,
-  McpToolRegistrar,
-} from '../../src';
+import { McpDiscoveryService, McpPipelineRunner, McpTool, McpToolRegistrar } from '../../src';
 
 interface FakeRegisteredTool {
   name: string;
@@ -21,10 +16,7 @@ interface FakeRegisteredTool {
     outputSchema?: Record<string, unknown>;
     annotations?: Record<string, unknown>;
   };
-  callback: (
-    args: unknown,
-    extra: { authInfo?: Record<string, unknown>; sessionId?: string }
-  ) => Promise<unknown>;
+  callback: (args: unknown, extra: { authInfo?: Record<string, unknown>; sessionId?: string }) => Promise<unknown>;
 }
 
 class FakeMcpServer {
@@ -33,7 +25,7 @@ class FakeMcpServer {
   registerTool(
     name: string,
     config: FakeRegisteredTool['config'],
-    callback: FakeRegisteredTool['callback']
+    callback: FakeRegisteredTool['callback'],
   ): { name: string } {
     this.tools.push({ name, config, callback });
     return { name };
@@ -61,13 +53,7 @@ describe('McpToolRegistrar', () => {
   beforeAll(async () => {
     moduleRef = await Test.createTestingModule({
       imports: [DiscoveryModule],
-      providers: [
-        Reflector,
-        McpDiscoveryService,
-        McpPipelineRunner,
-        McpToolRegistrar,
-        EchoTools,
-      ],
+      providers: [Reflector, McpDiscoveryService, McpPipelineRunner, McpToolRegistrar, EchoTools],
     }).compile();
     registrar = moduleRef.get(McpToolRegistrar);
     server = new FakeMcpServer();
@@ -91,10 +77,7 @@ describe('McpToolRegistrar', () => {
     server.tools.length = 0;
     registrar.registerAll(server as unknown as Parameters<McpToolRegistrar['registerAll']>[0]);
     const tool = server.tools[0];
-    const result = await tool.callback(
-      { name: 'Ada' },
-      { authInfo: { token: 'abc' }, sessionId: 'sid-1' }
-    );
+    const result = await tool.callback({ name: 'Ada' }, { authInfo: { token: 'abc' }, sessionId: 'sid-1' });
     expect(result).toEqual({
       content: [{ type: 'text', text: '{"greeting":"hi Ada"}' }],
       structuredContent: { greeting: 'hi Ada' },

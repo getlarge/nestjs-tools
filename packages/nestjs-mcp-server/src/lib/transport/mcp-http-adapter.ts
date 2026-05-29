@@ -15,20 +15,16 @@ export class ExpressMcpAdapter implements McpHttpAdapter {
   constructor(public readonly adapter: AbstractHttpAdapter) {}
 }
 
-export function resolveMcpHttpAdapter(
-  adapter: AbstractHttpAdapter
-): McpHttpAdapter {
+export function resolveMcpHttpAdapter(adapter: AbstractHttpAdapter): McpHttpAdapter {
   const type = readAdapterType(adapter);
   if (type === 'fastify') return new FastifyMcpAdapter(adapter);
   if (type === 'express') return new ExpressMcpAdapter(adapter);
   throw new Error(
-    `Unsupported HTTP adapter for nestjs-mcp-server. Expected a FastifyAdapter or ExpressAdapter, got ${describe(adapter)}.`
+    `Unsupported HTTP adapter for nestjs-mcp-server. Expected a FastifyAdapter or ExpressAdapter, got ${describe(adapter)}.`,
   );
 }
 
-function readAdapterType(
-  adapter: AbstractHttpAdapter
-): 'fastify' | 'express' | null {
+function readAdapterType(adapter: AbstractHttpAdapter): 'fastify' | 'express' | null {
   const candidate = adapter as {
     getType?: () => string;
     constructor?: { name?: string };

@@ -17,19 +17,12 @@ export function McpApp(options: McpAppOptions): MethodDecorator {
     throw new Error('@McpApp requires a non-empty uri');
   }
   const provided = ['html', 'file', 'url'].filter(
-    (key) => (options as unknown as Record<string, unknown>)[key] !== undefined
+    (key) => (options as unknown as Record<string, unknown>)[key] !== undefined,
   );
   if (provided.length === 0) {
-    throw new Error(
-      '@McpApp requires exactly one of html, file or url to be set'
-    );
+    throw new Error('@McpApp requires exactly one of html, file or url to be set');
   }
   return (target, propertyKey) => {
-    Reflect.defineMetadata(
-      MCP_APP_METADATA,
-      { ...options },
-      target,
-      propertyKey
-    );
+    Reflect.defineMetadata(MCP_APP_METADATA, { ...options }, target, propertyKey);
   };
 }

@@ -3,10 +3,7 @@ import 'reflect-metadata';
 import { Injectable, Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter, NestExpressApplication } from '@nestjs/platform-express';
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify';
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import * as express from 'express';
 import { z } from 'zod';
 
@@ -72,10 +69,7 @@ async function readJsonOrSse(body: string): Promise<unknown> {
 let fastifyApp: NestFastifyApplication;
 
 beforeAll(async () => {
-  fastifyApp = await NestFactory.create<NestFastifyApplication>(
-    StreamableModule,
-    new FastifyAdapter()
-  );
+  fastifyApp = await NestFactory.create<NestFastifyApplication>(StreamableModule, new FastifyAdapter());
   await fastifyApp.listen(0);
 });
 
@@ -100,9 +94,7 @@ describe('StreamableHTTP on Fastify (stateless)', () => {
     const json = (await readJsonOrSse(res.body)) as {
       result?: { tools: Array<{ name: string }> };
     };
-    expect(json.result?.tools).toEqual(
-      expect.arrayContaining([expect.objectContaining({ name: 'echo' })])
-    );
+    expect(json.result?.tools).toEqual(expect.arrayContaining([expect.objectContaining({ name: 'echo' })]));
   });
 
   it('handles a tools/call and returns the handler result', async () => {
@@ -128,10 +120,7 @@ describe('StreamableHTTP on Express (stateless)', () => {
   let port: number;
 
   beforeAll(async () => {
-    app = await NestFactory.create<NestExpressApplication>(
-      StreamableModule,
-      new ExpressAdapter(express())
-    );
+    app = await NestFactory.create<NestExpressApplication>(StreamableModule, new ExpressAdapter(express()));
     await app.listen(0);
     port = (app.getHttpServer().address() as { port: number }).port;
   });

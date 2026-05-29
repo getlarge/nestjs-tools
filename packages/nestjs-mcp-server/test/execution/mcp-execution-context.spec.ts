@@ -9,9 +9,7 @@ class FakeTools {
 }
 
 const instance = new FakeTools();
-const handler = instance.greet.bind(instance) as (
-  ...args: unknown[]
-) => unknown;
+const handler = instance.greet.bind(instance) as (...args: unknown[]) => unknown;
 const httpReq = { headers: { authorization: 'Bearer abc' } };
 const httpRes = { statusCode: 200 };
 const mcpRequest: McpRequestContext = {

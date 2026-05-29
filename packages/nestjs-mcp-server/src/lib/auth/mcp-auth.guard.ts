@@ -25,7 +25,7 @@ export class McpAuthGuard implements CanActivate {
     @Inject(MCP_TOKEN_VALIDATOR)
     @Optional()
     private readonly validator: TokenValidator | undefined,
-    private readonly reflector: Reflector
+    private readonly reflector: Reflector,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -34,7 +34,7 @@ export class McpAuthGuard implements CanActivate {
     }
     if (!this.validator) {
       throw new Error(
-        'McpAuthGuard: authorization is enabled but no TokenValidator is bound (use MCP_TOKEN_VALIDATOR provider).'
+        'McpAuthGuard: authorization is enabled but no TokenValidator is bound (use MCP_TOKEN_VALIDATOR provider).',
       );
     }
     const mcp = context as McpExecutionContext;
@@ -51,9 +51,7 @@ export class McpAuthGuard implements CanActivate {
       const granted = this.extractScopes(result.payload);
       const missing = required.filter((scope) => !granted.includes(scope));
       if (missing.length > 0) {
-        throw new ForbiddenException(
-          `Missing required MCP scope(s): ${missing.join(', ')}`
-        );
+        throw new ForbiddenException(`Missing required MCP scope(s): ${missing.join(', ')}`);
       }
     }
     return true;
@@ -85,9 +83,7 @@ export class McpAuthGuard implements CanActivate {
     const scope = payload['scope'];
     if (typeof scope === 'string') return scope.split(/\s+/).filter(Boolean);
     if (Array.isArray(payload['scopes'])) {
-      return (payload['scopes'] as unknown[]).filter(
-        (s): s is string => typeof s === 'string'
-      );
+      return (payload['scopes'] as unknown[]).filter((s): s is string => typeof s === 'string');
     }
     return [];
   }

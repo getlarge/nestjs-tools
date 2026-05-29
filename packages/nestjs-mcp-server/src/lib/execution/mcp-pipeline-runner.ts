@@ -35,15 +35,10 @@ export class McpPipelineRunner {
       const instance = await this.resolve<CanActivate>(guard);
       const allowed = await instance.canActivate(context);
       if (!allowed) {
-        throw new ForbiddenException(
-          `Access denied for MCP ${init.request.kind} "${init.request.name}"`
-        );
+        throw new ForbiddenException(`Access denied for MCP ${init.request.kind} "${init.request.name}"`);
       }
     }
-    const interceptors = this.collect<InterceptorRef>(
-      INTERCEPTORS_METADATA,
-      init
-    );
+    const interceptors = this.collect<InterceptorRef>(INTERCEPTORS_METADATA, init);
     const invokeHandler = (): Observable<unknown> =>
       defer(() => {
         const result = init.handler(...context.getArgs());
@@ -51,53 +46,32 @@ export class McpPipelineRunner {
         if (result instanceof Promise) return from(result);
         return of(result);
       });
-    const chain = await this.composeInterceptors(
-      interceptors,
-      context,
-      invokeHandler
-    );
+    const chain = await this.composeInterceptors(interceptors, context, invokeHandler);
     return firstValueFrom(chain);
   }
 
-  private collect<TRef>(
-    metadataKey: string,
-    init: McpPipelineRunInit
-  ): TRef[] {
-    const classRefs =
-      (Reflect.getMetadata(metadataKey, init.providerClass) as
-        | TRef[]
-        | undefined) ?? [];
+  private collect<TRef>(metadataKey: string, init: McpPipelineRunInit): TRef[] {
+    const classRefs = (Reflect.getMetadata(metadataKey, init.providerClass) as TRef[] | undefined) ?? [];
     const methodRefs = this.collectMethodMetadata<TRef>(metadataKey, init);
     return [...classRefs, ...methodRefs];
   }
 
-  private collectMethodMetadata<TRef>(
-    metadataKey: string,
-    init: McpPipelineRunInit
-  ): TRef[] {
-    const prototype = init.providerClass.prototype as
-      | Record<string, unknown>
-      | undefined;
+  private collectMethodMetadata<TRef>(metadataKey: string, init: McpPipelineRunInit): TRef[] {
+    const prototype = init.providerClass.prototype as Record<string, unknown> | undefined;
     const methodKey = init.methodName;
     if (methodKey && prototype) {
       const original = prototype[methodKey];
       if (typeof original === 'function') {
-        return (
-          (Reflect.getMetadata(metadataKey, original) as TRef[] | undefined) ??
-          []
-        );
+        return (Reflect.getMetadata(metadataKey, original) as TRef[] | undefined) ?? [];
       }
     }
-    return (
-      (Reflect.getMetadata(metadataKey, init.handler) as TRef[] | undefined) ??
-      []
-    );
+    return (Reflect.getMetadata(metadataKey, init.handler) as TRef[] | undefined) ?? [];
   }
 
   private async composeInterceptors(
     interceptors: InterceptorRef[],
     context: ExecutionContext,
-    terminal: () => Observable<unknown>
+    terminal: () => Observable<unknown>,
   ): Promise<Observable<unknown>> {
     let next: () => Observable<unknown> = terminal;
     for (let i = interceptors.length - 1; i >= 0; i--) {

@@ -42,7 +42,7 @@ class WrapInterceptor implements NestInterceptor {
       map((value) => {
         order.push('interceptor:after');
         return { wrapped: value };
-      })
+      }),
     );
   }
 }
@@ -72,14 +72,7 @@ let tools: GreetTools;
 beforeAll(async () => {
   moduleRef = await Test.createTestingModule({
     imports: [DiscoveryModule],
-    providers: [
-      Reflector,
-      McpPipelineRunner,
-      GreetTools,
-      AllowAllGuard,
-      DenyGuard,
-      WrapInterceptor,
-    ],
+    providers: [Reflector, McpPipelineRunner, GreetTools, AllowAllGuard, DenyGuard, WrapInterceptor],
   }).compile();
   runner = moduleRef.get(McpPipelineRunner);
   tools = moduleRef.get(GreetTools);
@@ -107,12 +100,7 @@ describe('McpPipelineRunner happy path', () => {
       instance: tools,
       request,
     });
-    expect(order).toEqual([
-      'guard:allow',
-      'interceptor:before',
-      'handler',
-      'interceptor:after',
-    ]);
+    expect(order).toEqual(['guard:allow', 'interceptor:before', 'handler', 'interceptor:after']);
     expect(result).toEqual({ wrapped: 'hi Ada' });
   });
 });
@@ -126,7 +114,7 @@ describe('McpPipelineRunner denial', () => {
         methodName: 'denied',
         instance: tools,
         request: { kind: 'tool', name: 'denied' },
-      })
+      }),
     ).rejects.toBeInstanceOf(ForbiddenException);
     expect(order).toEqual(['guard:deny']);
   });

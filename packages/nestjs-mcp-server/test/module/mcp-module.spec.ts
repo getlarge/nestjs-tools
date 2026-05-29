@@ -3,21 +3,11 @@ import 'reflect-metadata';
 import { Injectable, Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter, NestExpressApplication } from '@nestjs/platform-express';
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify';
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import * as express from 'express';
 import { z } from 'zod';
 
-import {
-  MCP_SERVER,
-  McpApp,
-  McpModule,
-  McpScopes,
-  McpTool,
-  TokenValidator,
-} from '../../src';
+import { MCP_SERVER, McpApp, McpModule, McpScopes, McpTool, TokenValidator } from '../../src';
 
 @Injectable()
 class WeatherTools {
@@ -72,10 +62,7 @@ describe('McpModule.forRoot on Fastify', () => {
   let app: NestFastifyApplication;
 
   beforeAll(async () => {
-    app = await NestFactory.create<NestFastifyApplication>(
-      MinimalModule,
-      new FastifyAdapter()
-    );
+    app = await NestFactory.create<NestFastifyApplication>(MinimalModule, new FastifyAdapter());
     await app.listen(0);
   });
 
@@ -94,10 +81,7 @@ describe('McpModule.forRoot on Express', () => {
   let app: NestExpressApplication;
 
   beforeAll(async () => {
-    app = await NestFactory.create<NestExpressApplication>(
-      MinimalModule,
-      new ExpressAdapter(express())
-    );
+    app = await NestFactory.create<NestExpressApplication>(MinimalModule, new ExpressAdapter(express()));
     await app.listen(0);
   });
 
@@ -115,10 +99,7 @@ describe('McpModule.forRoot with authorization', () => {
   let app: NestFastifyApplication;
 
   beforeAll(async () => {
-    app = await NestFactory.create<NestFastifyApplication>(
-      AuthedModule,
-      new FastifyAdapter()
-    );
+    app = await NestFactory.create<NestFastifyApplication>(AuthedModule, new FastifyAdapter());
     await app.listen(0);
   });
 

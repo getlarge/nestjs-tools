@@ -2,10 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
-import {
-  MCP_APP_METADATA,
-  McpAppMetadata,
-} from '../decorators/mcp-app.decorator';
+import { MCP_APP_METADATA, McpAppMetadata } from '../decorators/mcp-app.decorator';
 import { McpDiscoveryService } from '../discovery/mcp-discovery.service';
 
 export interface McpAppServerLike {
@@ -13,7 +10,7 @@ export interface McpAppServerLike {
     name: string,
     uri: string,
     config: { mimeType?: string; description?: string },
-    callback: () => Promise<unknown> | unknown
+    callback: () => Promise<unknown> | unknown,
   ): unknown;
 }
 
@@ -26,20 +23,15 @@ export class McpAppRegistrar {
       if (app.url) continue;
       const body = this.resolveBody(app);
       const name = this.deriveResourceName(app.uri);
-      server.registerResource(
-        name,
-        app.uri,
-        { mimeType: app.mimeType ?? 'text/html' },
-        () => ({
-          contents: [
-            {
-              uri: app.uri,
-              mimeType: app.mimeType ?? 'text/html',
-              text: body,
-            },
-          ],
-        })
-      );
+      server.registerResource(name, app.uri, { mimeType: app.mimeType ?? 'text/html' }, () => ({
+        contents: [
+          {
+            uri: app.uri,
+            mimeType: app.mimeType ?? 'text/html',
+            text: body,
+          },
+        ],
+      }));
     }
   }
 
@@ -47,15 +39,9 @@ export class McpAppRegistrar {
     return this.discovery
       .discoverTools()
       .map((descriptor) => {
-        const proto = descriptor.providerClass.prototype as
-          | Record<string, unknown>
-          | undefined;
+        const proto = descriptor.providerClass.prototype as Record<string, unknown> | undefined;
         if (!proto) return undefined;
-        return Reflect.getMetadata(
-          MCP_APP_METADATA,
-          proto,
-          descriptor.methodName
-        ) as McpAppMetadata | undefined;
+        return Reflect.getMetadata(MCP_APP_METADATA, proto, descriptor.methodName) as McpAppMetadata | undefined;
       })
       .filter((app): app is McpAppMetadata => !!app);
   }

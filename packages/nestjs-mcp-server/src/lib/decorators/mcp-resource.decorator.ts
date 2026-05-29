@@ -20,11 +20,6 @@ export function McpResource(options: McpResourceOptions): MethodDecorator {
     throw new Error('@McpResource requires a non-empty name');
   }
   return (target, propertyKey) => {
-    Reflect.defineMetadata(
-      MCP_RESOURCE_METADATA,
-      { ...options },
-      target,
-      propertyKey
-    );
+    Reflect.defineMetadata(MCP_RESOURCE_METADATA, { ...options }, target, propertyKey);
   };
 }

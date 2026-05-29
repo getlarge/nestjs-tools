@@ -34,8 +34,6 @@ describe('CacheableSessionStore', () => {
     await new Promise((r) => setTimeout(r, 5));
     await store.touch(sample.id);
     const refreshed = await store.get(sample.id);
-    expect(refreshed?.lastActivity.getTime()).toBeGreaterThan(
-      sample.lastActivity.getTime()
-    );
+    expect(refreshed?.lastActivity.getTime()).toBeGreaterThan(sample.lastActivity.getTime());
   });
 });

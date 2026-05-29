@@ -5,21 +5,11 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 import { Injectable, Module, UseGuards } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter, NestExpressApplication } from '@nestjs/platform-express';
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify';
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import * as express from 'express';
 import { z } from 'zod';
 
-import {
-  McpApp,
-  McpAuthGuard,
-  McpModule,
-  McpScopes,
-  McpTool,
-  TokenValidator,
-} from '../../src';
+import { McpApp, McpAuthGuard, McpModule, McpScopes, McpTool, TokenValidator } from '../../src';
 
 @Injectable()
 class GreetTools {
@@ -90,25 +80,15 @@ const acceptingValidator: TokenValidator = {
 })
 class AuthedModule {}
 
-async function makeFastifyApp(
-  module: unknown
-): Promise<{ app: NestFastifyApplication; port: number }> {
-  const app = await NestFactory.create<NestFastifyApplication>(
-    module as never,
-    new FastifyAdapter()
-  );
+async function makeFastifyApp(module: unknown): Promise<{ app: NestFastifyApplication; port: number }> {
+  const app = await NestFactory.create<NestFastifyApplication>(module as never, new FastifyAdapter());
   await app.listen(0);
   const port = (app.getHttpServer().address() as { port: number }).port;
   return { app, port };
 }
 
-async function makeExpressApp(
-  module: unknown
-): Promise<{ app: NestExpressApplication; port: number }> {
-  const app = await NestFactory.create<NestExpressApplication>(
-    module as never,
-    new ExpressAdapter(express())
-  );
+async function makeExpressApp(module: unknown): Promise<{ app: NestExpressApplication; port: number }> {
+  const app = await NestFactory.create<NestExpressApplication>(module as never, new ExpressAdapter(express()));
   await app.listen(0);
   const port = (app.getHttpServer().address() as { port: number }).port;
   return { app, port };
@@ -117,12 +97,10 @@ async function makeExpressApp(
 async function withClient<T>(
   url: URL,
   authToken: string | undefined,
-  body: (client: Client) => Promise<T>
+  body: (client: Client) => Promise<T>,
 ): Promise<T> {
   const transport = new StreamableHTTPClientTransport(url, {
-    requestInit: authToken
-      ? { headers: { authorization: `Bearer ${authToken}` } }
-      : undefined,
+    requestInit: authToken ? { headers: { authorization: `Bearer ${authToken}` } } : undefined,
   });
   const client = new Client({ name: 'jest-e2e-client', version: '0.0.1' });
   await client.connect(transport);
@@ -155,9 +133,7 @@ describe('SDK client E2E on Fastify (open)', () => {
   it('lists discovered tools', async () => {
     await withClient(url(), undefined, async (client) => {
       const tools = await client.listTools();
-      expect(tools.tools.map((t) => t.name)).toEqual(
-        expect.arrayContaining(['greet', 'admin-action'])
-      );
+      expect(tools.tools.map((t) => t.name)).toEqual(expect.arrayContaining(['greet', 'admin-action']));
     });
   });
 
@@ -186,9 +162,7 @@ describe('SDK client E2E on Fastify (open)', () => {
   it('exposes the ui:// resource through the SDK', async () => {
     await withClient(url(), undefined, async (client) => {
       const resources = await client.listResources();
-      expect(resources.resources.map((r) => r.uri)).toEqual(
-        expect.arrayContaining(['ui://greet/widget'])
-      );
+      expect(resources.resources.map((r) => r.uri)).toEqual(expect.arrayContaining(['ui://greet/widget']));
       const read = await client.readResource({ uri: 'ui://greet/widget' });
       const first = read.contents[0] as { text?: string; mimeType?: string };
       expect(first.mimeType).toBe('text/html');

@@ -24,7 +24,7 @@ export interface DcrHooks {
   onRequest?: (request: Record<string, unknown>) => Promise<Record<string, unknown>> | Record<string, unknown>;
   onResponse?: (
     response: Record<string, unknown>,
-    request: Record<string, unknown>
+    request: Record<string, unknown>,
   ) => Promise<Record<string, unknown>> | Record<string, unknown>;
 }
 
@@ -51,13 +51,9 @@ export interface TokenValidationResult {
   error?: string;
 }
 
-export function buildProtectedResourceMetadata(
-  config: AuthorizationConfig
-): ProtectedResourceMetadata {
+export function buildProtectedResourceMetadata(config: AuthorizationConfig): ProtectedResourceMetadata {
   if (!config.enabled) {
-    throw new Error(
-      'Cannot build protected resource metadata when authorization is disabled'
-    );
+    throw new Error('Cannot build protected resource metadata when authorization is disabled');
   }
   return {
     resource: config.resourceUri,
@@ -65,13 +61,9 @@ export function buildProtectedResourceMetadata(
   };
 }
 
-export function buildWwwAuthenticateHeader(
-  config: AuthorizationConfig
-): string {
+export function buildWwwAuthenticateHeader(config: AuthorizationConfig): string {
   if (!config.enabled) {
-    throw new Error(
-      'Cannot build WWW-Authenticate header when authorization is disabled'
-    );
+    throw new Error('Cannot build WWW-Authenticate header when authorization is disabled');
   }
   const resourceMetadataUrl = `${config.resourceUri}/.well-known/oauth-protected-resource`;
   return `Bearer realm="MCP Server", resource_metadata="${resourceMetadataUrl}"`;

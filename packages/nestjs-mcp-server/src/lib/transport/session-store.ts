@@ -27,14 +27,11 @@ const KEY_PREFIX = 'mcp:session:';
 export class CacheableSessionStore implements McpSessionStore {
   constructor(
     private readonly cache: Cacheable,
-    private readonly ttlMs: number = 60 * 60 * 1000
+    private readonly ttlMs: number = 60 * 60 * 1000,
   ) {}
 
   async get(id: string): Promise<McpSessionMetadata | null> {
-    const raw = (await this.cache.get(this.key(id))) as
-      | SerializedSession
-      | undefined
-      | null;
+    const raw = (await this.cache.get(this.key(id))) as SerializedSession | undefined | null;
     if (!raw) return null;
     return {
       id: raw.id,

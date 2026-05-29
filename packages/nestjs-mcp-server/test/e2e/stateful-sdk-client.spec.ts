@@ -5,10 +5,7 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 import { Injectable, Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ExpressAdapter, NestExpressApplication } from '@nestjs/platform-express';
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify';
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import * as express from 'express';
 import { z } from 'zod';
 
@@ -44,10 +41,7 @@ async function startFastify(): Promise<{
   app: NestFastifyApplication;
   port: number;
 }> {
-  const app = await NestFactory.create<NestFastifyApplication>(
-    StatefulModule,
-    new FastifyAdapter()
-  );
+  const app = await NestFactory.create<NestFastifyApplication>(StatefulModule, new FastifyAdapter());
   await app.listen(0);
   return {
     app,
@@ -59,10 +53,7 @@ async function startExpress(): Promise<{
   app: NestExpressApplication;
   port: number;
 }> {
-  const app = await NestFactory.create<NestExpressApplication>(
-    StatefulModule,
-    new ExpressAdapter(express())
-  );
+  const app = await NestFactory.create<NestExpressApplication>(StatefulModule, new ExpressAdapter(express()));
   await app.listen(0);
   return {
     app,

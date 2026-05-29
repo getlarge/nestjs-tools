@@ -71,8 +71,9 @@ function mountFastify(
     });
     const server = options.buildServer(transport.sessionId);
     await server.connect(transport);
+    const reqWithAuth = attachAuth(request.raw);
     await transport.handleRequest(
-      request.raw as Parameters<typeof transport.handleRequest>[0],
+      reqWithAuth as Parameters<typeof transport.handleRequest>[0],
       reply.raw,
       request.body
     );
@@ -95,8 +96,9 @@ function mountExpress(
       });
       const server = options.buildServer(transport.sessionId);
       await server.connect(transport);
+      const reqWithAuth = attachAuth(req);
       await transport.handleRequest(
-        req as Parameters<typeof transport.handleRequest>[0],
+        reqWithAuth as Parameters<typeof transport.handleRequest>[0],
         res,
         body
       );
@@ -122,6 +124,22 @@ async function readJsonBody(
   const raw = Buffer.concat(chunks).toString('utf8');
   if (!raw.trim()) return undefined;
   return JSON.parse(raw);
+}
+
+function attachAuth(
+  req: IncomingMessage & { auth?: { token: string; clientId: string; scopes: string[] } }
+): IncomingMessage & {
+  auth?: { token: string; clientId: string; scopes: string[] };
+} {
+  if (req.auth) return req;
+  const header = req.headers?.authorization;
+  const raw = Array.isArray(header) ? header[0] : header;
+  if (!raw || typeof raw !== 'string') return req;
+  if (!raw.toLowerCase().startsWith('bearer ')) return req;
+  const token = raw.slice(7).trim();
+  if (!token) return req;
+  req.auth = { token, clientId: '', scopes: [] };
+  return req;
 }
 
 function randomId(): string {

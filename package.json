@@ -108,7 +108,7 @@
     "uuid": "^9.0.1"
   },
   "workspaces": [
-    "packages/**"
+    "packages/*"
   ],
   "lint-staged": {
     "*.{ts,tsx}": [

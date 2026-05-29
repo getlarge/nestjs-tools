@@ -43,6 +43,12 @@ export default [
           // so we declare it as an ignored entry to keep the peer dep in
           // package.json without lint failures.
           ignoredDependencies: ['cacheable'],
+          // The examples/ subdirectory is excluded from the published package
+          // (publish reads dist/packages/nestjs-mcp-server) and from the nx
+          // workspace (packages/* glob, not packages/**). Its standalone demo
+          // projects bring their own package.json with their own deps, so
+          // ignore them when checking the library's dependency declarations.
+          ignoredFiles: ['{projectRoot}/examples/**/*'],
         },
       ],
     },

@@ -1,0 +1,29 @@
+{
+  "name": "@getlarge/nestjs-mcp-server-example-oauth2",
+  "version": "0.0.0",
+  "private": true,
+  "description": "nestjs-mcp-server example showing OAuth2 protection: McpAuthGuard, @McpScopes, JwksTokenValidator.",
+  "type": "commonjs",
+  "scripts": {
+    "start": "ts-node --transpile-only src/main.ts",
+    "client": "ts-node --transpile-only src/client.ts"
+  },
+  "dependencies": {
+    "@getlarge/nestjs-mcp-server": "*",
+    "@modelcontextprotocol/sdk": "^1",
+    "@nestjs/common": "^11",
+    "@nestjs/core": "^11",
+    "@nestjs/platform-fastify": "^11",
+    "cacheable": "^2",
+    "fast-jwt": "^6",
+    "fastify": "^5",
+    "reflect-metadata": "^0.2",
+    "rxjs": "7",
+    "zod": "^3.23"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "ts-node": "^10",
+    "typescript": "^5"
+  }
+}

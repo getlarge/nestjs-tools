@@ -33,9 +33,8 @@
     "test:debug": "jest --logHeapUsage --detectOpenHandles--detectLeaks",
     "test:log": "node --expose-gc -r tsconfig-paths/register -r ts-node/register ./node_modules/.bin/jest -w=1 --logHeapUsage --detectOpenHandles",
     "test:inspect": "node --inspect-brk --expose-gc -r tsconfig-paths/register -r ts-node/register ./node_modules/.bin/jest --runInBand --logHeapUsage",
-    "test:coverage": "jest --ci --coverage --logHeapUsage --forceExit && node coverage-transform.js",
+    "test:coverage": "jest --ci --coverage --logHeapUsage --forceExit",
     "scan:deps": "audit-ci --config audit-ci.json",
-    "scan:code": "sonarqube-verify",
     "prepare": "husky"
   },
   "private": true,

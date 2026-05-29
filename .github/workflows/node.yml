@@ -51,11 +51,6 @@ jobs:
     services:
       rabbitmq:
         image: rabbitmq:4-management-alpine
-        env:
-          # RabbitMQ 4 deprecates non-exclusive transient queues by default.
-          # The integration tests use { durable: false, autoDelete: true } queues
-          # (transient + non-exclusive), so re-enable the feature.
-          RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbit deprecated_features.permit.transient_nonexcl_queues true"
         options: >-
           --health-cmd "rabbitmq-diagnostics status"
           --health-interval 10s

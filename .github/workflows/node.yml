@@ -127,4 +127,3 @@ jobs:
           GC_PROJECT_ID: ${{ env.GC_PROJECT_ID }}
           PREFIX: ${{ matrix.node-version }}
         run: npx nx affected -t lint,test,build --parallel=2
-

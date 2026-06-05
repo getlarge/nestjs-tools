@@ -1,3 +1,9 @@
+## 0.2.1 (2026-05-29)
+
+### 🩹 Fixes
+
+- **nestjs-mcp-server:** republish from the built `dist/` artifact. `0.2.0` was accidentally published from the source root, so the tarball was missing the compiled JavaScript. `0.2.0` is now deprecated on npm; use `0.2.1` or later.
+
 ## 0.2.0 (2026-05-29)
 
 ### 🚀 Features

@@ -93,7 +93,7 @@
     "@google-cloud/storage": "^7.15.0",
     "@nestjs/common": "^11.0.6",
     "@nestjs/config": "^4.0.0",
-    "@nestjs/core": "^11.0.6",
+    "@nestjs/core": "^11.1.28",
     "@nestjs/microservices": "^11.0.6",
     "@nestjs/platform-fastify": "^11.0.6",
     "@typescript-eslint/rule-tester": "^8.22.0",

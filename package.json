@@ -43,7 +43,7 @@
     "@commitlint/config-conventional": "^17.1.0",
     "@eslint/eslintrc": "^2.1.1",
     "@eslint/js": "~8.57.0",
-    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "@nestjs/platform-express": "^11.1.24",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.6",

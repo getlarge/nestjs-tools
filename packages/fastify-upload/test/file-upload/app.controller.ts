@@ -55,6 +55,12 @@ export class AppController {
     return { success: !!files.length, fileCount: files.length };
   }
 
+  @Post('multiple-stream-error')
+  @UseInterceptors(FilesInterceptor('file', 10, { storage: new StreamStorage() }))
+  failAfterUploadingMultipleFiles(): never {
+    throw new Error('Upload handler failed');
+  }
+
   @Post('any')
   @UseInterceptors(AnyFilesInterceptor({ storage: new MemoryStorage() }))
   uploadAnyFiles(@UploadedFiles() files: MemoryStorageFile[]): {

@@ -49,5 +49,5 @@ export const handleMultipartMultipleFiles = async <
     throw error;
   }
 
-  return { body, files, remove: () => from(removeFiles(files, options.storage)) };
+  return { body, files, remove: (force?: boolean) => from(removeFiles(files, options.storage, force)) };
 };

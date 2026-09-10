@@ -1,6 +1,11 @@
 {
   "name": "@getlarge/nestjs-tools-fastify-upload",
   "version": "0.1.7",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/getlarge/nestjs-tools.git",
+    "directory": "packages/fastify-upload"
+  },
   "description": "Fastify Upload utilies for NestJS",
   "keywords": [
     "fastify",

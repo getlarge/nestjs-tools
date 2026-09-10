@@ -1,6 +1,11 @@
 {
   "name": "@getlarge/nestjs-tools-amqp-transport",
   "version": "0.7.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/getlarge/nestjs-tools.git",
+    "directory": "packages/amqp-transport"
+  },
   "description": "Custom Nest Transport classes for AMQP",
   "keywords": [
     "amqp",

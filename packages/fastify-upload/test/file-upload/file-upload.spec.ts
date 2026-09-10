@@ -3,9 +3,12 @@ import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify
 import { Test } from '@nestjs/testing';
 import * as FormData from 'form-data';
 import { createReadStream } from 'node:fs';
-import { readFile } from 'node:fs/promises';
+import { access, readFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { firstValueFrom, NEVER, of, Subject, throwError } from 'rxjs';
 
+import { cleanupStorageFiles } from '../../src/lib/multipart/file';
 import { AppController } from './app.controller';
 
 // eslint-disable-next-line max-lines-per-function
@@ -59,6 +62,26 @@ describe('Fastify File Upload', () => {
     //
     expect(response.statusCode).toBe(201);
     expect(response.json()).toEqual({ success: true, fileCount: 2 });
+  });
+
+  it('should force and await cleanup when the handler rejects uploaded files', async () => {
+    const firstFilename = `cleanup-${Date.now()}-${process.pid}-first.json`;
+    const secondFilename = `cleanup-${Date.now()}-${process.pid}-second.json`;
+    const form = new FormData();
+    const contents = await readFile(join(process.cwd(), 'package.json'));
+    form.append('file', contents, { filename: firstFilename });
+    form.append('file', contents, { filename: secondFilename });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/multiple-stream-error',
+      body: form.getBuffer(),
+      headers: form.getHeaders(),
+    });
+
+    expect(response.statusCode).toBe(500);
+    await expect(access(join(tmpdir(), firstFilename))).rejects.toMatchObject({ code: 'ENOENT' });
+    await expect(access(join(tmpdir(), secondFilename))).rejects.toMatchObject({ code: 'ENOENT' });
   });
 
   it('should upload any files', async () => {
@@ -267,5 +290,45 @@ describe('Fastify File Upload', () => {
     const data = response.json();
     expect(data.success).toBe(true);
     expect(data.body.tags).toEqual(['tag1', 'tag2', 'tag3']);
+  });
+
+  it('starts successful cleanup without delaying a streamed response', async () => {
+    const remove = jest.fn(() => NEVER);
+
+    await expect(firstValueFrom(of('response').pipe(cleanupStorageFiles(remove)))).resolves.toBe('response');
+    expect(remove).toHaveBeenCalledWith();
+  });
+
+  it('forces and awaits cleanup before propagating a handler error', async () => {
+    const handlerError = new Error('Handler failed');
+    const cleanup = new Subject<void>();
+    const remove = jest.fn((force?: boolean) => {
+      expect(force).toBe(true);
+      return cleanup;
+    });
+    let errorPropagated = false;
+
+    const result = firstValueFrom(throwError(() => handlerError).pipe(cleanupStorageFiles(remove))).catch((error) => {
+      errorPropagated = true;
+      throw error;
+    });
+    await Promise.resolve();
+
+    expect(errorPropagated).toBe(false);
+    expect(remove).toHaveBeenCalledTimes(1);
+    cleanup.complete();
+    await expect(result).rejects.toBe(handlerError);
+  });
+
+  it('preserves the handler error when forced cleanup also fails', async () => {
+    const handlerError = new Error('Handler failed');
+    const cleanupError = new Error('Cleanup failed');
+    const cleanupFailure = throwError(() => cleanupError);
+    const remove = jest.fn(() => cleanupFailure);
+
+    await expect(firstValueFrom(throwError(() => handlerError).pipe(cleanupStorageFiles(remove)))).rejects.toBe(
+      handlerError,
+    );
+    expect(remove).toHaveBeenCalledWith(true);
   });
 });

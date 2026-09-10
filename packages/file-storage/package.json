@@ -1,6 +1,11 @@
 {
   "name": "@getlarge/nestjs-tools-file-storage",
   "version": "1.4.3",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/getlarge/nestjs-tools.git",
+    "directory": "packages/file-storage"
+  },
   "description": "File Storage Juggler",
   "keywords": [
     "file",

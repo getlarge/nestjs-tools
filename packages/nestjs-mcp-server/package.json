@@ -1,6 +1,11 @@
 {
   "name": "@getlarge/nestjs-mcp-server",
   "version": "0.2.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/getlarge/nestjs-tools.git",
+    "directory": "packages/nestjs-mcp-server"
+  },
   "description": "Build Model Context Protocol (MCP) servers idiomatically with NestJS",
   "keywords": [
     "nestjs",

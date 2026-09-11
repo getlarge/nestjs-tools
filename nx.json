@@ -59,7 +59,8 @@
     "nx-release-publish": {
       "options": {
         "packageRoot": "dist/{projectRoot}",
-        "registry": "https://registry.npmjs.org/"
+        "registry": "https://registry.npmjs.org/",
+        "tag": "latest"
       },
       "dependsOn": ["lint", "build"]
     }

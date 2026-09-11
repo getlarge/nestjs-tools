@@ -71,7 +71,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          release_args=(--yes --skip-publish --verbose)
+          release_args=(--skip-publish --verbose)
           if [[ '${{ inputs.first_release }}' == 'true' ]]; then
             release_args+=(--first-release)
           fi
@@ -111,7 +111,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          release_args=(--yes --skip-publish --verbose)
+          release_args=(--skip-publish --verbose)
           publish_args=(--verbose)
           if [[ '${{ inputs.first_release }}' == 'true' ]]; then
             release_args+=(--first-release)

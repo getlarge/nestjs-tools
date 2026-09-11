@@ -91,7 +91,7 @@
     "@aws-sdk/lib-storage": "^3.738.0",
     "@fastify/multipart": "^10.1.0",
     "@google-cloud/storage": "^7.15.0",
-    "@nestjs/common": "^11.0.6",
+    "@nestjs/common": "^11.1.28",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.6",
     "@nestjs/microservices": "^11.0.6",

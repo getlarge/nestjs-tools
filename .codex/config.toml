@@ -1,3 +1,7 @@
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+approvals_reviewer = "auto_review"
+
 [mcp_servers.legreffier]
 url = "https://mcp.themolt.net/mcp"
 

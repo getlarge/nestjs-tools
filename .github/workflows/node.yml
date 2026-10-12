@@ -46,7 +46,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x, 22.x]
+        node-version: [22.x, 24.x]
 
     services:
       rabbitmq:
@@ -125,5 +125,5 @@ jobs:
           S3_REGION: ${{ env.S3_REGION }}
           GC_BUCKET: ${{ env.GC_BUCKET }}
           GC_PROJECT_ID: ${{ env.GC_PROJECT_ID }}
-          PREFIX: ${{ matrix.node-version }}
+          PREFIX: ${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.node-version }}
         run: npx nx affected -t lint,test,build --parallel=2

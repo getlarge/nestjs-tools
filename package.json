@@ -92,7 +92,7 @@
     "@fastify/multipart": "^10.1.0",
     "@google-cloud/storage": "^7.15.0",
     "@nestjs/common": "^11.0.6",
-    "@nestjs/config": "^4.0.0",
+    "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.6",
     "@nestjs/microservices": "^11.0.6",
     "@nestjs/platform-fastify": "^11.0.6",

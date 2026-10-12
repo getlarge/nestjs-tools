@@ -12,7 +12,7 @@
     "url": "https://github.com/getlarge/nestjs-tools/issues"
   },
   "engines": {
-    "node": ">=20",
+    "node": ">=22",
     "npm": ">=8"
   },
   "scripts": {

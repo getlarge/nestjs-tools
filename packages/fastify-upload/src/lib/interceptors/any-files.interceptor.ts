@@ -1,6 +1,7 @@
 import { CallHandler, ExecutionContext, mixin, NestInterceptor, Type } from '@nestjs/common';
-import { Observable, tap } from 'rxjs';
+import { Observable } from 'rxjs';
 
+import { cleanupStorageFiles } from '../multipart/file';
 import { handleMultipartAnyFiles } from '../multipart/handlers/any-files';
 import { type TransformedUploadOptions, transformUploadOptions, type UploadOptions } from '../multipart/options';
 import { getMultipartRequest } from '../multipart/request';
@@ -23,7 +24,7 @@ export function AnyFilesInterceptor<S extends Storage>(options?: UploadOptions<S
       req.body = body;
       req.storageFiles = files;
 
-      return next.handle().pipe(tap(remove));
+      return next.handle().pipe(cleanupStorageFiles(remove));
     }
   }
 

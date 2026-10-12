@@ -50,6 +50,6 @@ export const handleMultipartSingleFile = async <
   return {
     body,
     file,
-    remove: () => from(removeFiles(options.storage, file)),
+    remove: (force?: boolean) => from(removeFiles(options.storage, file, force)),
   };
 };

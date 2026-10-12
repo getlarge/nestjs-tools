@@ -1,6 +1,7 @@
 import { CallHandler, ExecutionContext, mixin, NestInterceptor, Type } from '@nestjs/common';
-import { Observable, tap } from 'rxjs';
+import { Observable } from 'rxjs';
 
+import { cleanupStorageFiles } from '../multipart/file';
 import {
   handleMultipartFileFields,
   UploadField,
@@ -33,7 +34,7 @@ export function FileFieldsInterceptor<S extends Storage>(
       req.body = body;
       req.storageFiles = files;
 
-      return next.handle().pipe(tap(remove));
+      return next.handle().pipe(cleanupStorageFiles(remove));
     }
   }
 

@@ -1,6 +1,11 @@
 {
   "name": "@getlarge/nestjs-tools-async-local-storage",
   "version": "0.3.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/getlarge/nestjs-tools.git",
+    "directory": "packages/async-local-storage"
+  },
   "description": "Node Async Hooks wrapper to store request context",
   "keywords": [
     "node",

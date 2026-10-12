@@ -1,3 +1,24 @@
+## 0.1.8 (2026-09-11)
+
+### 🚀 Features
+
+- **nestjs-mcp-server:** stateful StreamableHTTP with pluggable session store ([b6404df](https://github.com/getlarge/nestjs-tools/commit/b6404df))
+- **nestjs-mcp-server:** add McpAuthGuard and @McpScopes ([c735f1f](https://github.com/getlarge/nestjs-tools/commit/c735f1f))
+- **nestjs-mcp-server:** add transport adapter selection ([4d5a11b](https://github.com/getlarge/nestjs-tools/commit/4d5a11b))
+- **nestjs-mcp-server:** add McpToolRegistrar ([07baa3f](https://github.com/getlarge/nestjs-tools/commit/07baa3f))
+- **nestjs-mcp-server:** add @McpTool decorator ([996ce74](https://github.com/getlarge/nestjs-tools/commit/996ce74))
+- **nestjs-mcp-server:** scaffold package and bootstrap failing test ([186ebee](https://github.com/getlarge/nestjs-tools/commit/186ebee))
+
+### 🩹 Fixes
+
+- **release:** remove conflicting Nx release flags ([40655ac](https://github.com/getlarge/nestjs-tools/commit/40655ac))
+- **nestjs-tools-fastify-upload:** clean files when handlers fail ([7b9bab4](https://github.com/getlarge/nestjs-tools/commit/7b9bab4))
+- **nestjs-mcp-server:** regenerate package-lock to include the workspace ([1749a37](https://github.com/getlarge/nestjs-tools/commit/1749a37))
+
+### ❤️ Thank You
+
+- LeGreffier @legreffier[bot]
+
 ## 0.1.7 (2026-02-03)
 
 ### 🩹 Fixes

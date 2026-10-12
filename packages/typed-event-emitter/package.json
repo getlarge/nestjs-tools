@@ -1,6 +1,11 @@
 {
   "name": "@getlarge/typed-event-emitter",
   "version": "0.2.1",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/getlarge/nestjs-tools.git",
+    "directory": "packages/typed-event-emitter"
+  },
   "description": "Event emitter with generic event types",
   "keywords": [
     "eventemitter",

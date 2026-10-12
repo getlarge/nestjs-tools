@@ -37,5 +37,5 @@ export const handleMultipartAnyFiles = async <S extends Storage>(
     throw error;
   }
 
-  return { body, files, remove: () => from(removeFiles(files, options.storage)) };
+  return { body, files, remove: (force?: boolean) => from(removeFiles(files, options.storage, force)) };
 };

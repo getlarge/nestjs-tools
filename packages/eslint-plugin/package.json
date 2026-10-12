@@ -1,6 +1,11 @@
 {
   "name": "@getlarge/eslint-plugin-nestjs-tools",
   "version": "0.1.7",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/getlarge/nestjs-tools.git",
+    "directory": "packages/eslint-plugin"
+  },
   "description": "ESLint rules for NestJS applications",
   "keywords": [
     "eslint",

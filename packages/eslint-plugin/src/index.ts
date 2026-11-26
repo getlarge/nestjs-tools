@@ -1,4 +1,4 @@
-import type { Linter } from '@typescript-eslint/utils/dist/ts-eslint';
+import type { Linter } from '@typescript-eslint/utils/ts-eslint';
 
 import { rule as returnClassInstance, RULE_NAME as returnClassInstanceName } from './lib/return-class-instance';
 

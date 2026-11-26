@@ -1,7 +1,7 @@
 import FastifyMultipart from '@fastify/multipart';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { Test } from '@nestjs/testing';
-import * as FormData from 'form-data';
+import FormData from 'form-data';
 import { createReadStream } from 'node:fs';
 import { access, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';

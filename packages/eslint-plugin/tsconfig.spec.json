@@ -4,7 +4,6 @@
     "outDir": "./out-tsc/jest",
     "lib": ["es2021"],
     "types": ["jest", "node"],
-    "isolatedModules": true,
     "rootDir": ".",
     "customConditions": null
   },

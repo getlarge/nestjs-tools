@@ -7,8 +7,7 @@
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
-    "emitDecoratorMetadata": true,
-    "ignoreDeprecations": "6.0"
+    "emitDecoratorMetadata": true
   },
   "files": [],
   "include": [],

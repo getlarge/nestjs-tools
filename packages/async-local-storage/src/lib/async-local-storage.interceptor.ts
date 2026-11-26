@@ -2,7 +2,7 @@ import { CallHandler, ExecutionContext, Inject, Injectable, NestInterceptor } fr
 import { lastValueFrom, Observable, of } from 'rxjs';
 
 import { ASYNC_LOCAL_STORAGE_MODULE_OPTIONS } from './async-local-storage.constants';
-import { AsyncLocalStorageMode, AsyncLocalStorageModuleOptions } from './async-local-storage.interfaces';
+import { AsyncLocalStorageMode, type AsyncLocalStorageModuleOptions } from './async-local-storage.interfaces';
 import { AsyncLocalStorageService } from './async-local-storage.service';
 
 /*

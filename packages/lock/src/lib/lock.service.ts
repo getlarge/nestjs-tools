@@ -3,7 +3,7 @@ import IORedis, { Redis } from 'ioredis';
 import Redlock, { ExecutionResult, Lock, RedlockAbortSignal, ResourceLockedError } from 'redlock';
 
 import { LOCK_SERVICE_OPTIONS } from './constants';
-import { LockOptions, LockServiceOptions } from './types';
+import { LockOptions, type LockServiceOptions } from './types';
 
 @Injectable()
 export class LockService implements OnModuleInit, OnModuleDestroy {

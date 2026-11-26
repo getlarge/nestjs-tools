@@ -17,9 +17,8 @@
     "customConditions": ["@getlarge/source"],
     "noEmitOnError": true,
     "esModuleInterop": true,
-    "strict": false,
-    "noUncheckedSideEffectImports": false,
-    "types": ["*"]
+    "strict": true,
+    "isolatedModules": true
   },
   "exclude": ["node_modules", "tmp"]
 }

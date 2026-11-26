@@ -7,7 +7,7 @@ import {
   OutgoingResponse,
   RmqContext,
   RmqEvents,
-  RmqStatus,
+  type RmqStatus,
   Server,
   Transport,
 } from '@nestjs/microservices';
@@ -35,6 +35,13 @@ import {
 } from './amqp.constants';
 import { AmqpOptions } from './amqp.interfaces';
 import { AmqpRecordConsumerDeserializer, AmqpRecordSerializer } from './amqp-record.serializer';
+
+// @nestjs/microservices declares RmqStatus as an ambient const enum, whose members cannot be
+// read under isolatedModules. Keep its type for the public API and spell out the values.
+const AMQP_STATUS = {
+  CONNECTED: 'connected' as RmqStatus,
+  DISCONNECTED: 'disconnected' as RmqStatus,
+} as const;
 
 export enum AmqpWildcard {
   SINGLE_LEVEL = '*',
@@ -124,7 +131,7 @@ export class AmqpServer extends Server<RmqEvents, RmqStatus> implements CustomTr
       if (this.channel) {
         return;
       }
-      this._status$.next(RmqStatus.CONNECTED);
+      this._status$.next(AMQP_STATUS.CONNECTED);
       this.channel = server.createChannel({
         json: false,
         setup: (channel: Channel) => this.setupChannel(channel, callback),
@@ -145,7 +152,7 @@ export class AmqpServer extends Server<RmqEvents, RmqStatus> implements CustomTr
     const connectFailedEvent = 'connectFailed';
 
     this.server.on(connectFailedEvent, (error) => {
-      this._status$.next(RmqStatus.DISCONNECTED);
+      this._status$.next(AMQP_STATUS.DISCONNECTED);
       this.logger.error(CONNECT_FAILED_EVENT_MSG);
       if (error['err']) {
         this.logger.error(error['err']);
@@ -172,13 +179,13 @@ export class AmqpServer extends Server<RmqEvents, RmqStatus> implements CustomTr
 
   private registerConnectListener() {
     this.server?.on('connect', () => {
-      this._status$.next(RmqStatus.CONNECTED);
+      this._status$.next(AMQP_STATUS.CONNECTED);
     });
   }
 
   private registerDisconnectListener() {
     this.server?.on('disconnect', (err) => {
-      this._status$.next(RmqStatus.DISCONNECTED);
+      this._status$.next(AMQP_STATUS.DISCONNECTED);
       this.logger.error(DISCONNECTED_RMQ_MESSAGE);
       this.logger.error(err);
     });

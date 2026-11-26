@@ -108,6 +108,59 @@ describe('Lock Service - retries', () => {
   });
 });
 
+describe('Lock Service - extension and logging options', () => {
+  let lockService: LockService;
+  const logger = { debug: jest.fn(), info: jest.fn(), warn: jest.fn(), error: jest.fn() };
+
+  beforeAll(async () => {
+    lockService = new PatchedLockService({
+      redis,
+      lock: { retryCount: 0, automaticExtensionThreshold: 300, logger },
+    });
+    await lockService.onModuleInit();
+  });
+
+  afterAll(async () => {
+    await lockService.onModuleDestroy();
+  });
+
+  it('optimistic() - keeps the lock past its TTL using automaticExtensionThreshold and logs it', async () => {
+    await lockService.optimistic('extended', 1000, async (signal) => {
+      await new Promise((resolve) => setTimeout(resolve, 1300));
+      expect(signal.error).toBeUndefined();
+      expect(signal.aborted).toBe(false);
+      await expect(lockService.lock('extended', 1000)).rejects.toThrow(LockAcquisitionError);
+    });
+    expect(logger.info).toHaveBeenCalledWith('Atomic extension attempt', expect.objectContaining({ key: 'extended' }));
+    const lock = await lockService.lock('extended', 1000);
+    await lock.release();
+  });
+});
+
+describe('Lock Service - retry jitter', () => {
+  let lockService: LockService;
+
+  beforeAll(async () => {
+    lockService = new PatchedLockService({ redis, lock: { retryCount: 2, retryDelay: 100, retryJitter: 50 } });
+    await lockService.onModuleInit();
+  });
+
+  afterAll(async () => {
+    await lockService.onModuleDestroy();
+  });
+
+  it('lock() - waits retryDelay +/- retryJitter between attempts', async () => {
+    const first = await lockService.lock('jitter', 5000);
+    const start = Date.now();
+    const error = await lockService.lock('jitter', 5000).catch((e: unknown) => e);
+    const elapsed = Date.now() - start;
+    expect(error).toMatchObject({ name: 'LockAcquisitionError', attempts: 3 });
+    expect(elapsed).toBeGreaterThanOrEqual(100);
+    expect(elapsed).toBeLessThan(500);
+    await first.release();
+  });
+});
+
 describe('Lock Service - unlocking with id', () => {
   let lockService: LockService;
   let lockId: string;

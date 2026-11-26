@@ -49,8 +49,9 @@ export function getRedisClientConfig(configService: ConfigService): RedisOptions
     retryStrategy(times: number): number {
       return Math.min(times * 500, 2000);
     },
-    reconnectOnError(): boolean | 1 | 2 {
-      return 1;
+    // Reconnecting on every error reply (e.g. NOSCRIPT before EVAL fallback) would stall lock extensions.
+    reconnectOnError(error: Error): boolean | 1 | 2 {
+      return error.message.startsWith('READONLY') ? 2 : false;
     },
   };
   if (protocol.startsWith('rediss')) {

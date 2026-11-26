@@ -23,6 +23,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
   NX_CLOUD_DISTRIBUTED_EXECUTION: false
   NX_DISTRIBUTED_TASK_EXECUTION: false
   CI: true
@@ -40,6 +41,9 @@ permissions:
 jobs:
   setup-and-test:
     runs-on: ubuntu-latest
+    # Read-write NX_CLOUD_ACCESS_TOKEN lives in the `protected` environment (protected branches only);
+    # other runs fall back to the read-only repository secret. See https://nx.dev/docs/kb/access-tokens
+    environment: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && 'protected' || '' }}
     if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
     timeout-minutes: 10
 

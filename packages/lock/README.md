@@ -93,7 +93,15 @@ export class TasksService {
 | `release()`   | Resolves to `true` if released, `false` if it had expired or was taken |
 | `extend(ttl)` | Resolves to `true` if the expiry was reset, `false` if no longer held  |
 
-It rejects with `LockAcquisitionError` when the lock is held elsewhere after all retries.
+## Errors
+
+All errors raised by the library extend `LockError` (`key`, and the underlying library error in `cause`). Errors thrown by your own `optimistic()` routine are rethrown unchanged.
+
+| Error                  | When                                                                  |
+| ---------------------- | --------------------------------------------------------------------- |
+| `LockAcquisitionError` | The lock is held elsewhere after all retries (`attempts` is set)      |
+| `LockReleaseError`     | Redis failed during `release()` (an expired lock resolves to `false`) |
+| `LockExtensionError`   | Redis failed during `extend()` (a lost lock resolves to `false`)      |
 
 ## Migrating from 1.x
 
@@ -101,7 +109,7 @@ Version 2 replaces [redlock](https://www.npmjs.com/package/redlock) (unmaintaine
 
 - `lock()` and `get()` return an `AcquiredLock` instead of redlock's `Lock`. `value`, `release()` and `extend()` keep their names; `release()` and `extend()` now resolve to a boolean instead of redlock's `ExecutionResult`/`Lock`. `resources`, `expiration` and `attempts` are gone.
 - `unlock()` resolves to a boolean instead of an `ExecutionResult`.
-- Acquisition failures throw `LockAcquisitionError` (exported by this package) instead of redlock's `ExecutionError`.
+- Errors are this package's own classes (`LockError` and subclasses) instead of redlock's `ExecutionError` / `ResourceLockedError`; acquisition failures throw `LockAcquisitionError`.
 - `optimistic()` callbacks receive a `LockAbortSignal` (an `AbortSignal` with an optional `error`), equivalent to redlock's `RedlockAbortSignal`.
 - `lock` options are limited to `retryCount` and `retryDelay`. `driftFactor`, `retryJitter` and `automaticExtensionThreshold` were removed, and `retryCount: -1` (retry forever) is no longer supported.
 - The public `redlock` property and the unused `errorHandler()` method were removed.

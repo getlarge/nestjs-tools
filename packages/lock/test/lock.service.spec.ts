@@ -1,4 +1,4 @@
-import { LockAcquisitionError, LockService } from '../src';
+import { LockAcquisitionError, LockError, LockService } from '../src';
 import { getRedisClientConfig, mockConfigService } from './config.service.mock';
 import { PatchedLockService } from './patched-lock.service.mock';
 
@@ -25,7 +25,11 @@ describe('Lock Service', () => {
   });
 
   it('lock() - does not set lock if it already exists', async () => {
-    await expect(lockService.lock('testLock', 1000)).rejects.toThrow(LockAcquisitionError);
+    const error = await lockService.lock('testLock', 1000).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(LockAcquisitionError);
+    expect(error).toBeInstanceOf(LockError);
+    expect(error).toMatchObject({ name: 'LockAcquisitionError', key: 'testLock', attempts: 1 });
+    expect((error as LockError).cause).toBeInstanceOf(Error);
   });
 
   it('lock() - releases', async () => {
@@ -70,6 +74,15 @@ describe('Lock Service - optimistic', () => {
     });
     expect(result).toBe('done');
     const lock = await lockService.lock('optimistic', 1000);
+    await lock.release();
+  });
+
+  it('optimistic() - propagates routine errors unchanged and releases the lock', async () => {
+    const routineError = new Error('routine failed');
+    await expect(lockService.optimistic('optimistic-error', 1000, () => Promise.reject(routineError))).rejects.toBe(
+      routineError,
+    );
+    const lock = await lockService.lock('optimistic-error', 1000);
     await lock.release();
   });
 });

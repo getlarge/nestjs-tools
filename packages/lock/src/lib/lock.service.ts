@@ -3,6 +3,7 @@ import IORedis, { Redis } from 'ioredis';
 import { createLock, IoredisAdapter, type Lock, type LockHandle } from 'redlock-universal';
 
 import { LOCK_SERVICE_OPTIONS } from './constants';
+import { toLockError } from './errors';
 import type { AcquiredLock, LockAbortSignal, LockOptions, LockServiceOptions } from './types';
 
 @Injectable()
@@ -73,13 +74,13 @@ export class LockService implements OnModuleInit, OnModuleDestroy {
    */
   optimistic<T = unknown>(key: string, ttl: number, cb: (signal: LockAbortSignal) => Promise<T>): Promise<T> {
     this.checkInitialization();
-    return this.createLock(key, ttl).using<T>(cb);
+    return mapErrors(key, () => this.createLock(key, ttl).using<T>(cb));
   }
 
   async lock(key: string, ttl: number): Promise<AcquiredLock> {
     this.checkInitialization();
     const lock = this.createLock(key, ttl);
-    const handle = await lock.acquire();
+    const handle = await mapErrors(key, () => lock.acquire());
     return this.toAcquiredLock(lock, handle);
   }
 
@@ -121,8 +122,16 @@ export class LockService implements OnModuleInit, OnModuleDestroy {
       key: handle.key,
       value: handle.value,
       ttl: handle.ttl,
-      release: () => lock.release(handle),
-      extend: (ttl: number) => lock.extend(handle, ttl),
+      release: () => mapErrors(handle.key, () => lock.release(handle)),
+      extend: (ttl: number) => mapErrors(handle.key, () => lock.extend(handle, ttl)),
     };
+  }
+}
+
+async function mapErrors<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (error) {
+    throw toLockError(error, key);
   }
 }

@@ -1,19 +1,18 @@
 import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import IORedis, { Redis } from 'ioredis';
-import Redlock, { ExecutionResult, Lock, RedlockAbortSignal, ResourceLockedError } from 'redlock';
+import { createLock, IoredisAdapter, type Lock, type LockHandle } from 'redlock-universal';
 
 import { LOCK_SERVICE_OPTIONS } from './constants';
-import { LockOptions, type LockServiceOptions } from './types';
+import type { AcquiredLock, LockAbortSignal, LockOptions, LockServiceOptions } from './types';
 
 @Injectable()
 export class LockService implements OnModuleInit, OnModuleDestroy {
-  private readonly defaultLockOptions: LockOptions = {
+  private readonly defaultLockOptions: Required<LockOptions> = {
     retryCount: 1,
     retryDelay: 200,
-    // automaticExtensionThreshold: 500,
   };
   private redis!: Redis;
-  redlock!: Redlock;
+  private adapter!: IoredisAdapter;
 
   constructor(@Inject(LOCK_SERVICE_OPTIONS) readonly options: LockServiceOptions) {}
 
@@ -54,7 +53,7 @@ export class LockService implements OnModuleInit, OnModuleDestroy {
 
   get isInitialized(): boolean {
     const validRedisStatus = ['connected', 'ready'];
-    return !!this.redis && validRedisStatus.includes(this.redis.status) && !!this.redlock;
+    return !!this.redis && validRedisStatus.includes(this.redis.status) && !!this.adapter;
   }
 
   checkInitialization(): void {
@@ -63,49 +62,67 @@ export class LockService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  errorHandler(error: unknown) {
-    // Ignore cases where a resource is explicitly marked as locked on a client.
-    if (error instanceof ResourceLockedError) {
-      return;
-    }
-    // Log all other errors.
-    console.error(error);
-  }
-
   createConnection(): void {
     this.redis = new IORedis(this.options.redis);
-    this.redlock = new Redlock([this.redis], { ...this.defaultLockOptions, ...(this.options.lock || {}) });
-    // this.redlock.on('error', this.errorHandler);
+    this.adapter = new IoredisAdapter(this.redis);
   }
 
-  optimistic<T = unknown>(key: string, ttl: number, cb: (signal: RedlockAbortSignal) => Promise<T>): Promise<T> {
+  /**
+   * Runs `cb` while holding the lock on `key`, extending it automatically until `cb` settles.
+   * `signal` is aborted if an extension fails.
+   */
+  optimistic<T = unknown>(key: string, ttl: number, cb: (signal: LockAbortSignal) => Promise<T>): Promise<T> {
     this.checkInitialization();
-    return this.redlock.using<T>([key], ttl, cb);
+    return this.createLock(key, ttl).using<T>(cb);
   }
 
-  lock(key: string, ttl: number): Promise<Lock> {
+  async lock(key: string, ttl: number): Promise<AcquiredLock> {
     this.checkInitialization();
-    return this.redlock.acquire([key], ttl);
+    const lock = this.createLock(key, ttl);
+    const handle = await lock.acquire();
+    return this.toAcquiredLock(lock, handle);
   }
 
-  async get(key: string, lockId: string): Promise<Lock | null> {
+  async get(key: string, lockId: string): Promise<AcquiredLock | null> {
     this.checkInitialization();
     const value = await this.redis.get(key);
-    // provide fake data for attempts and expiration as this lock would be used for release only
-    return value !== lockId ? null : new Lock(this.redlock, [key], lockId, [], 100);
+    if (value !== lockId) {
+      return null;
+    }
+    // The original TTL is unknown here; the remaining one is only informational.
+    const ttl = Math.max(await this.redis.pttl(key), 1);
+    const lock = this.createLock(key, ttl);
+    const handle: LockHandle = { id: lockId, key, value: lockId, acquiredAt: Date.now(), ttl };
+    return this.toAcquiredLock(lock, handle);
   }
 
-  async unlock(key: string, lockId: string): Promise<ExecutionResult> {
+  async unlock(key: string, lockId: string): Promise<boolean> {
     this.checkInitialization();
     const lock = await this.get(key, lockId);
     if (!lock) {
       throw new Error(`Lock ${key} - ${lockId} not found.`);
     }
-    return this.redlock.release(lock);
+    return lock.release();
   }
 
-  close(): Promise<void> {
-    this.redlock?.removeAllListeners('error');
-    return this.redlock?.quit();
+  async close(): Promise<void> {
+    if (this.redis && this.redis.status !== 'end') {
+      await this.redis.quit();
+    }
+  }
+
+  private createLock(key: string, ttl: number): Lock {
+    const { retryCount, retryDelay } = { ...this.defaultLockOptions, ...this.options.lock };
+    return createLock({ adapter: this.adapter, key, ttl, retryAttempts: retryCount, retryDelay });
+  }
+
+  private toAcquiredLock(lock: Lock, handle: LockHandle): AcquiredLock {
+    return {
+      key: handle.key,
+      value: handle.value,
+      ttl: handle.ttl,
+      release: () => lock.release(handle),
+      extend: (ttl: number) => lock.extend(handle, ttl),
+    };
   }
 }

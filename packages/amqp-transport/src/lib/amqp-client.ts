@@ -21,10 +21,10 @@ import {
 import type { RmqUrl } from '@nestjs/microservices/external/rmq-url.interface';
 import { AmqpConnectionManager, Channel, ChannelWrapper, connect } from 'amqp-connection-manager';
 import type { Connection, ConsumeMessage, Options } from 'amqplib';
+import { randomUUID } from 'node:crypto';
 import type PromiseBreaker from 'promise-breaker';
 import { EmptyError, firstValueFrom, fromEvent, merge, Observable, ReplaySubject } from 'rxjs';
 import { first, map, retryWhen, scan, skip, switchMap } from 'rxjs/operators';
-import { v4 as uuid } from 'uuid';
 
 import { AMQP_DEFAULT_EXCHANGE_OPTIONS, AMQP_DEFAULT_EXCHANGE_TYPE } from './amqp.constants';
 import { AmqpOptions, RmqEvents, RmqStatus } from './amqp.interfaces';
@@ -365,7 +365,7 @@ export class AmqpClient extends ClientProxy<RmqEvents, string> {
 
   protected publish(message: ReadPacket, callback: (packet: WritePacket) => unknown): () => void {
     try {
-      const correlationId: string = uuid();
+      const correlationId: string = randomUUID();
 
       const listener = (event: { content: Buffer; options: Record<string, unknown> }) =>
         this.handleMessage(this.parseMessageContent(event.content), event.options, callback);

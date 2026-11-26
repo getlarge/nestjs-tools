@@ -27,8 +27,5 @@
     {
       "path": "./packages/typed-event-emitter"
     }
-  ],
-  "compilerOptions": {
-    "ignoreDeprecations": "6.0"
-  }
+  ]
 }

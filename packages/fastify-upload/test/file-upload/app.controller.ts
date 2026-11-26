@@ -4,14 +4,14 @@ import { join } from 'node:path';
 import {
   AnyFilesInterceptor,
   DiskStorage,
-  DiskStorageFile,
+  type DiskStorageFile,
   FileFieldsInterceptor,
   FileInterceptor,
   FilesInterceptor,
   MemoryStorage,
-  MemoryStorageFile,
+  type MemoryStorageFile,
   StreamStorage,
-  StreamStorageFile,
+  type StreamStorageFile,
   UploadedFile,
   UploadedFiles,
 } from '../../';

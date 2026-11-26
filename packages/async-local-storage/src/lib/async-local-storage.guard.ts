@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Inject, Injectable } from '@nestjs/common';
 
 import { ASYNC_LOCAL_STORAGE_MODULE_OPTIONS } from './async-local-storage.constants';
-import { AsyncLocalStorageModuleOptions } from './async-local-storage.interfaces';
+import type { AsyncLocalStorageModuleOptions } from './async-local-storage.interfaces';
 import { AsyncLocalStorageService } from './async-local-storage.service';
 
 /*

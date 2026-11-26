@@ -9,8 +9,7 @@
     "noFallthroughCasesInSwitch": true,
     "paths": {
       "redlock": ["../../node_modules/redlock/dist/index.d.ts"]
-    },
-    "ignoreDeprecations": "6.0"
+    }
   },
   "files": [],
   "include": [],

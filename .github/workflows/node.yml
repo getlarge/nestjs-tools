@@ -126,4 +126,4 @@ jobs:
           GC_BUCKET: ${{ env.GC_BUCKET }}
           GC_PROJECT_ID: ${{ env.GC_PROJECT_ID }}
           PREFIX: ${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.node-version }}
-        run: npx nx affected -t lint,test,build --parallel=2
+        run: npx nx affected -t lint,typecheck,test,build --parallel=2

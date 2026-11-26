@@ -12,7 +12,7 @@ const compat = new FlatCompat({
 export default [
   {
     // Example projects are standalone demos with relaxed rules (console.* etc.).
-    ignores: ['**/dist', '**/packages/*/examples/**'],
+    ignores: ['**/dist', '**/out-tsc', '**/packages/*/examples/**'],
   },
   { plugins: { '@nx': nxEslintPlugin } },
   {

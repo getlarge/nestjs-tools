@@ -39,11 +39,6 @@
     }
   },
   "targetDefaults": {
-    "@nx/js:tsc": {
-      "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": ["production", "^production"]
-    },
     "test": {
       "cache": true,
       "options": {
@@ -55,18 +50,38 @@
           "ci": true,
           "collectCoverage": true
         }
-      }
+      },
+      "dependsOn": ["^build"]
     },
     "nx-release-publish": {
       "options": {
-        "packageRoot": "dist/{projectRoot}",
+        "packageRoot": "{projectRoot}",
         "registry": "https://registry.npmjs.org/",
         "tag": "latest"
       },
       "dependsOn": ["lint", "build"]
+    },
+    "build": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"]
     }
   },
   "plugins": [
+    {
+      "plugin": "@nx/js/typescript",
+      "options": {
+        "typecheck": {
+          "targetName": "typecheck"
+        },
+        "build": {
+          "targetName": "build",
+          "configName": "tsconfig.lib.json",
+          "buildDepsName": "build-deps",
+          "watchDepsName": "watch-deps"
+        }
+      }
+    },
     {
       "plugin": "@nx/eslint/plugin",
       "options": {

@@ -1,6 +1,22 @@
 {
   "name": "@getlarge/nestjs-tools-fastify-upload",
   "version": "0.1.8",
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "@getlarge/source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "!**/*.tsbuildinfo"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/getlarge/nestjs-tools.git",
@@ -28,8 +44,5 @@
     "@fastify/busboy": "^2.0.0 || ^3.0.0",
     "@fastify/multipart": "^8 || ^9 || ^10",
     "rxjs": "7"
-  },
-  "type": "commonjs",
-  "main": "./src/index.js",
-  "typings": "./src/index.d.ts"
+  }
 }

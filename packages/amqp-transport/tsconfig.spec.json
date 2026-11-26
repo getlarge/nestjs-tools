@@ -2,8 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "emitDecoratorMetadata": true,
-    "outDir": "../../dist/out-tsc",
-    "module": "commonjs",
+    "outDir": "./out-tsc/jest",
     "types": ["jest", "node"]
   },
   "include": [
@@ -12,7 +11,11 @@
     "src/**/*.test.ts",
     "src/**/*.spec.ts",
     "src/**/*.d.ts",
-    "test/**/*.mock.ts",
-    "test/**/*.spec.ts"
+    "test/**/*.ts"
+  ],
+  "references": [
+    {
+      "path": "./tsconfig.lib.json"
+    }
   ]
 }

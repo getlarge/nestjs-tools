@@ -1,19 +1,31 @@
 {
-  "compilerOptions": {
-    "module": "commonjs",
-    "declaration": true,
-    "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "skipLibCheck": true,
-    "target": "ES2021",
-    "sourceMap": true,
-    "outDir": "./dist",
-    "baseUrl": "./packages",
-    "incremental": true,
-    "esModuleInterop": true,
-    "resolveJsonModule": true
-  },
-  "exclude": ["node_modules", "dist"]
+  "extends": "./tsconfig.base.json",
+  "compileOnSave": false,
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/amqp-transport"
+    },
+    {
+      "path": "./packages/async-local-storage"
+    },
+    {
+      "path": "./packages/cluster"
+    },
+    {
+      "path": "./packages/eslint-plugin"
+    },
+    {
+      "path": "./packages/fastify-upload"
+    },
+    {
+      "path": "./packages/file-storage"
+    },
+    {
+      "path": "./packages/lock"
+    },
+    {
+      "path": "./packages/typed-event-emitter"
+    }
+  ]
 }

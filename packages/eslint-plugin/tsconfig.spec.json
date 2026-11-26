@@ -4,7 +4,8 @@
     "outDir": "./out-tsc/jest",
     "lib": ["es2021"],
     "types": ["jest", "node"],
-    "isolatedModules": true
+    "isolatedModules": true,
+    "rootDir": "."
   },
   "include": ["jest.config.ts", "src/**/*.test.ts", "src/**/*.spec.ts", "src/**/*.d.ts"],
   "references": [

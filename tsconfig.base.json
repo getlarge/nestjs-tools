@@ -16,7 +16,10 @@
     "declarationMap": true,
     "customConditions": ["@getlarge/source"],
     "noEmitOnError": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "strict": false,
+    "noUncheckedSideEffectImports": false,
+    "types": ["*"]
   },
   "exclude": ["node_modules", "tmp"]
 }

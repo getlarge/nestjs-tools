@@ -1,17 +1,27 @@
 import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import IORedis, { Redis } from 'ioredis';
-import { createLock, IoredisAdapter, type Lock, type LockHandle } from 'redlock-universal';
+import { setTimeout as sleep } from 'node:timers/promises';
+import * as redlock from 'redlock-universal';
+import { createLock, executeWithAutoExtension, IoredisAdapter, type Lock, type LockHandle } from 'redlock-universal';
 
 import { LOCK_SERVICE_OPTIONS } from './constants';
-import { toLockError } from './errors';
+import { LockAcquisitionError, toLockError } from './errors';
 import type { AcquiredLock, LockAbortSignal, LockOptions, LockServiceOptions } from './types';
+
+type ResolvedLockOptions = Required<Pick<LockOptions, 'retryCount' | 'retryDelay' | 'retryJitter'>> & LockOptions;
+
+/** Mirrors redlock-universal's single-node extension safety buffer: `min(2000ms, 10% of TTL)`. */
+function extensionSafetyBuffer(ttl: number): number {
+  return Math.min(2000, Math.floor(ttl * 0.1));
+}
 
 @Injectable()
 export class LockService implements OnModuleInit, OnModuleDestroy {
-  private readonly defaultLockOptions: Required<LockOptions> = {
+  private readonly defaultLockOptions = {
     retryCount: 1,
     retryDelay: 200,
-  };
+    retryJitter: 100,
+  } satisfies LockOptions;
   private redis!: Redis;
   private adapter!: IoredisAdapter;
 
@@ -72,15 +82,29 @@ export class LockService implements OnModuleInit, OnModuleDestroy {
    * Runs `cb` while holding the lock on `key`, extending it automatically until `cb` settles.
    * `signal` is aborted if an extension fails.
    */
-  optimistic<T = unknown>(key: string, ttl: number, cb: (signal: LockAbortSignal) => Promise<T>): Promise<T> {
+  async optimistic<T = unknown>(key: string, ttl: number, cb: (signal: LockAbortSignal) => Promise<T>): Promise<T> {
     this.checkInitialization();
-    return mapErrors(key, () => this.createLock(key, ttl).using<T>(cb));
+    const lock = this.createLock(key, ttl);
+    const handle = await this.acquire(lock, key);
+    const { automaticExtensionThreshold, logger } = this.lockOptions;
+    const threshold =
+      automaticExtensionThreshold === undefined
+        ? undefined
+        : Math.min(Math.max(automaticExtensionThreshold, 2 * extensionSafetyBuffer(ttl)), ttl);
+    return executeWithAutoExtension<T>({
+      locks: [lock],
+      handles: [handle],
+      ttl,
+      routine: (signal) => cb(signal as LockAbortSignal),
+      ...(threshold !== undefined && { extensionThresholdRatio: threshold / ttl }),
+      ...(logger && { logger }),
+    });
   }
 
   async lock(key: string, ttl: number): Promise<AcquiredLock> {
     this.checkInitialization();
     const lock = this.createLock(key, ttl);
-    const handle = await mapErrors(key, () => lock.acquire());
+    const handle = await this.acquire(lock, key);
     return this.toAcquiredLock(lock, handle);
   }
 
@@ -112,9 +136,40 @@ export class LockService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
+  private get lockOptions(): ResolvedLockOptions {
+    return { ...this.defaultLockOptions, ...this.options.lock };
+  }
+
   private createLock(key: string, ttl: number): Lock {
-    const { retryCount, retryDelay } = { ...this.defaultLockOptions, ...this.options.lock };
-    return createLock({ adapter: this.adapter, key, ttl, retryAttempts: retryCount, retryDelay });
+    const { performance, logger, circuitBreaker } = this.lockOptions;
+    // Retries are driven by `acquire()` so that `retryJitter` applies.
+    return createLock({
+      adapter: this.adapter,
+      key,
+      ttl,
+      retryAttempts: 0,
+      ...(performance && { performance }),
+      ...(logger && { logger }),
+      ...(circuitBreaker !== undefined && { circuitBreaker }),
+    });
+  }
+
+  private async acquire(lock: Lock, key: string): Promise<LockHandle> {
+    const { retryCount, retryDelay, retryJitter } = this.lockOptions;
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await lock.acquire();
+      } catch (error) {
+        if (!(error instanceof redlock.LockAcquisitionError)) {
+          throw toLockError(error, key);
+        }
+        if (retryCount >= 0 && attempt > retryCount) {
+          throw new LockAcquisitionError(key, attempt, error);
+        }
+      }
+      const jitter = Math.floor((Math.random() * 2 - 1) * retryJitter);
+      await sleep(Math.max(retryDelay + jitter, 0));
+    }
   }
 
   private toAcquiredLock(lock: Lock, handle: LockHandle): AcquiredLock {

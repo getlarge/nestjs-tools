@@ -34,10 +34,17 @@ export class AppModule {}
 
 `LockModule.forRootAsync({ useFactory, inject, imports })` is also available.
 
-| Option            | Default | Description                                                         |
-| ----------------- | ------- | ------------------------------------------------------------------- |
-| `lock.retryCount` | `1`     | Retries after the first failed attempt (total attempts = count + 1) |
-| `lock.retryDelay` | `200`   | Delay between attempts, in milliseconds                             |
+| Option                             | Default      | Description                                                                                                                                                 |
+| ---------------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lock.retryCount`                  | `1`          | Retries after the first failed attempt (total attempts = count + 1); `-1` retries forever                                                                   |
+| `lock.retryDelay`                  | `200`        | Base delay between attempts, in milliseconds                                                                                                                |
+| `lock.retryJitter`                 | `100`        | Random +/- variation applied to `retryDelay`, in milliseconds                                                                                               |
+| `lock.automaticExtensionThreshold` | 20% of TTL   | In `optimistic()`, extend when this many milliseconds remain. Raised to at least `2 * min(2000, 10% of TTL)`, below which Redis refuses the extension       |
+| `lock.performance`                 | `'standard'` | `'lean'` lowers memory use but disables `logger` and `circuitBreaker`                                                                                       |
+| `lock.logger`                      | none         | `{ debug, info, warn, error }` logger (message first, then context), e.g. Winston or Console                                                                |
+| `lock.circuitBreaker`              | enabled      | `false` or `{ failureThreshold, resetTimeout }`. Its state lives for a single lock call (across its retries), since each call creates its own lock instance |
+
+The clock drift factor is fixed at `0.01` (redlock's former default) and cannot be configured: redlock-universal only exposes it for multi-node Redlock.
 
 ## Usage
 
@@ -111,5 +118,5 @@ Version 2 replaces [redlock](https://www.npmjs.com/package/redlock) (unmaintaine
 - `unlock()` resolves to a boolean instead of an `ExecutionResult`.
 - Errors are this package's own classes (`LockError` and subclasses) instead of redlock's `ExecutionError` / `ResourceLockedError`; acquisition failures throw `LockAcquisitionError`.
 - `optimistic()` callbacks receive a `LockAbortSignal` (an `AbortSignal` with an optional `error`), equivalent to redlock's `RedlockAbortSignal`.
-- `lock` options are limited to `retryCount` and `retryDelay`. `driftFactor`, `retryJitter` and `automaticExtensionThreshold` were removed, and `retryCount: -1` (retry forever) is no longer supported.
+- `lock` options keep `retryCount` (including `-1`), `retryDelay`, `retryJitter` and `automaticExtensionThreshold`, and add `performance`, `logger` and `circuitBreaker`. `driftFactor` was removed (fixed at `0.01`). `automaticExtensionThreshold` now defaults to 20% of the TTL instead of 500ms, and is raised to the minimum Redis accepts for an extension.
 - The public `redlock` property and the unused `errorHandler()` method were removed.

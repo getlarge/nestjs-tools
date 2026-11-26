@@ -50,7 +50,7 @@
     "@nx/eslint-plugin": "20.4.0",
     "@nx/jest": "20.4.0",
     "@nx/js": "20.4.0",
-    "@nx/nest": "20.4.0",
+    "@nx/nest": "24.0.7",
     "@swc-node/register": "1.9.2",
     "@swc/core": "1.5.7",
     "@swc/helpers": "0.5.13",

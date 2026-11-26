@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   displayName: 'nestjs-tools-fastify-upload',
   preset: '../../jest.preset.js',
   testEnvironment: 'node',

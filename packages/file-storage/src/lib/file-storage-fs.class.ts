@@ -122,7 +122,7 @@ export class FileStorageLocal implements FileStorage {
     request?: Request;
   }): Promise<string | Buffer>;
   downloadFile(args: { filePath: string; request?: Request }): Promise<Buffer>;
-  async downloadFile(args: FileStorageLocalDownloadFile) {
+  async downloadFile(args: FileStorageLocalDownloadFile): Promise<string | Buffer> {
     const { filePath, options, request } = args;
     const fileName = await this.transformFilePath(filePath, MethodTypes.READ, request, options);
     return readFile(fileName, options);

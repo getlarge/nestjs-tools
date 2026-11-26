@@ -16,14 +16,14 @@ on:
     paths-ignore:
       - 'README.md'
       - '**/package-lock.json'
-    branches:
-      - main
+    # No base-branch filter: stacked PRs (base != main) need the required check too.
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
+  NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
   NX_CLOUD_DISTRIBUTED_EXECUTION: false
   NX_DISTRIBUTED_TASK_EXECUTION: false
   CI: true
@@ -41,6 +41,9 @@ permissions:
 jobs:
   setup-and-test:
     runs-on: ubuntu-latest
+    # Read-write NX_CLOUD_ACCESS_TOKEN lives in the `protected` environment (protected branches only);
+    # other runs fall back to the read-only repository secret. See https://nx.dev/docs/kb/access-tokens
+    environment: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && 'protected' || '' }}
     if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
     timeout-minutes: 10
 
@@ -113,6 +116,9 @@ jobs:
       # - name: Scan dependencies with Audit CI
       #   run: npm run scan:deps
 
+      - name: Check Nx sync (tsconfig project references)
+        run: npx nx sync:check
+
       - run: npx nx format:check
 
       - name: Run checks
@@ -126,4 +132,4 @@ jobs:
           GC_BUCKET: ${{ env.GC_BUCKET }}
           GC_PROJECT_ID: ${{ env.GC_PROJECT_ID }}
           PREFIX: ${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.node-version }}
-        run: npx nx affected -t lint,test,build --parallel=2
+        run: npx nx affected -t lint,typecheck,test,build --parallel=2

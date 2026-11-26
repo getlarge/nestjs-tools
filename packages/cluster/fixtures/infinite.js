@@ -1,4 +1,4 @@
-const { ClusterService } = require('../../../dist/packages/cluster');
+const { ClusterService } = require('../dist');
 
 const clusterService = new ClusterService({ workers: 3 });
 const worker = () => {

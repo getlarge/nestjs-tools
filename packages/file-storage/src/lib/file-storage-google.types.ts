@@ -8,14 +8,10 @@ import type {
   GetFilesOptions,
   GetFilesResponse,
   MoveOptions,
+  PreconditionOptions,
   SaveOptions,
   Storage,
 } from '@google-cloud/storage';
-import type {
-  DeleteOptions,
-  ExistsOptions,
-  GetMetadataOptions,
-} from '@google-cloud/storage/build/cjs/src/nodejs-common/service-object';
 
 import type {
   FileStorageDeleteDir,
@@ -29,6 +25,11 @@ import type {
   FileStorageUploadFile,
   FileStorageUploadStream,
 } from './file-storage.types';
+
+// Mirrors of @google-cloud/storage nodejs-common option types, which its exports map does not expose.
+type DeleteOptions = { ignoreNotFound?: boolean; userProject?: string } & PreconditionOptions;
+type ExistsOptions = object;
+type GetMetadataOptions = object;
 
 // TODO: add authentication options
 export interface FileStorageGoogleSetup {

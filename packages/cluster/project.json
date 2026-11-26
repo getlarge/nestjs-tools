@@ -5,18 +5,6 @@
   "projectType": "library",
   "tags": [],
   "targets": {
-    "build": {
-      "executor": "@nx/js:tsc",
-      "outputs": ["{options.outputPath}"],
-      "options": {
-        "outputPath": "dist/packages/cluster",
-        "tsConfig": "packages/cluster/tsconfig.lib.json",
-        "packageJson": "packages/cluster/package.json",
-        "main": "packages/cluster/src/index.ts",
-        "assets": ["packages/cluster/*.md"],
-        "external": "none"
-      }
-    },
     "test": {
       "dependsOn": ["build"]
     }

@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   displayName: 'nestjs-tools-amqp-transport',
   preset: '../../jest.preset.js',
   testEnvironment: 'node',

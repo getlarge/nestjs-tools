@@ -116,6 +116,9 @@ jobs:
       # - name: Scan dependencies with Audit CI
       #   run: npm run scan:deps
 
+      - name: Check Nx sync (tsconfig project references)
+        run: npx nx sync:check
+
       - run: npx nx format:check
 
       - name: Run checks

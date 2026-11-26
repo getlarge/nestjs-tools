@@ -45,6 +45,15 @@ function getFixture(name: Fixtures) {
   return join(__dirname, '../fixtures', name);
 }
 
+// Kept at module level so test bodies stay within max-nested-callbacks.
+function killAfter(child: ChildProcessWithoutNullStreams, delay: number, signal?: NodeJS.Signals): void {
+  void setTimeout(delay).then(() => child.kill(signal));
+}
+
+function killGroupAfter(child: ChildProcessWithoutNullStreams, delay: number, signal: NodeJS.Signals): void {
+  void setTimeout(delay).then(() => (child.pid ? process.kill(-child.pid, signal) : undefined));
+}
+
 describe('ClusterService', function () {
   it('should throw an error when no worker function is provided', async () => {
     const expectedError = 'Start function required';
@@ -185,7 +194,7 @@ describe('ClusterService', function () {
     it('should start 3 workers repeatedly and keep workers running until killed externally, with no lifetime specified', async () => {
       const delay = 2000;
       const { child, done } = run(getFixture(Fixtures.infinite));
-      setTimeout(delay).then(() => child.kill());
+      killAfter(child, delay);
       const { out } = await done;
       const workers = out.match(/worker/g)?.length;
       expect(workers).toBeGreaterThanOrEqual(3);
@@ -221,7 +230,7 @@ describe('ClusterService', function () {
 
     it('should start 2 workers and allow them to shut down, when SIGTERM with 2 workers that exit gracefully', async () => {
       const { child, done } = run(getFixture(Fixtures.graceful));
-      setTimeout(delay).then(() => child.kill());
+      killAfter(child, delay);
       const { out } = await done;
       const workers = out.match(/worker/g)?.length;
       expect(workers).toBe(2);
@@ -231,7 +240,7 @@ describe('ClusterService', function () {
 
     it('should start 2 workers and notify them that they should exit, when SIGTERM with 2 workers that fail to exit', async () => {
       const { child, done } = run(getFixture(Fixtures.kill));
-      setTimeout(delay).then(() => child.kill());
+      killAfter(child, delay);
       const { out } = await done;
       const workers = out.match(/ah ha ha ha/g)?.length;
       expect(workers).toBe(2);
@@ -243,7 +252,7 @@ describe('ClusterService', function () {
 
     it('should start 2 workers and allow them to shut down when SIGINT on the process group (Ctrl+C) with 2 workers that exit gracefully', async () => {
       const { child, done } = run(getFixture(Fixtures.graceful));
-      setTimeout(delay).then(() => (child.pid ? process.kill(-child.pid, 'SIGINT') : void 0));
+      killGroupAfter(child, delay, 'SIGINT');
 
       const { out } = await done;
       const workers = out.match(/worker/g)?.length;
@@ -254,7 +263,7 @@ describe('ClusterService', function () {
 
     it('should start 2 workers and allow them to shut down when using custom shutdown signal with 2 workers that exit gracefully', async () => {
       const { child, done } = run(getFixture(Fixtures['graceful-sigusr2']));
-      setTimeout(delay).then(() => child.kill('SIGUSR2'));
+      killAfter(child, delay, 'SIGUSR2');
       const { out } = await done;
       const workers = out.match(/worker/g)?.length;
       expect(workers).toBe(2);

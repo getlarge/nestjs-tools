@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   displayName: 'typed-event-emitter',
   preset: '../../jest.preset.js',
   testEnvironment: 'node',

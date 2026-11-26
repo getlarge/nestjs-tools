@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   displayName: 'nestjs-tools-async-local-storage',
   preset: '../../jest.preset.js',
   testEnvironment: 'node',

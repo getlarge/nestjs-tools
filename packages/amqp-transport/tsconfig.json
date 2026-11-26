@@ -13,9 +13,6 @@
   "include": [],
   "references": [
     {
-      "path": "../typed-event-emitter"
-    },
-    {
       "path": "./tsconfig.lib.json"
     },
     {

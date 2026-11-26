@@ -132,6 +132,11 @@ export default [
       },
     })),
   {
+    // Nx converts Jest configs to CommonJS (`module.exports` / `require`).
+    files: ['**/jest.config.ts'],
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
+  },
+  {
     ignores: ['dist', 'build'],
   },
 ];

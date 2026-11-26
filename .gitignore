@@ -125,3 +125,7 @@ junit.xml
 .github/instructions/nx.instructions.md
 
 out-tsc
+
+.claude/worktrees
+.nx/polygraph
+.nx/self-healing

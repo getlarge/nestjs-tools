@@ -10,3 +10,4 @@ packages/**/CHANGELOG.md
 /.agents
 /.claude
 /.codex
+.nx/self-healing

@@ -24,7 +24,6 @@
   "typings": "./src/index.d.ts",
   "dependencies": {
     "@getlarge/typed-event-emitter": "0.2.1",
-    "uuid": "^9.0.1",
     "tslib": "^2.3.0"
   },
   "peerDependencies": {

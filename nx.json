@@ -96,5 +96,8 @@
     }
   ],
   "nxCloudId": "669026eb0383a63e35fa94b7",
-  "useLegacyCache": false
+  "useLegacyCache": false,
+  "sync": {
+    "applyChanges": true
+  }
 }

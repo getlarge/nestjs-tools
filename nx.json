@@ -27,10 +27,11 @@
     },
     "version": {
       "conventionalCommits": true,
-      "generatorOptions": {
+      "preVersionCommand": "nx run-many --target=build --all",
+      "preserveLocalDependencyProtocols": false,
+      "versionActionsOptions": {
         "skipLockFileUpdate": true
-      },
-      "preVersionCommand": "nx run-many --target=build --all"
+      }
     },
     "git": {
       "commit": true,

@@ -16,8 +16,7 @@ on:
     paths-ignore:
       - 'README.md'
       - '**/package-lock.json'
-    branches:
-      - main
+    # No base-branch filter: stacked PRs (base != main) need the required check too.
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

@@ -1,6 +1,8 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "bundler",
     "outDir": "./out-tsc/jest",
     "lib": ["es2021"],
     "types": ["jest", "node"],

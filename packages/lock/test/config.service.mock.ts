@@ -5,9 +5,9 @@ export const mockConfigService = {
   get: (key: string) => {
     switch (key) {
       case 'REDIS_URL':
-        return 'redis://localhost:6379/0';
+        return process.env['REDIS_URL'] || 'redis://localhost:6379/0';
       case 'REDIS_PORT':
-        return 6379;
+        return Number(process.env['REDIS_PORT'] || 6379);
       case 'REDIS_HOSTNAME':
         return 'localhost';
       case 'REDIS_DB':

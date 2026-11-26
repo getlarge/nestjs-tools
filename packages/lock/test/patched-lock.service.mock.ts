@@ -1,25 +1,22 @@
-import IORedisMock from 'ioredis-mock';
-import Redlock from 'redlock';
+import IORedis from 'ioredis';
+import { IoredisAdapter } from 'redlock-universal';
 
 import { LockService } from '../src';
-import { LockServiceOptions } from '../src/lib/types';
+import type { LockServiceOptions } from '../src/lib/types';
 
+/**
+ * Uses a real Redis (redlock-universal relies on Lua scripts that ioredis-mock cannot run) but delays
+ * the connection to exercise waitUntilInitialized.
+ */
 export class PatchedLockService extends LockService {
   constructor(options: LockServiceOptions) {
     super(options);
   }
 
   override createConnection() {
-    this['redis'] = new IORedisMock(this.options.redis);
-    this['redlock'] = new Redlock([this['redis']], {
-      ...super['defaultLockOptions'],
-      ...(this.options.lock || {}),
-    });
-    /**
-     * Emulate the delay of the connection to test waitUntilInitialized
-     */
-    setTimeout(() => {
-      this['redis'].status = 'ready';
-    }, 200);
+    const redis = new IORedis({ ...this.options.redis, lazyConnect: true });
+    this['redis'] = redis;
+    this['adapter'] = new IoredisAdapter(redis);
+    setTimeout(() => void redis.connect(), 200);
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@getlarge/nestjs-tools-amqp-transport",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "type": "commonjs",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -36,7 +36,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@getlarge/typed-event-emitter": "0.2.1",
+    "@getlarge/typed-event-emitter": "0.2.2",
     "tslib": "^2.3.0"
   },
   "peerDependencies": {

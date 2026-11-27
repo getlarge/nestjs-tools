@@ -1,3 +1,9 @@
+## 0.15.8 (2026-11-27)
+
+### 🧱 Updated Dependencies
+
+- Updated typed-event-emitter to 0.2.2
+
 ## 0.15.7 (2025-01-31)
 
 ### 🩹 Fixes

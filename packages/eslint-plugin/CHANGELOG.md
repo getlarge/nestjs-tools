@@ -1,3 +1,13 @@
+## 0.1.8 (2026-11-27)
+
+### 🩹 Fixes
+
+- **eslint-plugin-nestjs-tools:** import ts-eslint types from public subpath ([679ee24](https://github.com/getlarge/nestjs-tools/commit/679ee24))
+
+### ❤️ Thank You
+
+- LeGreffier @legreffier[bot]
+
 ## 0.1.7 (2026-05-07)
 
 ### 🩹 Fixes

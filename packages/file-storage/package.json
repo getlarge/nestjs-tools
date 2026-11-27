@@ -1,6 +1,6 @@
 {
   "name": "@getlarge/nestjs-tools-file-storage",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "type": "commonjs",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

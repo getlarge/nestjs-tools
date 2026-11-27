@@ -1,3 +1,14 @@
+## 1.4.4 (2026-11-27)
+
+### 🩹 Fixes
+
+- **nestjs-tools-file-storage:** annotate downloadFile implementation return type ([4ee085b](https://github.com/getlarge/nestjs-tools/commit/4ee085b))
+- **nestjs-tools-file-storage:** drop deep import of @google-cloud/storage internals ([fc613be](https://github.com/getlarge/nestjs-tools/commit/fc613be))
+
+### ❤️ Thank You
+
+- LeGreffier @legreffier[bot]
+
 ## 1.4.3 (2026-04-08)
 
 ### 🩹 Fixes

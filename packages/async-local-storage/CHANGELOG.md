@@ -1,3 +1,7 @@
+## 0.3.2 (2026-11-27)
+
+This was a version bump only for nestjs-tools-async-local-storage to align it with other projects, there were no code changes.
+
 ## 0.3.1 (2025-01-31)
 
 ### 🩹 Fixes

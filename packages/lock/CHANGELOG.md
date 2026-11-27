@@ -1,3 +1,28 @@
+# 2.0.0 (2026-11-27)
+
+### 🚀 Features
+
+- **nestjs-tools-lock:** support all lock options on redlock-universal ([3dbc5eb](https://github.com/getlarge/nestjs-tools/commit/3dbc5eb))
+- **nestjs-tools-lock:** expose own error classes instead of redlock-universal's ([c551b10](https://github.com/getlarge/nestjs-tools/commit/c551b10))
+- ⚠️  **nestjs-tools-lock:** replace redlock with redlock-universal ([d96edc6](https://github.com/getlarge/nestjs-tools/commit/d96edc6))
+
+### ⚠️  Breaking Changes
+
+- **nestjs-tools-lock:** replace redlock with redlock-universal  ([d96edc6](https://github.com/getlarge/nestjs-tools/commit/d96edc6))
+  lock() and get() return an AcquiredLock instead of
+  redlock's Lock; release(), extend() and unlock() resolve to booleans;
+  acquisition failures throw LockAcquisitionError instead of redlock's
+  ExecutionError; lock options are limited to retryCount and retryDelay
+  (retryCount -1 is no longer supported); the public redlock property and
+  errorHandler() were removed. See the package README for migration.
+  MoltNet-Diary: e2dd9f2a-2432-494d-ba64-c75c29b45982
+  Task-Group: lock-redlock-universal
+  Task-Completes: true
+
+### ❤️ Thank You
+
+- LeGreffier @legreffier[bot]
+
 ## 1.1.1 (2025-01-31)
 
 ### 🩹 Fixes

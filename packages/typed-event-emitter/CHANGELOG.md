@@ -1,3 +1,7 @@
+## 0.2.2 (2026-11-27)
+
+This was a version bump only for typed-event-emitter to align it with other projects, there were no code changes.
+
 ## 0.2.1 (2025-01-31)
 
 ### 🩹 Fixes

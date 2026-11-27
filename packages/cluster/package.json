@@ -1,6 +1,6 @@
 {
   "name": "@getlarge/nestjs-tools-cluster",
-  "version": "0.15.7",
+  "version": "0.15.8",
   "type": "commonjs",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -38,6 +38,6 @@
   },
   "dependencies": {
     "tslib": "^2.3.0",
-    "@getlarge/typed-event-emitter": "0.2.1"
+    "@getlarge/typed-event-emitter": "0.2.2"
   }
 }

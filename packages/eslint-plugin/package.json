@@ -1,6 +1,6 @@
 {
   "name": "@getlarge/eslint-plugin-nestjs-tools",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "type": "commonjs",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

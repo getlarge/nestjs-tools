@@ -1,3 +1,7 @@
+## 0.1.9 (2026-11-27)
+
+This was a version bump only for nestjs-tools-fastify-upload to align it with other projects, there were no code changes.
+
 ## 0.1.8 (2026-09-11)
 
 ### 🚀 Features

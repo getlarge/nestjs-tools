@@ -1,3 +1,17 @@
+## 0.7.2 (2026-11-27)
+
+### 🩹 Fixes
+
+- **nestjs-tools-amqp-transport:** drop uuid, bump in-range deps and align Nest 11.2.12 ([c64e9a0](https://github.com/getlarge/nestjs-tools/commit/c64e9a0))
+
+### 🧱 Updated Dependencies
+
+- Updated typed-event-emitter to 0.2.2
+
+### ❤️ Thank You
+
+- LeGreffier @legreffier[bot]
+
 ## 0.7.1 (2026-02-03)
 
 ### 🩹 Fixes

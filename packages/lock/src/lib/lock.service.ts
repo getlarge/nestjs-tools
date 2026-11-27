@@ -1,11 +1,10 @@
 import { Inject, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import IORedis, { Redis } from 'ioredis';
 import { setTimeout as sleep } from 'node:timers/promises';
-import * as redlock from 'redlock-universal';
 import { createLock, executeWithAutoExtension, IoredisAdapter, type Lock, type LockHandle } from 'redlock-universal';
 
 import { LOCK_SERVICE_OPTIONS } from './constants';
-import { LockAcquisitionError, toLockError } from './errors';
+import { isLockContention, LockAcquisitionError, toLockError } from './errors';
 import type { AcquiredLock, LockAbortSignal, LockOptions, LockServiceOptions } from './types';
 
 type ResolvedLockOptions = Required<Pick<LockOptions, 'retryCount' | 'retryDelay' | 'retryJitter'>> & LockOptions;
@@ -160,7 +159,8 @@ export class LockService implements OnModuleInit, OnModuleDestroy {
       try {
         return await lock.acquire();
       } catch (error) {
-        if (!(error instanceof redlock.LockAcquisitionError)) {
+        // Only contention is retried; Redis failures surface immediately as `LockError`.
+        if (!isLockContention(error)) {
           throw toLockError(error, key);
         }
         if (retryCount >= 0 && attempt > retryCount) {

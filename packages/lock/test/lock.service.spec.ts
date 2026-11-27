@@ -54,6 +54,34 @@ describe('Lock Service', () => {
   });
 });
 
+describe('Lock Service - Redis failures', () => {
+  let lockService: LockService;
+
+  beforeAll(async () => {
+    lockService = new PatchedLockService({ redis, lock: { retryCount: 3 } });
+    await lockService.onModuleInit();
+  });
+
+  afterAll(async () => {
+    await lockService.onModuleDestroy();
+  });
+
+  it('lock() - reports Redis failures as LockError, not contention, without retrying', async () => {
+    const adapter = lockService['adapter'] as { setNX: (...args: unknown[]) => Promise<unknown> };
+    const setNX = jest.spyOn(adapter, 'setNX').mockRejectedValue(new Error('connect ECONNREFUSED 127.0.0.1:6379'));
+    try {
+      const error = await lockService.lock('redis-down', 1000).catch((e: unknown) => e);
+      expect(error).toBeInstanceOf(LockError);
+      expect(error).not.toBeInstanceOf(LockAcquisitionError);
+      expect(error).toMatchObject({ key: 'redis-down', message: expect.stringContaining('ECONNREFUSED') });
+      expect((error as LockError).cause).toMatchObject({ message: expect.stringContaining('ECONNREFUSED') });
+      expect(setNX).toHaveBeenCalledTimes(1);
+    } finally {
+      setNX.mockRestore();
+    }
+  });
+});
+
 describe('Lock Service - optimistic', () => {
   let lockService: LockService;
 

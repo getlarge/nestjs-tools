@@ -13,6 +13,11 @@ on:
         required: false
         type: boolean
         default: false
+      publish_only:
+        description: Skip versioning and publish the versions already tagged on main (e.g. after a failed publish).
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   actions: read
@@ -118,6 +123,11 @@ jobs:
           if [[ '${{ inputs.first_release }}' == 'true' ]]; then
             release_args+=(--first-release)
             publish_args+=(--first-release)
+          fi
+
+          if [[ '${{ inputs.publish_only }}' == 'true' ]]; then
+            npx nx release publish "${publish_args[@]}"
+            exit 0
           fi
 
           before_release="$(git rev-parse HEAD)"

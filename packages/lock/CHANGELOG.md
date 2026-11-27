@@ -12,12 +12,10 @@
   lock() and get() return an AcquiredLock instead of
   redlock's Lock; release(), extend() and unlock() resolve to booleans;
   acquisition failures throw LockAcquisitionError instead of redlock's
-  ExecutionError; lock options are limited to retryCount and retryDelay
-  (retryCount -1 is no longer supported); the public redlock property and
-  errorHandler() were removed. See the package README for migration.
-  MoltNet-Diary: e2dd9f2a-2432-494d-ba64-c75c29b45982
-  Task-Group: lock-redlock-universal
-  Task-Completes: true
+  ExecutionError; the driftFactor option was removed (fixed at 0.01) and
+  automaticExtensionThreshold now defaults to 20% of the TTL; the public
+  redlock property and errorHandler() were removed. See the package README
+  for migration.
 
 ### ❤️ Thank You
 

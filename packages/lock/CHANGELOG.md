@@ -1,3 +1,13 @@
+## 2.0.1 (2026-11-27)
+
+### 🩹 Fixes
+
+- **nestjs-tools-lock:** report Redis failures as LockError, not contention ([14d4b43](https://github.com/getlarge/nestjs-tools/commit/14d4b43))
+
+### ❤️ Thank You
+
+- LeGreffier @legreffier[bot]
+
 # 2.0.0 (2026-11-27)
 
 ### 🚀 Features

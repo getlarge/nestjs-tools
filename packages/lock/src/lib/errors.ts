@@ -17,7 +17,10 @@ export class LockError extends Error {
   }
 }
 
-/** The lock is held elsewhere and could not be acquired within the configured retries. */
+/**
+ * The lock is held elsewhere and could not be acquired within the configured retries.
+ * Redis failures during acquisition are not contention: they throw a plain `LockError`.
+ */
 export class LockAcquisitionError extends LockError {
   constructor(
     key: string,
@@ -42,10 +45,28 @@ export class LockExtensionError extends LockError {
   }
 }
 
+// redlock-universal reports contention and Redis failures with the same LockAcquisitionError;
+// only its cause tells them apart ("Lock \"<key>\" is already held", or "Lock already held" in lean mode).
+const LOCK_HELD_MESSAGE = /^Lock (".*" is )?already held$/;
+
+/** True when `error` means the lock is held by someone else, as opposed to a Redis failure. */
+export function isLockContention(error: unknown): error is redlock.LockAcquisitionError {
+  if (!(error instanceof redlock.LockAcquisitionError)) {
+    return false;
+  }
+  const cause = (error as { cause?: unknown }).cause;
+  return cause instanceof Error && LOCK_HELD_MESSAGE.test(cause.message);
+}
+
 /** Maps redlock-universal errors to this package's errors; anything else is returned unchanged. */
 export function toLockError(error: unknown, key: string): unknown {
-  if (error instanceof redlock.LockAcquisitionError) {
+  if (isLockContention(error)) {
     return new LockAcquisitionError(error.key, error.attempts, error);
+  }
+  if (error instanceof redlock.LockAcquisitionError) {
+    const cause = (error as { cause?: unknown }).cause;
+    const reason = cause instanceof Error ? `: ${cause.message}` : '';
+    return new LockError(`Failed to acquire lock "${error.key}"${reason}`, error.key, cause ?? error);
   }
   if (error instanceof redlock.LockReleaseError) {
     return new LockReleaseError(error.key, error);

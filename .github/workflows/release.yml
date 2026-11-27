@@ -89,6 +89,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # Deploy key listed as a bypass actor in the main ruleset, so the release commit and tags can be pushed.
+          ssh-key: ${{ secrets.RELEASE_DEPLOY_KEY }}
 
       - uses: actions/setup-node@v4
         with:
